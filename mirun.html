@@ -61,10 +61,11 @@
   #gpsStatus.bad::before{background:var(--danger);}
 
   /* ---- NAV: lane tabs, underline style (not pill buttons) ---- */
-  nav{display:flex;padding:0 16px;border-bottom:1px solid var(--lane-line);}
-  nav button{flex:1;padding:13px 4px;background:transparent;border:none;color:var(--sub);
-    font-size:13px;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;
-    font-family:'Inter',sans-serif;}
+  nav{display:flex;padding:0 8px;border-bottom:1px solid var(--lane-line);overflow-x:auto;scrollbar-width:none;}
+  nav::-webkit-scrollbar{display:none;}
+  nav button{flex:1 0 auto;padding:13px 9px;background:transparent;border:none;color:var(--sub);
+    font-size:12.5px;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;
+    font-family:'Inter',sans-serif;white-space:nowrap;}
   nav button.active{color:var(--signal);border-bottom-color:var(--signal);}
 
   .screen{display:none;padding:0 16px 100px;flex:1;}
@@ -164,6 +165,39 @@
   .histItem .stats small{display:block;font-size:10px;color:var(--sub2);font-weight:500;margin-top:2px;letter-spacing:.2px;}
   .histItem .mini-route{margin-top:12px;}
   .histItem .mini-route canvas{width:100%;height:56px;display:block;border-radius:4px;background:var(--track2);}
+  .histItem .top{display:flex;justify-content:space-between;align-items:center;}
+  .tag{font-size:10px;color:var(--blue);border:1px solid var(--blue);border-radius:3px;padding:1px 5px;margin-left:6px;}
+  .linkBtn{background:none;border:none;color:var(--sub2);font-size:12px;font-family:'Inter',sans-serif;padding:4px 0 4px 10px;}
+
+  /* ---- RECORDS ---- */
+  .recRow{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--lane-line);}
+  .recRow:last-child{border-bottom:none;}
+  .recCat{width:58px;flex-shrink:0;font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;color:var(--signal);}
+  .recRow.none .recCat{color:var(--sub2);}
+  .recCol{flex:1;min-width:0;}
+  .recCol .v{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .recCol .l{font-size:9.5px;color:var(--sub2);margin-top:2px;letter-spacing:.3px;line-height:1.35;}
+  .newRec{padding:9px 0;border-bottom:1px solid var(--lane-line);font-size:14px;font-weight:600;color:var(--signal);}
+  .newRec:last-child{border-bottom:none;}
+  .newRec small{display:block;color:var(--sub);font-weight:500;font-size:11.5px;margin-top:2px;}
+
+  /* ---- BODY ---- */
+  .progRow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--lane-line);}
+  .progRow:last-child{border-bottom:none;}
+  .progRow .pn{width:86px;flex-shrink:0;font-size:13px;color:var(--sub);font-weight:500;}
+  .progRow .pv{flex:1;font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;}
+  .progRow .pv small{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--sub2);font-weight:500;display:block;}
+  .progRow .pd{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;text-align:right;min-width:74px;}
+  .pd.good{color:var(--signal);} .pd.bad{color:var(--amber);} .pd.same{color:var(--sub);}
+  #bodyChart{width:100%;height:170px;display:block;margin-top:10px;}
+  input[type=date]{width:100%;padding:12px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:4px;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;color-scheme:dark;}
+  .bodyItem{padding:12px 0;border-bottom:1px solid var(--lane-line);font-size:13px;}
+  .bodyItem:last-child{border-bottom:none;}
+  .bodyItem .top{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-weight:500;}
+  .bodyItem .vals{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px 16px;}
+  .bodyItem .vals span{font-family:'Oswald',sans-serif;font-size:15px;}
+  .bodyItem .vals small{font-family:'Inter',sans-serif;color:var(--sub2);font-size:10.5px;margin-right:4px;}
   .empty{text-align:center;color:var(--sub);padding:60px 20px;font-size:14px;line-height:1.7;}
 
   .totRow{display:flex;border:1px solid var(--lane-line);border-radius:4px;overflow:hidden;margin-top:16px;margin-bottom:8px;}
@@ -201,6 +235,8 @@
     <button class="tabBtn active" data-tab="run">Correr</button>
     <button class="tabBtn" data-tab="goal">Meta</button>
     <button class="tabBtn" data-tab="history">Historial</button>
+    <button class="tabBtn" data-tab="records">Récords</button>
+    <button class="tabBtn" data-tab="body">Cuerpo</button>
     <button class="tabBtn" data-tab="profile">Perfil</button>
   </nav>
 
@@ -291,14 +327,74 @@
     </div>
     <div id="histList"></div>
     <div class="panel">
+      <h3>Agregar carrera a mano</h3>
+      <div class="hint">Para carreras que hiciste sin la app (por ejemplo en la caminadora del gym). Cuentan para tus récords.</div>
+      <label>Fecha</label>
+      <input type="date" id="manDate">
+      <label>Kilómetros</label>
+      <input type="number" id="manKm" step="0.01" placeholder="5">
+      <div class="row2">
+        <div><label>Minutos</label><input type="number" id="manMin" step="1" placeholder="30"></div>
+        <div><label>Segundos</label><input type="number" id="manSec" step="1" placeholder="0"></div>
+      </div>
+      <div class="btnRow" style="margin-top:14px;"><button class="btn btn-ghost" id="btnManual">Agregar carrera</button></div>
+      <div class="hint" id="manMsg" style="margin-top:8px;"></div>
+    </div>
+    <div class="panel">
       <h3>Copia de seguridad</h3>
-      <div class="hint">Guarda tus carreras en un archivo. Si se borran los datos de Chrome o cambias de teléfono, las recuperas con ese archivo.</div>
+      <div class="hint">Guarda tus carreras y tus medidas en un archivo. Si se borran los datos de Chrome o cambias de teléfono, las recuperas con ese archivo.</div>
       <div class="btnRow" style="margin-top:12px;">
         <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
         <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
       </div>
       <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
       <div class="hint" id="backupMsg" style="margin-top:10px;color:var(--signal);"></div>
+    </div>
+  </div>
+
+  <!-- RECORDS SCREEN -->
+  <div class="screen" id="tab-records">
+    <div class="panel">
+      <h3>Tus mejores marcas</h3>
+      <div class="hint"><b>Mejor tiempo</b>: el tramo más rápido de esa distancia dentro de cualquier carrera tuya.<br>
+        <b>Mejor ritmo</b>: el mejor ritmo promedio de una carrera completa de esa distancia.</div>
+      <div id="recList" style="margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- BODY SCREEN -->
+  <div class="screen" id="tab-body">
+    <div class="panel">
+      <h3>Tu progreso</h3>
+      <div id="bodyProg"></div>
+    </div>
+    <div class="panel" id="bodyChartPanel">
+      <h3>Cómo vas con el tiempo</h3>
+      <select id="bodyChartSel"></select>
+      <canvas id="bodyChart"></canvas>
+    </div>
+    <div class="panel">
+      <h3>Nueva medición</h3>
+      <div class="hint">Llena solo lo que midas. Si ya hay una medición ese día, se actualiza.</div>
+      <label>Fecha</label>
+      <input type="date" id="bodyDate">
+      <div class="row2">
+        <div><label>Peso (kg)</label><input type="number" id="bPeso" step="0.1" placeholder="70"></div>
+        <div><label>Barriga (cm)</label><input type="number" id="bBarriga" step="0.1" placeholder="85"></div>
+      </div>
+      <div class="row2">
+        <div><label>Bíceps (cm)</label><input type="number" id="bBiceps" step="0.1" placeholder="32"></div>
+        <div><label>Muslo (cm)</label><input type="number" id="bMuslo" step="0.1" placeholder="55"></div>
+      </div>
+      <div class="row2">
+        <div><label>Pantorrilla (cm)</label><input type="number" id="bPantorrilla" step="0.1" placeholder="37"></div>
+        <div></div>
+      </div>
+      <div class="btnRow" style="margin-top:14px;"><button class="btn btn-start" id="btnSaveBody">Guardar medición</button></div>
+    </div>
+    <div class="panel">
+      <h3>Mediciones guardadas</h3>
+      <div id="bodyList"></div>
     </div>
   </div>
 
@@ -355,6 +451,11 @@
       <canvas id="sumMap"></canvas>
     </div>
 
+    <div class="panel" id="sumRecCard" style="display:none;">
+      <h3>¡Nuevos récords!</h3>
+      <div id="sumRecList"></div>
+    </div>
+
     <div class="panel" id="sumSplitsCard" style="display:none;">
       <h3>Splits por kilómetro</h3>
       <div id="sumSplitsList"></div>
@@ -379,6 +480,7 @@
   let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'m'});
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
+  let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
 
   // ---------- TABS ----------
   document.querySelectorAll('.tabBtn').forEach(btn=>{
@@ -387,9 +489,26 @@
       document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      btn.scrollIntoView({inline:'nearest', block:'nearest'});
       if(btn.dataset.tab==='history') renderHistory();
+      if(btn.dataset.tab==='records') renderRecords();
+      if(btn.dataset.tab==='body') renderBody();
     });
   });
+
+  // fecha de hoy en formato del campo de fecha (AAAA-MM-DD, hora local)
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function fmtShortDate(s){
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T12:00:00') : new Date(s);
+    return d.toLocaleDateString('es-ES', {day:'numeric', month:'short', year:'2-digit'});
+  }
+  function fmtPace(secPerKm){
+    const t = Math.round(secPerKm);
+    return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0');
+  }
 
   function showSaved(){
     const bar = document.getElementById('savedBar');
@@ -573,7 +692,8 @@
                       d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
         const hasRoute = h.path && h.path.length > 1;
         return `<div class="histItem">
-          <div class="top">${fecha}</div>
+          <div class="top"><span>${fecha}${h.manual ? '<span class="tag">a mano</span>' : ''}</span>
+            <button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></div>
           <div class="stats">
             <div><div class="num">${h.dist.toFixed(2)}</div><small>km</small></div>
             <div><div class="num">${fmtTime(h.seconds)}</div><small>tiempo</small></div>
@@ -596,6 +716,247 @@
     document.getElementById('totCal').textContent = Math.round(history.reduce((s,h)=>s+h.cal,0));
   }
   renderHistory();
+
+  // Borrar una carrera del historial (con confirmacion)
+  document.getElementById('histList').addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-del]');
+    if(!b) return;
+    const date = decodeURIComponent(b.dataset.del);
+    const h = history.find(x=>x.date === date);
+    if(!h) return;
+    if(!confirm('¿Borrar la carrera de ' + h.dist.toFixed(2) + ' km del ' + fmtShortDate(h.date) + '? No se puede deshacer.')) return;
+    history = history.filter(x=>x.date !== date);
+    LS.set('mirun_history', history);
+    renderHistory();
+  });
+
+  // ---------- CARRERA A MANO ----------
+  document.getElementById('manDate').value = todayStr();
+  document.getElementById('btnManual').addEventListener('click', ()=>{
+    const msg = document.getElementById('manMsg');
+    const dateStr = document.getElementById('manDate').value;
+    const km = parseFloat(document.getElementById('manKm').value);
+    const mins = parseInt(document.getElementById('manMin').value)||0;
+    const secs = parseInt(document.getElementById('manSec').value)||0;
+    const total = mins*60 + secs;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || !(km > 0) || !(total > 0)){
+      msg.textContent = 'Falta la fecha, los kilómetros o el tiempo.'; msg.style.color = 'var(--danger)'; return;
+    }
+    if(km > 300 || total/km < 120){ // menos de 2 min/km no es correr
+      msg.textContent = 'Revisa los datos: ese ritmo no parece real.'; msg.style.color = 'var(--danger)'; return;
+    }
+    const before = computeRecords(history);
+    // hora fija al mediodia para que no choque con otra carrera del mismo dia
+    let iso = new Date(dateStr + 'T12:00:00').toISOString();
+    while(history.some(h=>h.date === iso)) iso = new Date(new Date(iso).getTime() + 1000).toISOString();
+    history.push({date: iso, dist: km, seconds: total, pace: fmtPace(total/km),
+                  cal: calcCalories(km, total), path: [], splits: [], manual: true});
+    history.sort((a,b)=>a.date < b.date ? -1 : 1);
+    LS.set('mirun_history', history);
+    const news = newRecords(before, computeRecords(history));
+    msg.style.color = 'var(--signal)';
+    msg.textContent = 'Carrera agregada.' + (news.length ? ' ¡Nuevo récord en ' + news.map(n=>n.k + ' km').join(', ') + '!' : '');
+    document.getElementById('manKm').value = '';
+    document.getElementById('manMin').value = '';
+    document.getElementById('manSec').value = '';
+    renderHistory();
+  });
+
+  // ---------- RECORDS ----------
+  // Categorias de distancia. 21 y 42 = media maraton y maraton.
+  const REC_CATS = [1, 3, 5, 10, 21, 42];
+  const REC_TOL = 0.97; // el GPS suele marcar un poquito menos: 4.86 km cuenta como 5 km
+
+  // Tiempo del tramo mas rapido de k km dentro de una carrera (segundos), o null
+  function bestEffort(h, k){
+    if(!(h.dist >= k*REC_TOL)) return null;
+    const full = (h.splits||[]).filter(s=>!s.partial);
+    if(full.length >= k){
+      let best = Infinity;
+      for(let i=0; i+k<=full.length; i++){
+        let sum = 0;
+        for(let j=i; j<i+k; j++) sum += full[j].seconds;
+        if(sum < best) best = sum;
+      }
+      return best;
+    }
+    // sin tramos por km (carrera a mano o muy corta): se usa el ritmo promedio
+    return h.seconds * k / h.dist;
+  }
+
+  function computeRecords(list){
+    return REC_CATS.map((k,i)=>{
+      const next = REC_CATS[i+1] || Infinity;
+      let best = null;
+      list.forEach(h=>{
+        const s = bestEffort(h, k);
+        if(s && (!best || s < best.sec)) best = {sec: s, date: h.date};
+      });
+      // carreras "de esa distancia": desde k hasta antes de la siguiente categoria
+      const inCat = list.filter(h=>h.dist >= k*REC_TOL && h.dist < next*REC_TOL);
+      let bestPace = null;
+      inCat.forEach(h=>{
+        const p = h.seconds / h.dist;
+        if(!bestPace || p < bestPace.p) bestPace = {p, date: h.date};
+      });
+      return {k, best, bestPace, count: inCat.length};
+    });
+  }
+
+  function newRecords(before, after){
+    return after.filter((r,i)=>r.best && (!before[i].best || r.best.sec < before[i].best.sec - 0.5));
+  }
+
+  function renderRecords(){
+    const recs = computeRecords(history);
+    document.getElementById('recList').innerHTML = recs.map(r=>{
+      const name = r.k === 21 ? '21 km' : r.k === 42 ? '42 km' : r.k + ' km';
+      if(!r.best) return `<div class="recRow none"><div class="recCat">${name}</div>
+        <div class="recCol"><div class="l">Todavía no has corrido esta distancia</div></div></div>`;
+      return `<div class="recRow"><div class="recCat">${name}</div>
+        <div class="recCol"><div class="v">${fmtTime(r.best.sec)}</div>
+          <div class="l">MEJOR TIEMPO · ${fmtPace(r.best.sec / r.k)} /km<br>${fmtShortDate(r.best.date)}</div></div>
+        <div class="recCol"><div class="v">${r.bestPace ? fmtPace(r.bestPace.p) : '--'}</div>
+          <div class="l">MEJOR RITMO PROM.<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------- CUERPO (medidas) ----------
+  // good: hacia donde es "mejorar". -1 = bajar es bueno, 1 = subir es bueno.
+  const MEASURES = [
+    {k:'peso',        n:'Peso',        u:'kg', id:'bPeso',        good:-1},
+    {k:'barriga',     n:'Barriga',     u:'cm', id:'bBarriga',     good:-1},
+    {k:'biceps',      n:'Bíceps',      u:'cm', id:'bBiceps',      good: 1},
+    {k:'muslo',       n:'Muslo',       u:'cm', id:'bMuslo',       good: 1},
+    {k:'pantorrilla', n:'Pantorrilla', u:'cm', id:'bPantorrilla', good: 1}
+  ];
+  const fmt1 = v => (Math.round(v*10)/10).toLocaleString('es-ES');
+
+  document.getElementById('bodyDate').value = todayStr();
+  const chartSel = document.getElementById('bodyChartSel');
+  chartSel.innerHTML = MEASURES.map(m=>`<option value="${m.k}">${m.n} (${m.u})</option>`).join('');
+  chartSel.addEventListener('change', drawBodyChart);
+
+  function seriesOf(k){
+    return body.filter(e=>isFinite(e[k]) && e[k] > 0).sort((a,b)=>a.date < b.date ? -1 : 1);
+  }
+
+  function renderBody(){
+    const prog = document.getElementById('bodyProg');
+    const rows = MEASURES.map(m=>{
+      const s = seriesOf(m.k);
+      if(s.length === 0) return '';
+      const first = s[0], last = s[s.length-1];
+      const diff = last[m.k] - first[m.k];
+      let cls = 'same', txt = 'igual';
+      if(s.length > 1 && Math.abs(diff) >= 0.05){
+        cls = (diff * m.good > 0) ? 'good' : 'bad';
+        txt = (diff > 0 ? '▲ +' : '▼ −') + fmt1(Math.abs(diff)) + ' ' + m.u;
+      } else if(s.length === 1){ txt = 'inicio'; }
+      return `<div class="progRow"><div class="pn">${m.n}</div>
+        <div class="pv">${fmt1(last[m.k])} ${m.u}
+          <small>${s.length > 1 ? 'empezaste en ' + fmt1(first[m.k]) + ' ' + m.u + ' (' + fmtShortDate(first.date) + ')' : 'primera medición ' + fmtShortDate(first.date)}</small></div>
+        <div class="pd ${cls}">${txt}</div></div>`;
+    }).join('');
+    if(rows){
+      const lastDate = body.map(e=>e.date).sort().pop();
+      const days = Math.round((new Date(todayStr()+'T12:00:00') - new Date(lastDate+'T12:00:00')) / 86400000);
+      prog.innerHTML = rows + `<div class="hint" style="margin-top:10px;">Última medición: ${days===0 ? 'hoy' : 'hace ' + days + (days===1?' día':' días')}.
+        ${days >= 14 ? ' <b>Ya toca medirte otra vez.</b>' : ''}</div>`;
+    } else {
+      prog.innerHTML = '<div class="hint">Todavía no tienes medidas. Llena tu primera medición abajo y desde ahí la app te muestra cuánto has avanzado.</div>';
+    }
+    document.getElementById('bodyChartPanel').style.display = rows ? 'block' : 'none';
+
+    const list = document.getElementById('bodyList');
+    if(body.length === 0){
+      list.innerHTML = '<div class="hint">Sin mediciones todavía.</div>';
+    } else {
+      list.innerHTML = body.slice().sort((a,b)=>a.date < b.date ? 1 : -1).map(e=>`<div class="bodyItem">
+        <div class="top"><span>${fmtShortDate(e.date)}</span><button class="linkBtn" data-bdel="${e.date}">Borrar</button></div>
+        <div class="vals">${MEASURES.filter(m=>isFinite(e[m.k]) && e[m.k] > 0)
+          .map(m=>`<span><small>${m.n}</small>${fmt1(e[m.k])}</span>`).join('')}</div></div>`).join('');
+    }
+    if(rows) setTimeout(drawBodyChart, 30);
+  }
+
+  function drawBodyChart(){
+    const canvas = document.getElementById('bodyChart');
+    const m = MEASURES.find(x=>x.k === chartSel.value) || MEASURES[0];
+    const s = seriesOf(m.k);
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if(!w) return;
+    canvas.width = w*dpr; canvas.height = h*dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0,w,h);
+    ctx.font = '11px Inter, sans-serif';
+    if(s.length < 2){
+      ctx.fillStyle = '#8b9186';
+      ctx.fillText(s.length ? 'Con la próxima medición verás la línea de tu avance.' : 'Sin datos de ' + m.n.toLowerCase() + ' todavía.', 4, h/2);
+      return;
+    }
+    const padL = 40, padR = 10, padT = 12, padB = 24;
+    const vals = s.map(e=>e[m.k]);
+    let min = Math.min(...vals), max = Math.max(...vals);
+    if(max - min < 1){ min -= 0.5; max += 0.5; }
+    const t0 = new Date(s[0].date+'T12:00:00').getTime(), t1 = new Date(s[s.length-1].date+'T12:00:00').getTime();
+    const X = d => padL + (t1===t0 ? 0 : (new Date(d+'T12:00:00').getTime()-t0)/(t1-t0)) * (w-padL-padR);
+    const Y = v => padT + (1 - (v-min)/(max-min)) * (h-padT-padB);
+    // lineas guia
+    ctx.strokeStyle = '#262d24'; ctx.lineWidth = 1; ctx.fillStyle = '#5a6056';
+    [max, (max+min)/2, min].forEach(v=>{
+      ctx.beginPath(); ctx.moveTo(padL, Y(v)); ctx.lineTo(w-padR, Y(v)); ctx.stroke();
+      ctx.fillText(fmt1(v), 2, Y(v)+4);
+    });
+    ctx.fillText(fmtShortDate(s[0].date), padL, h-6);
+    const lastLbl = fmtShortDate(s[s.length-1].date);
+    ctx.fillText(lastLbl, w - padR - ctx.measureText(lastLbl).width, h-6);
+    // linea del avance
+    const diff = vals[vals.length-1] - vals[0];
+    const color = Math.abs(diff) < 0.05 ? '#8b9186' : (diff * m.good > 0 ? '#c4ff3d' : '#ff8a3d');
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.forEach((e,i)=>{ const x = X(e.date), y = Y(e[m.k]); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    ctx.stroke();
+    ctx.fillStyle = color;
+    s.forEach(e=>{ ctx.beginPath(); ctx.arc(X(e.date), Y(e[m.k]), 3.5, 0, Math.PI*2); ctx.fill(); });
+  }
+
+  document.getElementById('btnSaveBody').addEventListener('click', ()=>{
+    const date = document.getElementById('bodyDate').value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ alert('Elige la fecha de la medición.'); return; }
+    const entry = {date};
+    let any = false;
+    MEASURES.forEach(m=>{
+      const v = parseFloat(document.getElementById(m.id).value);
+      if(v > 0 && v < 400){ entry[m.k] = v; any = true; }
+    });
+    if(!any){ alert('Escribe al menos una medida.'); return; }
+    const i = body.findIndex(e=>e.date === date);
+    if(i >= 0) body[i] = Object.assign(body[i], entry); else body.push(entry);
+    LS.set('mirun_body', body);
+    // el peso tambien se usa para calcular las calorias
+    if(entry.peso){
+      profile.weight = entry.peso;
+      LS.set('mirun_profile', profile);
+      document.getElementById('profWeight').value = entry.peso;
+    }
+    MEASURES.forEach(m=>{ document.getElementById(m.id).value = ''; });
+    renderBody();
+    showSaved();
+  });
+
+  document.getElementById('bodyList').addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-bdel]');
+    if(!b) return;
+    if(!confirm('¿Borrar la medición del ' + fmtShortDate(b.dataset.bdel) + '?')) return;
+    body = body.filter(e=>e.date !== b.dataset.bdel);
+    LS.set('mirun_body', body);
+    renderBody();
+  });
 
   // ---------- RUN LOGIC ----------
   let watchId = null;
@@ -1026,6 +1387,7 @@
       splits.push({km: Math.round((totalDist-lastSplitDist)*100)/100, seconds: sec-lastSplitTime, partial:true});
     }
 
+    const recBefore = computeRecords(history);
     if(totalDist > 0.01){
       history.push({
         date: new Date().toISOString(),
@@ -1083,6 +1445,21 @@
       splitsCard.style.display = 'none';
     }
 
+    // ¿Rompio algun record con esta carrera?
+    const recCard = document.getElementById('sumRecCard');
+    const news = newRecords(recBefore, computeRecords(history));
+    if(news.length){
+      recCard.style.display = 'block';
+      document.getElementById('sumRecList').innerHTML = news.map(r=>{
+        const old = recBefore[REC_CATS.indexOf(r.k)].best;
+        return `<div class="newRec">${r.k} km en ${fmtTime(r.best.sec)}
+          <small>${old ? 'Antes: ' + fmtTime(old.sec) + ' · mejoraste ' + fmtTime(old.sec - r.best.sec) : 'Primera vez que corres esta distancia'}</small></div>`;
+      }).join('');
+      say('Nuevo récord en ' + news.map(r=>r.k + ' kilómetros').join(' y ') + '.');
+    } else {
+      recCard.style.display = 'none';
+    }
+
     document.getElementById('summaryOverlay').classList.add('show');
 
     totalDist = 0; elapsedBeforePause=0;
@@ -1104,8 +1481,8 @@
   function backupNote(t){ backupMsg.textContent = t; }
 
   document.getElementById('btnExport').addEventListener('click', ()=>{
-    const data = JSON.stringify({app:'MiRun', version:1, exported:new Date().toISOString(),
-                                 profile, goal, history});
+    const data = JSON.stringify({app:'MiRun', version:2, exported:new Date().toISOString(),
+                                 profile, goal, history, body});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
     const d = new Date();
@@ -1113,7 +1490,7 @@
     a.download = 'MiRun-copia-' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
-    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' carreras).');
+    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' carreras, ' + body.length + ' mediciones).');
   });
 
   const fileInput = document.getElementById('importFile');
@@ -1137,14 +1514,27 @@
             path: Array.isArray(h.path) ? h.path.filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon))
                     .map(p=>({lat:Number(p.lat), lon:Number(p.lon)})) : [],
             splits: Array.isArray(h.splits) ? h.splits.filter(s=>s&&isFinite(s.km)&&isFinite(s.seconds))
-                    .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : []
+                    .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
+            manual: !!h.manual
           }));
         const have = new Set(history.map(h=>h.date));
         const nuevas = clean.filter(h=>!have.has(h.date));
         history = history.concat(nuevas).sort((a,b)=>a.date < b.date ? -1 : 1);
         LS.set('mirun_history', history);
+        // medidas del cuerpo (copias nuevas): solo fechas validas y numeros
+        let nuevasMed = 0;
+        if(Array.isArray(data.body)){
+          const haveB = new Set(body.map(e=>e.date));
+          data.body.forEach(e=>{
+            if(!e || typeof e.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(e.date) || haveB.has(e.date)) return;
+            const c = {date: e.date};
+            MEASURES.forEach(m=>{ const v = Number(e[m.k]); if(v > 0 && v < 400) c[m.k] = v; });
+            body.push(c); haveB.add(e.date); nuevasMed++;
+          });
+          LS.set('mirun_body', body);
+        }
         renderHistory();
-        backupNote('Listo: se recuperaron ' + nuevas.length + ' carreras nuevas.');
+        backupNote('Listo: se recuperaron ' + nuevas.length + ' carreras y ' + nuevasMed + ' mediciones nuevas.');
       }catch(e){
         backupNote('Ese archivo no es una copia de MiRun.');
       }
