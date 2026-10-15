@@ -1,0 +1,26 @@
+{
+  "id": "./mirun.html",
+  "name": "MiRun",
+  "short_name": "MiRun",
+  "description": "App personal para correr: GPS, ritmo, calorías y metas",
+  "start_url": "./mirun.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0e0c",
+  "theme_color": "#0b0e0c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

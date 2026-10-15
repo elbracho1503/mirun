@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<!-- MiRun v4 - rediseno: identidad de pista de atletismo / cronometro deportivo -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MiRun</title>
+<!-- Seguridad: la pagina solo puede cargar su propio codigo (y las letras de Google Fonts).
+     No puede enviar datos a ningun servidor ni cargar scripts de afuera. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0b0e0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MiRun">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e0c;
+    --track:#141813;        /* lane surface */
+    --track2:#191e18;
+    --lane-line:#262d24;    /* lane divider lines */
+    --signal:#c4ff3d;       /* track timing-board green */
+    --signal-dim:#6b8a1f;
+    --signal-ink:#0e1406;   /* text on signal bg */
+    --amber:#ff8a3d;
+    --danger:#ff4d4d;
+    --blue:#5a9bd8;
+    --text:#f2f3ee;
+    --sub:#8b9186;
+    --sub2:#5a6056;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    height:100%;overflow-x:hidden;}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+  .num{font-family:'Oswald',sans-serif;font-variant-numeric:tabular-nums;}
+
+  /* ---- HEADER: lane-number plate ---- */
+  header{padding:22px 20px 14px;display:flex;align-items:baseline;justify-content:space-between;
+    border-bottom:1px solid var(--lane-line);}
+  header .brand{display:flex;align-items:baseline;gap:8px;}
+  header h1{font-family:'Oswald',sans-serif;font-size:26px;margin:0;font-weight:600;letter-spacing:.5px;}
+  header h1 span{color:var(--signal);}
+  #gpsStatus{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:6px;font-weight:500;}
+  #gpsStatus::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--sub2);flex-shrink:0;}
+  #gpsStatus.ok{color:var(--signal);}
+  #gpsStatus.ok::before{background:var(--signal);box-shadow:0 0 8px var(--signal);}
+  #gpsStatus.bad{color:var(--danger);}
+  #gpsStatus.bad::before{background:var(--danger);}
+
+  /* ---- NAV: lane tabs, underline style (not pill buttons) ---- */
+  nav{display:flex;padding:0 16px;border-bottom:1px solid var(--lane-line);}
+  nav button{flex:1;padding:13px 4px;background:transparent;border:none;color:var(--sub);
+    font-size:13px;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;
+    font-family:'Inter',sans-serif;}
+  nav button.active{color:var(--signal);border-bottom-color:var(--signal);}
+
+  .screen{display:none;padding:0 16px 100px;flex:1;}
+  .screen.active{display:block;}
+
+  .panel{background:var(--track);border:1px solid var(--lane-line);border-radius:4px;padding:18px;margin-top:16px;}
+  .panel h3{margin:0 0 12px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.2px;}
+
+  /* ---- RUN SCREEN: the clock is the hero ---- */
+  .clock{padding:28px 0 6px;border-bottom:1px solid var(--lane-line);}
+  .clock .val{font-family:'Oswald',sans-serif;font-size:76px;font-weight:600;line-height:1;
+    font-variant-numeric:tabular-nums;letter-spacing:.5px;color:var(--text);}
+  .clock .lbl{font-size:13px;color:var(--sub);margin-top:6px;font-weight:500;}
+
+  .lanes{margin-top:2px;}
+  .lane{display:flex;align-items:center;justify-content:space-between;padding:13px 2px;
+    border-bottom:1px solid var(--lane-line);}
+  .lane:last-child{border-bottom:none;}
+  .lane .lane-label{font-size:13px;color:var(--sub);font-weight:500;}
+  .lane .lane-val{font-family:'Oswald',sans-serif;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;}
+
+  .goalStrip{display:flex;gap:0;margin-top:4px;border:1px solid var(--lane-line);border-radius:4px;overflow:hidden;}
+  .goalStrip .g{flex:1;padding:11px 8px;text-align:center;border-right:1px solid var(--lane-line);}
+  .goalStrip .g:last-child{border-right:none;}
+  .goalStrip .g .v{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;}
+  .goalStrip .g .l{font-size:9.5px;color:var(--sub2);margin-top:2px;letter-spacing:.3px;}
+
+  #paceAlert{text-align:left;font-size:13px;font-weight:600;padding:11px 14px;margin:12px 0 0;display:none;
+    border-left:3px solid transparent;}
+  #paceAlert.fast{display:block;background:rgba(255,138,61,0.08);color:var(--amber);border-left-color:var(--amber);}
+  #paceAlert.slow{display:block;background:rgba(255,77,77,0.08);color:var(--danger);border-left-color:var(--danger);}
+  #paceAlert.good{display:block;background:rgba(196,255,61,0.08);color:var(--signal);border-left-color:var(--signal);}
+
+  #gpsHelp{margin-top:12px;padding:12px 14px;border-left:3px solid var(--danger);
+    background:rgba(255,77,77,0.08);font-size:13.5px;line-height:1.5;}
+  #gpsHelp .btn{margin-top:10px;width:100%;padding:12px;}
+  #resumeBox{margin-top:12px;padding:14px;border-left:3px solid var(--signal);
+    background:rgba(196,255,61,0.06);font-size:14px;font-weight:600;}
+  #resumeBox .btn{padding:13px;}
+  #runNote{margin-top:12px;padding:12px 14px;border-left:3px solid var(--amber);
+    background:rgba(255,138,61,0.08);font-size:13px;line-height:1.5;color:var(--text);}
+  .hint{font-size:12.5px;color:var(--sub);line-height:1.5;}
+
+  .btnRow{display:flex;gap:10px;margin-top:20px;}
+  .btn{flex:1;padding:18px;border-radius:4px;border:none;font-size:15px;font-weight:600;
+    font-family:'Inter',sans-serif;letter-spacing:.2px;transition:transform .08s;}
+  .btn-start{background:var(--signal);color:var(--signal-ink);}
+  .btn-pause{background:transparent;color:var(--amber);border:1px solid var(--amber);}
+  .btn-stop{background:transparent;color:var(--danger);border:1px solid var(--danger);}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--lane-line);}
+  .btn:active{transform:scale(0.97);}
+
+  /* ---- ROUTE (canvas) ---- */
+  .mapWrap{background:var(--track2);border:1px solid var(--lane-line);border-radius:4px;overflow:hidden;
+    margin-top:16px;position:relative;}
+  .mapWrap canvas{display:block;width:100%;height:150px;}
+  .mapWrap .mapLbl{position:absolute;top:10px;left:12px;font-size:10px;color:var(--sub);letter-spacing:.3px;font-weight:600;}
+
+  /* ---- SPLITS ---- */
+  .splitRow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--lane-line);}
+  .splitRow:last-child{border-bottom:none;}
+  .splitRow .splitnum{font-family:'Oswald',sans-serif;width:26px;font-size:13px;font-weight:600;color:var(--sub);flex-shrink:0;}
+  .splitRow.best .splitnum{color:var(--signal);}
+  .splitRow .bar{flex:1;height:3px;background:var(--lane-line);border-radius:2px;overflow:hidden;}
+  .splitRow .bar-fill{height:100%;background:var(--sub2);}
+  .splitRow.best .bar-fill{background:var(--signal);}
+  .splitRow .time{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;width:56px;text-align:right;}
+  .splitRow.best .time{color:var(--signal);}
+
+  /* ---- FORMS ---- */
+  label{display:block;font-size:12.5px;color:var(--sub);margin:12px 0 6px;font-weight:500;}
+  input[type=number]{width:100%;padding:13px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:4px;color:var(--text);font-size:16px;font-family:'Oswald',sans-serif;}
+  input[type=number]:focus{outline:none;border-color:var(--signal-dim);}
+  select{width:100%;padding:13px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:4px;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  /* ---- HISTORY ---- */
+  .histItem{padding:16px 2px;border-bottom:1px solid var(--lane-line);}
+  .histItem .top{font-size:12.5px;color:var(--sub);margin-bottom:10px;font-weight:500;}
+  .histItem .stats{display:flex;gap:22px;}
+  .histItem .stats .num{font-size:17px;font-weight:600;}
+  .histItem .stats small{display:block;font-size:10px;color:var(--sub2);font-weight:500;margin-top:2px;letter-spacing:.2px;}
+  .histItem .mini-route{margin-top:12px;}
+  .histItem .mini-route canvas{width:100%;height:56px;display:block;border-radius:4px;background:var(--track2);}
+  .empty{text-align:center;color:var(--sub);padding:60px 20px;font-size:14px;line-height:1.7;}
+
+  .totRow{display:flex;border:1px solid var(--lane-line);border-radius:4px;overflow:hidden;margin-top:16px;margin-bottom:8px;}
+  .totRow .t{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--lane-line);}
+  .totRow .t:last-child{border-right:none;}
+  .totRow .t .v{font-size:19px;font-weight:600;}
+  .totRow .t .l{font-size:9.5px;color:var(--sub2);margin-top:3px;letter-spacing:.3px;}
+
+  .savedbar{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--signal);
+    color:var(--signal-ink);text-align:center;padding:14px;font-weight:600;font-size:14px;transform:translateY(100%);
+    transition:transform .3s; z-index:50;}
+  .savedbar.show{transform:translateY(0);}
+
+  #summaryOverlay{position:fixed;inset:0;background:rgba(5,6,4,.92);display:none;align-items:center;justify-content:center;
+    z-index:100;padding:20px;}
+  #summaryOverlay.show{display:flex;}
+  #summaryOverlay .box{background:var(--track);border:1px solid var(--lane-line);border-radius:4px;padding:28px 24px;
+    max-width:400px;width:100%;max-height:90vh;overflow-y:auto;}
+  #summaryOverlay h2{color:var(--signal);margin:0 0 20px;font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;
+    letter-spacing:.3px;}
+  #summaryOverlay .panel{margin-top:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">
+      <h1>Mi<span>Run</span></h1>
+    </div>
+    <div id="gpsStatus">Buscando GPS…</div>
+  </header>
+
+  <nav>
+    <button class="tabBtn active" data-tab="run">Correr</button>
+    <button class="tabBtn" data-tab="goal">Meta</button>
+    <button class="tabBtn" data-tab="history">Historial</button>
+    <button class="tabBtn" data-tab="profile">Perfil</button>
+  </nav>
+
+  <!-- RUN SCREEN -->
+  <div class="screen active" id="tab-run">
+    <div class="clock">
+      <div class="val num" id="distVal">0.00</div>
+      <div class="lbl">Kilómetros recorridos</div>
+    </div>
+
+    <div id="gpsHelp" style="display:none;">
+      <div id="gpsHelpMsg"></div>
+      <button class="btn btn-ghost" id="btnGpsRetry">Reintentar GPS</button>
+    </div>
+
+    <div id="resumeBox" style="display:none;">
+      <div id="resumeInfo"></div>
+      <div class="btnRow" style="margin-top:10px;">
+        <button class="btn btn-start" id="btnResume">Seguir corriendo</button>
+      </div>
+      <div class="btnRow" style="margin-top:8px;">
+        <button class="btn btn-ghost" id="btnResumeSave">Guardarla así</button>
+        <button class="btn btn-ghost" id="btnResumeDiscard">Borrarla</button>
+      </div>
+    </div>
+
+    <div id="runNote" style="display:none;"></div>
+
+    <div id="paceAlert"></div>
+
+    <div class="lanes">
+      <div class="lane"><span class="lane-label">Tiempo</span><span class="lane-val num" id="timeVal">00:00</span></div>
+      <div class="lane"><span class="lane-label">Ritmo</span><span class="lane-val num" id="paceVal">--:--</span></div>
+      <div class="lane"><span class="lane-label">Calorías</span><span class="lane-val num" id="calVal">0</span></div>
+    </div>
+
+    <div class="goalStrip">
+      <div class="g"><div class="v num" id="goalDistLbl">--</div><div class="l">META DIST.</div></div>
+      <div class="g"><div class="v num" id="goalTimeLbl">--</div><div class="l">META TIEMPO</div></div>
+      <div class="g"><div class="v num" id="goalPaceLbl">--</div><div class="l">RITMO OBJ.</div></div>
+    </div>
+
+    <div class="mapWrap" id="liveMapWrap" style="display:none;">
+      <span class="mapLbl">Tu ruta</span>
+      <canvas id="liveMap"></canvas>
+    </div>
+
+    <div class="btnRow">
+      <button class="btn btn-start" id="btnStart">Iniciar carrera</button>
+    </div>
+    <div class="btnRow" id="activeBtns" style="display:none;">
+      <button class="btn btn-pause" id="btnPause">Pausar</button>
+      <button class="btn btn-stop" id="btnStop">Terminar</button>
+    </div>
+  </div>
+
+  <!-- GOAL SCREEN -->
+  <div class="screen" id="tab-goal">
+    <div class="panel">
+      <h3>Meta de distancia</h3>
+      <label>Kilómetros a correr</label>
+      <input type="number" id="goalDist" step="0.1" placeholder="5">
+    </div>
+    <div class="panel">
+      <h3>Meta de tiempo</h3>
+      <label>Minutos a correr</label>
+      <input type="number" id="goalTime" step="1" placeholder="30">
+    </div>
+    <div class="panel">
+      <h3>Ritmo objetivo (min/km)</h3>
+      <div class="row2">
+        <div><label>Minutos</label><input type="number" id="paceMin" step="1" placeholder="6"></div>
+        <div><label>Segundos</label><input type="number" id="paceSec" step="1" placeholder="0"></div>
+      </div>
+    </div>
+    <div class="btnRow"><button class="btn btn-start" id="btnSaveGoal">Guardar meta</button></div>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div class="screen" id="tab-history">
+    <div class="totRow">
+      <div class="t"><div class="v num" id="totRuns">0</div><div class="l">CARRERAS</div></div>
+      <div class="t"><div class="v num" id="totKm">0</div><div class="l">KM TOTAL</div></div>
+      <div class="t"><div class="v num" id="totCal">0</div><div class="l">KCAL TOTAL</div></div>
+    </div>
+    <div id="histList"></div>
+    <div class="panel">
+      <h3>Copia de seguridad</h3>
+      <div class="hint">Guarda tus carreras en un archivo. Si se borran los datos de Chrome o cambias de teléfono, las recuperas con ese archivo.</div>
+      <div class="btnRow" style="margin-top:12px;">
+        <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
+        <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+      <div class="hint" id="backupMsg" style="margin-top:10px;color:var(--signal);"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen" id="tab-profile">
+    <div class="panel">
+      <h3>Tus datos (para calorías)</h3>
+      <label>Peso (kg)</label>
+      <input type="number" id="profWeight" step="0.1" placeholder="70">
+      <label>Edad</label>
+      <input type="number" id="profAge" step="1" placeholder="30">
+      <label>Sexo</label>
+      <select id="profSex">
+        <option value="m">Masculino</option>
+        <option value="f">Femenino</option>
+      </select>
+    </div>
+    <div class="panel">
+      <h3>Aviso por voz</h3>
+      <div class="hint">En cada kilómetro te dice el tiempo de ese kilómetro y el tiempo total. Funciona sin internet.</div>
+      <label>Avisos</label>
+      <select id="profVoice">
+        <option value="1">Sí, avisarme</option>
+        <option value="0">No</option>
+      </select>
+    </div>
+    <div class="btnRow"><button class="btn btn-start" id="btnSaveProfile">Guardar perfil</button></div>
+  </div>
+
+</div>
+
+<div id="summaryOverlay">
+  <div class="box">
+    <h2>Carrera guardada</h2>
+    <div class="lanes" style="margin-bottom:4px;">
+      <div class="lane"><span class="lane-label">Distancia</span><span class="lane-val num" id="sumDist">0</span></div>
+      <div class="lane"><span class="lane-label">Tiempo</span><span class="lane-val num" id="sumTime">0</span></div>
+      <div class="lane"><span class="lane-label">Ritmo</span><span class="lane-val num" id="sumPace">0</span></div>
+      <div class="lane"><span class="lane-label">Calorías</span><span class="lane-val num" id="sumCal">0</span></div>
+    </div>
+
+    <div class="mapWrap" id="sumMapWrap" style="display:none;">
+      <span class="mapLbl">Tu ruta</span>
+      <canvas id="sumMap"></canvas>
+    </div>
+
+    <div class="panel" id="sumSplitsCard" style="display:none;">
+      <h3>Splits por kilómetro</h3>
+      <div id="sumSplitsList"></div>
+    </div>
+
+    <div class="btnRow"><button class="btn btn-start" id="btnCloseSummary">Listo</button></div>
+  </div>
+</div>
+
+<div class="savedbar" id="savedBar">Guardado</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- STORAGE ----------
+  const LS = {
+    get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+    set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  };
+
+  let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'m'});
+  let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
+  let history = LS.get('mirun_history', []);
+
+  // ---------- TABS ----------
+  document.querySelectorAll('.tabBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab==='history') renderHistory();
+    });
+  });
+
+  function showSaved(){
+    const bar = document.getElementById('savedBar');
+    bar.classList.add('show');
+    setTimeout(()=>bar.classList.remove('show'), 1500);
+  }
+
+  // ---------- PROFILE ----------
+  document.getElementById('profWeight').value = profile.weight;
+  document.getElementById('profAge').value = profile.age;
+  document.getElementById('profSex').value = profile.sex;
+  if(profile.voice === undefined) profile.voice = true; // voz activada por defecto
+  document.getElementById('profVoice').value = profile.voice ? '1' : '0';
+
+  document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
+    profile = {
+      weight: parseFloat(document.getElementById('profWeight').value)||70,
+      age: parseInt(document.getElementById('profAge').value)||30,
+      sex: document.getElementById('profSex').value,
+      voice: document.getElementById('profVoice').value === '1'
+    };
+    LS.set('mirun_profile', profile);
+    showSaved();
+  });
+
+  // ---------- GOAL ----------
+  function loadGoalForm(){
+    document.getElementById('goalDist').value = goal.dist || '';
+    document.getElementById('goalTime').value = goal.time || '';
+    document.getElementById('paceMin').value = goal.paceMin ?? '';
+    document.getElementById('paceSec').value = goal.paceSec ?? '';
+  }
+  loadGoalForm();
+
+  function refreshGoalLabels(){
+    document.getElementById('goalDistLbl').textContent = goal.dist ? goal.dist+' km' : '--';
+    document.getElementById('goalTimeLbl').textContent = goal.time ? goal.time+' min' : '--';
+    document.getElementById('goalPaceLbl').textContent = (goal.paceMin!=null && goal.paceMin!=='') ?
+      pad(goal.paceMin)+':'+pad(goal.paceSec||0) : '--';
+  }
+  refreshGoalLabels();
+
+  document.getElementById('btnSaveGoal').addEventListener('click', ()=>{
+    goal = {
+      dist: parseFloat(document.getElementById('goalDist').value)||null,
+      time: parseFloat(document.getElementById('goalTime').value)||null,
+      paceMin: document.getElementById('paceMin').value!=='' ? parseInt(document.getElementById('paceMin').value) : null,
+      paceSec: document.getElementById('paceSec').value!=='' ? parseInt(document.getElementById('paceSec').value) : null
+    };
+    LS.set('mirun_goal', goal);
+    refreshGoalLabels();
+    showSaved();
+    document.querySelector('.tabBtn[data-tab="run"]').click();
+  });
+
+  // ---------- ROUTE DRAWING (canvas, no internet needed) ----------
+  function drawRoute(canvas, points, color){
+    if(!canvas || !points || points.length < 2) {
+      if(canvas){
+        const ctx = canvas.getContext('2d');
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w * (window.devicePixelRatio||1);
+        canvas.height = h * (window.devicePixelRatio||1);
+        ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+      }
+      return;
+    }
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0,w,h);
+
+    const lats = points.map(p=>p.lat), lons = points.map(p=>p.lon);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+    const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+    const pad = 14;
+    const spanLat = (maxLat-minLat)||0.0001;
+    const spanLon = (maxLon-minLon)||0.0001;
+    const scaleX = (w-pad*2)/spanLon;
+    const scaleY = (h-pad*2)/spanLat;
+    const scale = Math.min(scaleX, scaleY);
+    const offX = (w - spanLon*scale)/2;
+    const offY = (h - spanLat*scale)/2;
+
+    function toXY(p){
+      const x = offX + (p.lon-minLon)*scale;
+      const y = h - (offY + (p.lat-minLat)*scale);
+      return [x,y];
+    }
+
+    ctx.beginPath();
+    points.forEach((p,i)=>{
+      const [x,y] = toXY(p);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle = color || '#c4ff3d';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    const [sx,sy] = toXY(points[0]);
+    ctx.beginPath(); ctx.arc(sx,sy,4.5,0,Math.PI*2); ctx.fillStyle='#f2f3ee'; ctx.fill();
+    const [ex,ey] = toXY(points[points.length-1]);
+    ctx.beginPath(); ctx.arc(ex,ey,4.5,0,Math.PI*2); ctx.fillStyle=color||'#c4ff3d'; ctx.fill();
+  }
+
+  // ---------- HISTORY ----------
+  function renderHistory(){
+    const list = document.getElementById('histList');
+    if(history.length===0){
+      list.innerHTML = '<div class="empty">Todavía no tienes carreras registradas.<br>Sal a correr.</div>';
+    } else {
+      list.innerHTML = history.slice().reverse().map((h,ri)=>{
+        const d = new Date(h.date);
+        const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
+                      d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+        const hasRoute = h.path && h.path.length > 1;
+        return `<div class="histItem">
+          <div class="top">${fecha}</div>
+          <div class="stats">
+            <div><div class="num">${h.dist.toFixed(2)}</div><small>km</small></div>
+            <div><div class="num">${fmtTime(h.seconds)}</div><small>tiempo</small></div>
+            <div><div class="num">${h.pace}</div><small>min/km</small></div>
+            <div><div class="num">${h.cal}</div><small>kcal</small></div>
+          </div>
+          ${hasRoute ? `<div class="mini-route"><canvas id="hist-route-${ri}"></canvas></div>` : ''}
+        </div>`;
+      }).join('');
+
+      history.slice().reverse().forEach((h,ri)=>{
+        if(h.path && h.path.length > 1){
+          const c = document.getElementById('hist-route-'+ri);
+          if(c) drawRoute(c, h.path, '#5a9bd8');
+        }
+      });
+    }
+    document.getElementById('totRuns').textContent = history.length;
+    document.getElementById('totKm').textContent = history.reduce((s,h)=>s+h.dist,0).toFixed(1);
+    document.getElementById('totCal').textContent = Math.round(history.reduce((s,h)=>s+h.cal,0));
+  }
+  renderHistory();
+
+  // ---------- RUN LOGIC ----------
+  let watchId = null;
+  let running = false, paused = false;
+  let startTime = 0, elapsedBeforePause = 0;
+  let totalDist = 0; // km
+  let lastPos = null;
+  let timerInterval = null;
+  let path = [];
+  let splits = []; // {km: 1, seconds: 320}
+  let lastSplitDist = 0;
+  let lastSplitTime = 0;
+  let lastFixTime = 0;   // ultima vez que llego una posicion buena
+  let badJumps = 0;      // saltos imposibles seguidos
+  let wakeLock = null;
+  let hiddenSince = 0;   // cuando se apago la pantalla / se cambio de app
+
+  const gpsStatus = document.getElementById('gpsStatus');
+  const liveMapWrap = document.getElementById('liveMapWrap');
+  const liveMapCanvas = document.getElementById('liveMap');
+
+  function haversine(lat1, lon1, lat2, lon2){
+    const R = 6371; // km
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function pad(n){ n = Math.floor(n); return n<10 ? '0'+n : ''+n; }
+  function fmtTime(totalSec){
+    const h = Math.floor(totalSec/3600);
+    const m = Math.floor((totalSec%3600)/60);
+    const s = Math.floor(totalSec%60);
+    return h>0 ? pad(h)+':'+pad(m)+':'+pad(s) : pad(m)+':'+pad(s);
+  }
+
+  function currentElapsedSec(){
+    if(!running) return elapsedBeforePause/1000;
+    if(paused) return elapsedBeforePause/1000;
+    return (elapsedBeforePause + (Date.now()-startTime))/1000;
+  }
+
+  function calcCalories(distKm, seconds){
+    const hrs = seconds/3600;
+    const paceMinPerKm = hrs>0 ? (seconds/60)/Math.max(distKm,0.001) : 0;
+    let met = 8;
+    if(paceMinPerKm > 0){
+      if(paceMinPerKm <= 4.3) met = 14.5;
+      else if(paceMinPerKm <= 5) met = 12.8;
+      else if(paceMinPerKm <= 5.6) met = 11.5;
+      else if(paceMinPerKm <= 6.2) met = 10.3;
+      else if(paceMinPerKm <= 7) met = 9.0;
+      else if(paceMinPerKm <= 8) met = 8.3;
+      else if(paceMinPerKm <= 9.6) met = 6.7;
+      else met = 6.0;
+    }
+    const sexFactor = profile.sex === 'f' ? 0.93 : 1.0;
+    const ageFactor = profile.age > 50 ? 0.95 : (profile.age > 35 ? 0.98 : 1.0);
+    const cal = met * profile.weight * hrs * sexFactor * ageFactor;
+    return Math.round(cal);
+  }
+
+  function checkSplit(sec){
+    const currentKm = Math.floor(totalDist);
+    if(currentKm > lastSplitDist){
+      const splitTime = sec - lastSplitTime;
+      splits.push({km: currentKm, seconds: splitTime});
+      lastSplitDist = currentKm;
+      lastSplitTime = sec;
+      try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+      const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
+      say('Kilómetro ' + currentKm + '. Ese kilómetro en ' + pm + ' minutos ' +
+          (ps ? 'y ' + ps + ' segundos' : '') + '. Tiempo total ' + spokenTime(sec) + '.');
+    }
+  }
+
+  // ---------- AVISO POR VOZ (funciona sin internet) ----------
+  function say(text){
+    if(!profile.voice || !('speechSynthesis' in window)) return;
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES'; u.rate = 1;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function spokenTime(sec){
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+    return (h ? h + (h===1?' hora ':' horas ') : '') + m + (m===1?' minuto':' minutos');
+  }
+
+  // ---------- CARRERA EN CURSO (se guarda por si se cierra la app) ----------
+  let lastSaveAt = 0;
+  function saveCurrentRun(force){
+    if(!running) return;
+    if(!force && Date.now() - lastSaveAt < 5000) return;
+    lastSaveAt = Date.now();
+    LS.set('mirun_current', {
+      startTime, elapsedBeforePause, paused, totalDist, path, splits,
+      lastSplitDist, lastSplitTime, savedAt: Date.now()
+    });
+  }
+  function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
+
+  function updateDisplay(){
+    const sec = currentElapsedSec();
+    document.getElementById('distVal').textContent = totalDist.toFixed(2);
+    document.getElementById('timeVal').textContent = fmtTime(sec);
+    const paceMinPerKm = totalDist > 0.02 ? sec/60/totalDist : 0;
+    if(paceMinPerKm > 0 && isFinite(paceMinPerKm)){
+      const pm = Math.floor(paceMinPerKm);
+      const ps = Math.round((paceMinPerKm-pm)*60);
+      document.getElementById('paceVal').textContent = pad(pm)+':'+pad(ps>=60?59:ps);
+    } else {
+      document.getElementById('paceVal').textContent = '--:--';
+    }
+    document.getElementById('calVal').textContent = calcCalories(totalDist, sec);
+    checkSplit(sec);
+
+    const alertEl = document.getElementById('paceAlert');
+    if(goal.paceMin!=null && paceMinPerKm>0){
+      const goalPace = goal.paceMin + (goal.paceSec||0)/60;
+      const diff = paceMinPerKm - goalPace;
+      if(diff > 0.33){
+        alertEl.className = 'slow';
+        alertEl.textContent = 'Vas más lento que tu ritmo objetivo';
+      } else if(diff < -0.33){
+        alertEl.className = 'fast';
+        alertEl.textContent = 'Vas más rápido que tu ritmo objetivo';
+      } else {
+        alertEl.className = 'good';
+        alertEl.textContent = 'Ritmo perfecto';
+      }
+    } else {
+      alertEl.className = '';
+      alertEl.textContent='';
+    }
+
+    if(path.length > 1){
+      liveMapWrap.style.display = 'block';
+      drawRoute(liveMapCanvas, path, '#c4ff3d');
+    }
+
+    if(running && !paused){
+      // Avisa si el GPS lleva rato sin dar posicion buena
+      if(watchId !== null && lastFixTime && Date.now() - lastFixTime > 20000){
+        gpsStatus.textContent = 'GPS perdido';
+        gpsStatus.className = 'bad';
+      }
+      saveCurrentRun(false);
+      if(goal.dist && totalDist >= goal.dist){
+        say('Meta de distancia cumplida.');
+        finishRun();
+        return;
+      }
+      if(goal.time && sec/60 >= goal.time){
+        say('Meta de tiempo cumplida.');
+        finishRun();
+        return;
+      }
+    }
+  }
+
+  const gpsHelp = document.getElementById('gpsHelp');
+  const gpsHelpMsg = document.getElementById('gpsHelpMsg');
+  let gpsGotFix = false;
+  let gpsLowAccuracy = false; // segundo intento: acepta ubicacion por red/wifi
+
+  function showGpsHelp(msg){
+    gpsHelpMsg.innerHTML = msg;
+    gpsHelp.style.display = 'block';
+  }
+  function hideGpsHelp(){ gpsHelp.style.display = 'none'; }
+
+  function onPosition(pos){
+    gpsGotFix = true;
+    hideGpsHelp();
+    const {latitude, longitude, accuracy} = pos.coords;
+    if(accuracy && accuracy > 30){
+      // Hay ubicacion pero todavia imprecisa (normal los primeros segundos o bajo techo)
+      gpsStatus.textContent = 'GPS débil (±' + Math.round(accuracy) + ' m)';
+      gpsStatus.className = '';
+      return;
+    }
+    gpsStatus.textContent = 'GPS activo (±' + Math.round(accuracy||0) + ' m)';
+    gpsStatus.className = 'ok';
+    const now = Date.now();
+    lastFixTime = now;
+    if(!running || paused || !lastPos){
+      // Sin correr (o en pausa) solo se mueve el punto de referencia: no suma distancia
+      lastPos = {lat:latitude, lon:longitude, t:now};
+      if(running && !paused && path.length === 0) path.push({lat:latitude, lon:longitude, t:now});
+      return;
+    }
+    const dMeters = haversine(lastPos.lat, lastPos.lon, latitude, longitude) * 1000;
+    const dtSec = Math.max((now - lastPos.t)/1000, 1);
+    // Filtro de "temblor": parado, el GPS salta unos metros. Solo cuenta si
+    // el movimiento supera la mitad del margen de error (minimo 3 m).
+    if(dMeters < Math.max(3, (accuracy||0)*0.5)) return;
+    // Filtro de saltos imposibles: mas de 10 m/s (36 km/h) no es correr.
+    if(dMeters/dtSec > 10){
+      badJumps++;
+      if(badJumps >= 3){ lastPos = {lat:latitude, lon:longitude, t:now}; badJumps = 0; }
+      return;
+    }
+    badJumps = 0;
+    totalDist += dMeters/1000;
+    path.push({lat:latitude, lon:longitude, t:now});
+    lastPos = {lat:latitude, lon:longitude, t:now};
+  }
+
+  // Detecta si la pagina esta metida dentro de otra (ej. el visor de Claude),
+  // donde el navegador bloquea el GPS sin preguntar.
+  function inFrame(){ try{ return window.self !== window.top; }catch(e){ return true; } }
+
+  function onGpsError(err){
+    if(err.code === 1){ // PERMISSION_DENIED
+      stopGps();
+      gpsStatus.textContent = 'GPS bloqueado';
+      gpsStatus.className = 'bad';
+      if(inFrame()){
+        showGpsHelp('Esta página está abierta <b>dentro de otra aplicación</b> y ahí el GPS no funciona.<br>Ábrela directamente en <b>Chrome</b> con su propio link.');
+      } else {
+        showGpsHelp('Chrome tiene el GPS <b>bloqueado para esta página</b>.<br>Toca el ícono que está a la izquierda de la dirección (arriba) → <b>Permisos</b> → <b>Ubicación</b> → <b>Permitir</b>. Luego toca “Reintentar GPS”.');
+      }
+      return;
+    }
+    if(err.code === 3 && !gpsGotFix){ // TIMEOUT: aun buscando satelites
+      gpsStatus.textContent = 'Buscando GPS…';
+      gpsStatus.className = '';
+      if(!gpsLowAccuracy){
+        // segundo intento con menos precision para no quedarse en "no disponible"
+        gpsLowAccuracy = true;
+        restartGps();
+      }
+      showGpsHelp('Todavía no hay señal de GPS. Sal al aire libre, revisa que la <b>Ubicación</b> del teléfono esté encendida y espera unos segundos.');
+      return;
+    }
+    if(err.code === 2){ // POSITION_UNAVAILABLE
+      gpsStatus.textContent = 'GPS sin señal';
+      gpsStatus.className = 'bad';
+      showGpsHelp('El teléfono no da ubicación. Baja la cortina de notificaciones y enciende <b>Ubicación</b>. Luego toca “Reintentar GPS”.');
+    }
+  }
+
+  function startGps(){
+    if(!window.isSecureContext){
+      gpsStatus.textContent = 'GPS bloqueado';
+      gpsStatus.className = 'bad';
+      showGpsHelp('El GPS solo funciona si el link empieza por <b>https://</b>.');
+      return;
+    }
+    if(!navigator.geolocation){
+      gpsStatus.textContent = 'Sin GPS';
+      gpsStatus.className = 'bad';
+      return;
+    }
+    gpsStatus.textContent = 'Buscando GPS…';
+    gpsStatus.className = '';
+    watchId = navigator.geolocation.watchPosition(onPosition, onGpsError, {
+      enableHighAccuracy: !gpsLowAccuracy, maximumAge: 2000, timeout: 20000
+    });
+  }
+  function restartGps(){ stopGps(); startGps(); }
+
+  document.getElementById('btnGpsRetry').addEventListener('click', ()=>{
+    gpsLowAccuracy = false; gpsGotFix = false;
+    hideGpsHelp();
+    restartGps();
+  });
+
+  // Si el permiso cambia (ej. lo activa en los ajustes de Chrome), reintenta solo
+  if(navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({name:'geolocation'}).then(st=>{
+      st.onchange = ()=>{ if(st.state !== 'denied'){ hideGpsHelp(); restartGps(); } };
+    }).catch(()=>{});
+  }
+
+  // ---------- PANTALLA ENCENDIDA ----------
+  // Chrome suelta este permiso cada vez que la pantalla se apaga o cambias de
+  // app, por eso se vuelve a pedir al regresar.
+  async function keepScreenOn(){
+    if(!('wakeLock' in navigator) || !running) return;
+    try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+  }
+  function releaseScreen(){
+    try{ if(wakeLock) wakeLock.release(); }catch(e){}
+    wakeLock = null;
+  }
+
+  const runNote = document.getElementById('runNote');
+  function showRunNote(msg){ runNote.innerHTML = msg; runNote.style.display = 'block'; }
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'hidden'){
+      hiddenSince = Date.now();
+      saveCurrentRun(true);
+      return;
+    }
+    // volvio a la app
+    if(watchId === null && gpsHelp.style.display === 'none') startGps();
+    if(running){
+      keepScreenOn();
+      const away = hiddenSince ? Math.round((Date.now() - hiddenSince)/1000) : 0;
+      if(!paused && away >= 15){
+        showRunNote('La pantalla estuvo apagada ' + (away >= 60 ? Math.round(away/60) + ' min' : away + ' s') +
+          '. En ese rato Chrome no deja usar el GPS, así que la distancia de ese tramo se calculó en línea recta. ' +
+          '<b>Para que sea exacta, deja la pantalla encendida mientras corres.</b>');
+      }
+      updateDisplay();
+    }
+    hiddenSince = 0;
+  });
+  function stopGps(){
+    if(watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
+  }
+
+  startGps();
+
+  function beginRun(state){
+    running = true;
+    paused = !!(state && state.paused);
+    startTime = state ? state.startTime : Date.now();
+    elapsedBeforePause = state ? state.elapsedBeforePause : 0;
+    totalDist = state ? state.totalDist : 0;
+    path = state ? (state.path || []) : [];
+    splits = state ? (state.splits || []) : [];
+    lastSplitDist = state ? state.lastSplitDist : 0;
+    lastSplitTime = state ? state.lastSplitTime : 0;
+    lastPos = null; badJumps = 0; lastFixTime = Date.now();
+    runNote.style.display = 'none';
+    liveMapWrap.style.display = 'none';
+    document.getElementById('btnStart').style.display='none';
+    document.getElementById('resumeBox').style.display='none';
+    document.getElementById('activeBtns').style.display='flex';
+    document.getElementById('btnPause').textContent = paused ? 'Reanudar' : 'Pausar';
+    clearInterval(timerInterval);
+    timerInterval = setInterval(updateDisplay, 1000);
+    keepScreenOn();
+    saveCurrentRun(true);
+    updateDisplay();
+  }
+
+  document.getElementById('btnStart').addEventListener('click', ()=>{
+    clearCurrentRun();
+    // "Despierta" la voz con el toque del usuario (algunos telefonos lo exigen)
+    if(profile.voice) say('Carrera iniciada.');
+    beginRun(null);
+  });
+
+  // Si quedo una carrera a medias (se cerro la app o se recargo), ofrecer seguirla
+  const pending = LS.get('mirun_current', null);
+  if(pending && pending.startTime && Date.now() - pending.savedAt < 6*3600*1000){
+    const box = document.getElementById('resumeBox');
+    document.getElementById('resumeInfo').textContent =
+      'Tienes una carrera sin terminar: ' + (pending.totalDist||0).toFixed(2) + ' km.';
+    box.style.display = 'block';
+    document.getElementById('btnResume').addEventListener('click', ()=>beginRun(pending));
+    document.getElementById('btnResumeSave').addEventListener('click', ()=>{
+      beginRun(pending); finishRun();
+    });
+    document.getElementById('btnResumeDiscard').addEventListener('click', ()=>{
+      clearCurrentRun(); box.style.display = 'none';
+    });
+  } else if(pending){
+    clearCurrentRun();
+  }
+
+  document.getElementById('btnPause').addEventListener('click', function(){
+    if(!paused){
+      paused = true;
+      elapsedBeforePause += Date.now()-startTime;
+      this.textContent = 'Reanudar';
+    } else {
+      paused = false;
+      startTime = Date.now();
+      lastFixTime = Date.now();
+      this.textContent = 'Pausar';
+    }
+    saveCurrentRun(true);
+  });
+
+  document.getElementById('btnStop').addEventListener('click', ()=>{
+    finishRun();
+  });
+
+  function finishRun(){
+    if(!running) return;
+    const sec = currentElapsedSec();
+    running = false;
+    clearInterval(timerInterval);
+    releaseScreen();
+    clearCurrentRun();
+    runNote.style.display = 'none';
+    const cal = calcCalories(totalDist, sec);
+    const paceMinPerKm = totalDist > 0.02 ? sec/60/totalDist : 0;
+    const paceTotalSec = Math.round(paceMinPerKm*60);
+    const paceStr = paceMinPerKm>0 ? pad(Math.floor(paceTotalSec/60))+':'+pad(paceTotalSec%60) : '--:--';
+
+    if(totalDist > lastSplitDist){
+      splits.push({km: Math.round((totalDist-lastSplitDist)*100)/100, seconds: sec-lastSplitTime, partial:true});
+    }
+
+    if(totalDist > 0.01){
+      history.push({
+        date: new Date().toISOString(),
+        dist: totalDist,
+        seconds: sec,
+        pace: paceStr,
+        cal: cal,
+        path: path.map(p=>({lat:p.lat, lon:p.lon})),
+        splits: splits
+      });
+      LS.set('mirun_history', history);
+    }
+
+    document.getElementById('btnStart').style.display='block';
+    document.getElementById('activeBtns').style.display='none';
+    document.getElementById('btnPause').textContent='Pausar';
+    paused = false;
+
+    document.getElementById('sumDist').textContent = totalDist.toFixed(2)+' km';
+    document.getElementById('sumTime').textContent = fmtTime(sec);
+    document.getElementById('sumPace').textContent = paceStr;
+    document.getElementById('sumCal').textContent = cal;
+
+    const sumMapWrap = document.getElementById('sumMapWrap');
+    if(path.length > 1){
+      sumMapWrap.style.display = 'block';
+      setTimeout(()=>drawRoute(document.getElementById('sumMap'), path, '#c4ff3d'), 50);
+    } else {
+      sumMapWrap.style.display = 'none';
+    }
+
+    const splitsCard = document.getElementById('sumSplitsCard');
+    const splitsList = document.getElementById('sumSplitsList');
+    if(splits.length > 0){
+      splitsCard.style.display = 'block';
+      const fastest = Math.min(...splits.filter(s=>!s.partial).map(s=>s.seconds));
+      const maxSec = Math.max(...splits.map(s=>s.seconds));
+      splitsList.innerHTML = splits.map(s=>{
+        const isBest = !s.partial && s.seconds === fastest;
+        const pct = Math.max(15, (s.seconds/maxSec)*100);
+        return `<div class="splitRow ${isBest?'best':''}">
+          <div class="splitnum">${s.partial ? s.km : s.km}</div>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%;"></div></div>
+          <div class="time num">${fmtTime(s.seconds)}</div>
+        </div>`;
+      }).join('');
+    } else {
+      splitsCard.style.display = 'none';
+    }
+
+    document.getElementById('summaryOverlay').classList.add('show');
+
+    totalDist = 0; elapsedBeforePause=0;
+    document.getElementById('distVal').textContent='0.00';
+    document.getElementById('timeVal').textContent='00:00';
+    document.getElementById('paceVal').textContent='--:--';
+    document.getElementById('calVal').textContent='0';
+    document.getElementById('paceAlert').className='';
+    document.getElementById('paceAlert').textContent='';
+  }
+
+  document.getElementById('btnCloseSummary').addEventListener('click', ()=>{
+    document.getElementById('summaryOverlay').classList.remove('show');
+    renderHistory();
+  });
+
+  // ---------- COPIA DE SEGURIDAD DEL HISTORIAL ----------
+  const backupMsg = document.getElementById('backupMsg');
+  function backupNote(t){ backupMsg.textContent = t; }
+
+  document.getElementById('btnExport').addEventListener('click', ()=>{
+    const data = JSON.stringify({app:'MiRun', version:1, exported:new Date().toISOString(),
+                                 profile, goal, history});
+    const blob = new Blob([data], {type:'application/json'});
+    const a = document.createElement('a');
+    const d = new Date();
+    a.href = URL.createObjectURL(blob);
+    a.download = 'MiRun-copia-' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' carreras).');
+  });
+
+  const fileInput = document.getElementById('importFile');
+  document.getElementById('btnImport').addEventListener('click', ()=>fileInput.click());
+  fileInput.addEventListener('change', ()=>{
+    const f = fileInput.files && fileInput.files[0];
+    if(!f) return;
+    if(f.size > 20*1024*1024){ backupNote('Ese archivo es demasiado grande.'); return; }
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const data = JSON.parse(r.result);
+        if(!data || data.app !== 'MiRun' || !Array.isArray(data.history)) throw 0;
+        // Solo se aceptan campos esperados y con el tipo correcto (nada de codigo)
+        const clean = data.history.filter(h=>h && typeof h.date==='string' && isFinite(h.dist) && isFinite(h.seconds))
+          .map(h=>({
+            date: String(h.date).slice(0,40),
+            dist: Number(h.dist), seconds: Number(h.seconds),
+            pace: String(h.pace||'--:--').replace(/[^0-9:\-]/g,'').slice(0,8),
+            cal: Math.round(Number(h.cal)||0),
+            path: Array.isArray(h.path) ? h.path.filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon))
+                    .map(p=>({lat:Number(p.lat), lon:Number(p.lon)})) : [],
+            splits: Array.isArray(h.splits) ? h.splits.filter(s=>s&&isFinite(s.km)&&isFinite(s.seconds))
+                    .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : []
+          }));
+        const have = new Set(history.map(h=>h.date));
+        const nuevas = clean.filter(h=>!have.has(h.date));
+        history = history.concat(nuevas).sort((a,b)=>a.date < b.date ? -1 : 1);
+        LS.set('mirun_history', history);
+        renderHistory();
+        backupNote('Listo: se recuperaron ' + nuevas.length + ' carreras nuevas.');
+      }catch(e){
+        backupNote('Ese archivo no es una copia de MiRun.');
+      }
+      fileInput.value = '';
+    };
+    r.readAsText(f);
+  });
+
+})();
+
+// Registrar Service Worker para que la app funcione sin internet
+// de forma garantizada despues de la primera carga.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
