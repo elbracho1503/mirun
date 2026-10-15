@@ -5,10 +5,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>MiRun</title>
-<!-- Seguridad: la pagina solo puede cargar su propio codigo (y las letras de Google Fonts).
-     No puede enviar datos a ningun servidor ni cargar scripts de afuera. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<meta name="referrer" content="no-referrer">
+<!-- Seguridad: la pagina solo puede cargar su propio codigo, las letras de Google Fonts
+     y las imagenes de calles de OpenStreetMap. No puede enviar datos a ningun servidor
+     ni cargar scripts de afuera. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<!-- OpenStreetMap exige saber desde que pagina se piden las calles (solo se envia el dominio) -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Leaflet (libreria de mapas) guardada junto a la app: no depende de otros servidores -->
+<link rel="stylesheet" href="lib/leaflet.css">
+<script src="lib/leaflet.js"></script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -102,6 +107,19 @@
   #runNote{margin-top:12px;padding:12px 14px;border-left:3px solid var(--amber);
     background:rgba(255,138,61,0.08);font-size:13px;line-height:1.5;color:var(--text);}
   .hint{font-size:12.5px;color:var(--sub);line-height:1.5;}
+
+  /* ---- MAPA CON CALLES ---- */
+  .street{height:240px;display:none;background:var(--track2);}
+  .street.leaflet-container{background:var(--track2);font-family:'Inter',sans-serif;}
+  /* calles en modo oscuro para que combine con la app (la linea de la ruta no se altera) */
+  .street .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9);}
+  .street .leaflet-control-attribution{background:rgba(11,14,12,.75);color:var(--sub);font-size:9px;}
+  .street .leaflet-control-attribution a{color:var(--sub);}
+  .mapWrap .mapLbl{z-index:1000;}
+  .mapMode{position:absolute;top:8px;right:8px;z-index:1000;background:rgba(11,14,12,.85);
+    color:var(--signal);border:1px solid var(--lane-line);border-radius:4px;padding:6px 10px;
+    font-size:11px;font-weight:600;font-family:'Inter',sans-serif;}
+  .mapNote{position:absolute;bottom:6px;left:10px;z-index:1000;font-size:10px;color:var(--sub);}
 
   .btnRow{display:flex;gap:10px;margin-top:20px;}
   .btn{flex:1;padding:18px;border-radius:4px;border:none;font-size:15px;font-weight:600;
@@ -227,7 +245,10 @@
 
     <div class="mapWrap" id="liveMapWrap" style="display:none;">
       <span class="mapLbl">Tu ruta</span>
+      <button class="mapMode" id="liveMapMode">Ver: calles</button>
+      <div class="street" id="liveStreet"></div>
       <canvas id="liveMap"></canvas>
+      <span class="mapNote" id="liveMapNote"></span>
     </div>
 
     <div class="btnRow">
@@ -304,6 +325,15 @@
         <option value="0">No</option>
       </select>
     </div>
+    <div class="panel">
+      <h3>Mapa de la ruta</h3>
+      <div class="hint">Con calles se ve el mapa real, pero gasta un poco de datos. Sin señal pasa solo a la línea. La distancia y el tiempo se miden igual en los dos casos.</div>
+      <label>Mostrar</label>
+      <select id="profMap">
+        <option value="calles">Mapa con calles (usa datos)</option>
+        <option value="linea">Solo la línea (sin datos)</option>
+      </select>
+    </div>
     <div class="btnRow"><button class="btn btn-start" id="btnSaveProfile">Guardar perfil</button></div>
   </div>
 
@@ -321,6 +351,7 @@
 
     <div class="mapWrap" id="sumMapWrap" style="display:none;">
       <span class="mapLbl">Tu ruta</span>
+      <div class="street" id="sumStreet"></div>
       <canvas id="sumMap"></canvas>
     </div>
 
@@ -372,14 +403,18 @@
   document.getElementById('profSex').value = profile.sex;
   if(profile.voice === undefined) profile.voice = true; // voz activada por defecto
   document.getElementById('profVoice').value = profile.voice ? '1' : '0';
+  if(profile.mapMode !== 'linea') profile.mapMode = 'calles'; // calles por defecto
+  document.getElementById('profMap').value = profile.mapMode;
 
   document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
     profile = {
       weight: parseFloat(document.getElementById('profWeight').value)||70,
       age: parseInt(document.getElementById('profAge').value)||30,
       sex: document.getElementById('profSex').value,
-      voice: document.getElementById('profVoice').value === '1'
+      voice: document.getElementById('profVoice').value === '1',
+      mapMode: document.getElementById('profMap').value
     };
+    if(typeof refreshLiveMap === 'function') refreshLiveMap();
     LS.set('mirun_profile', profile);
     showSaved();
   });
@@ -469,6 +504,63 @@
     ctx.beginPath(); ctx.arc(ex,ey,4.5,0,Math.PI*2); ctx.fillStyle=color||'#c4ff3d'; ctx.fill();
   }
 
+  // ---------- MAPA CON CALLES (OpenStreetMap + Leaflet) ----------
+  // Si se eligio "calles", hay internet y la libreria cargo: mapa real.
+  // Si no: la linea dibujada de siempre (drawRoute), que no necesita internet.
+  const streetMaps = {};
+  function streetsAvailable(){
+    return profile.mapMode !== 'linea' && navigator.onLine && typeof window.L !== 'undefined';
+  }
+  function renderRoute(key, canvas, div, points, color, follow){
+    if(!streetsAvailable()){
+      div.style.display = 'none';
+      canvas.style.display = 'block';
+      drawRoute(canvas, points, color);
+      return 'linea';
+    }
+    canvas.style.display = 'none';
+    div.style.display = 'block';
+    let m = streetMaps[key];
+    if(!m){
+      const map = L.map(div, {zoomControl:false, attributionControl:false});
+      L.control.attribution({prefix:false}).addTo(map);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom:19, attribution:'© OpenStreetMap'
+      }).addTo(map);
+      const line = L.polyline([], {color:color, weight:5, opacity:.95, lineJoin:'round'}).addTo(map);
+      const start = L.circleMarker([0,0], {radius:5, color:'#0b0e0c', weight:2, fillColor:'#f2f3ee', fillOpacity:1});
+      const dot = L.circleMarker([0,0], {radius:8, color:'#0b0e0c', weight:3, fillColor:color, fillOpacity:1});
+      m = streetMaps[key] = {map, line, start, dot, n:-1, touchedAt:0, centered:false};
+      // si mueves el mapa con el dedo, deja de seguirte 15 s
+      map.on('dragstart zoomstart', ()=>{ m.touchedAt = Date.now(); });
+    }
+    m.map.invalidateSize();
+    if(points.length === 0) return 'calles';
+    const ll = points.map(p=>[p.lat, p.lon]);
+    // el mapa necesita una posicion antes de dibujar encima
+    if(!m.centered){ m.map.setView(ll[ll.length-1], 17); m.centered = true; }
+    if(m.n !== points.length){
+      m.n = points.length;
+      m.line.setLatLngs(ll);
+      m.start.setLatLng(ll[0]);
+      m.dot.setLatLng(ll[ll.length-1]);
+      if(!m.map.hasLayer(m.start)) m.start.addTo(m.map);
+      if(!m.map.hasLayer(m.dot)) m.dot.addTo(m.map); // se agrega despues: queda encima
+    }
+    if(follow){
+      if(Date.now() - m.touchedAt > 15000) m.map.panTo(ll[ll.length-1], {animate:true});
+    } else if(ll.length > 1){
+      m.map.fitBounds(m.line.getBounds(), {padding:[24,24], maxZoom:17});
+    } else {
+      m.map.setView(ll[0], 17);
+    }
+    return 'calles';
+  }
+  function resetStreetMap(key){
+    const m = streetMaps[key];
+    if(m){ m.n = -1; m.centered = false; m.touchedAt = 0; m.line.setLatLngs([]); m.start.remove(); m.dot.remove(); }
+  }
+
   // ---------- HISTORY ----------
   function renderHistory(){
     const list = document.getElementById('histList');
@@ -524,6 +616,36 @@
   const gpsStatus = document.getElementById('gpsStatus');
   const liveMapWrap = document.getElementById('liveMapWrap');
   const liveMapCanvas = document.getElementById('liveMap');
+  const liveStreet = document.getElementById('liveStreet');
+  const liveMapMode = document.getElementById('liveMapMode');
+  const liveMapNote = document.getElementById('liveMapNote');
+
+  // Dibuja el mapa en vivo (calles o linea) y actualiza el boton de cambio
+  function refreshLiveMap(){
+    if(!running){ liveMapWrap.style.display = 'none'; return; }
+    liveMapWrap.style.display = 'block';
+    let shown;
+    // Un fallo del mapa nunca debe frenar el cronometro ni el guardado
+    try{ shown = renderRoute('live', liveMapCanvas, liveStreet, path, '#c4ff3d', true); }
+    catch(e){ liveStreet.style.display = 'none'; liveMapCanvas.style.display = 'block';
+              drawRoute(liveMapCanvas, path, '#c4ff3d'); shown = 'linea'; }
+    liveMapMode.textContent = profile.mapMode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
+    if(profile.mapMode !== 'linea' && shown === 'linea'){
+      liveMapNote.textContent = 'Sin internet: mostrando solo la línea';
+    } else if(path.length === 0){
+      liveMapNote.textContent = 'Esperando tu primera posición…';
+    } else {
+      liveMapNote.textContent = '';
+    }
+  }
+  liveMapMode.addEventListener('click', ()=>{
+    profile.mapMode = profile.mapMode === 'linea' ? 'calles' : 'linea';
+    LS.set('mirun_profile', profile);
+    document.getElementById('profMap').value = profile.mapMode;
+    refreshLiveMap();
+  });
+  window.addEventListener('online', ()=>{ if(running) refreshLiveMap(); });
+  window.addEventListener('offline', ()=>{ if(running) refreshLiveMap(); });
 
   function haversine(lat1, lon1, lat2, lon2){
     const R = 6371; // km
@@ -642,10 +764,7 @@
       alertEl.textContent='';
     }
 
-    if(path.length > 1){
-      liveMapWrap.style.display = 'block';
-      drawRoute(liveMapCanvas, path, '#c4ff3d');
-    }
+    refreshLiveMap();
 
     if(running && !paused){
       // Avisa si el GPS lleva rato sin dar posicion buena
@@ -835,7 +954,7 @@
     lastSplitTime = state ? state.lastSplitTime : 0;
     lastPos = null; badJumps = 0; lastFixTime = Date.now();
     runNote.style.display = 'none';
-    liveMapWrap.style.display = 'none';
+    resetStreetMap('live');
     document.getElementById('btnStart').style.display='none';
     document.getElementById('resumeBox').style.display='none';
     document.getElementById('activeBtns').style.display='flex';
@@ -931,9 +1050,16 @@
     document.getElementById('sumCal').textContent = cal;
 
     const sumMapWrap = document.getElementById('sumMapWrap');
+    refreshLiveMap(); // ya no esta corriendo: oculta el mapa en vivo
     if(path.length > 1){
       sumMapWrap.style.display = 'block';
-      setTimeout(()=>drawRoute(document.getElementById('sumMap'), path, '#c4ff3d'), 50);
+      resetStreetMap('sum');
+      const finalPath = path.slice();
+      setTimeout(()=>{
+        const c = document.getElementById('sumMap'), dv = document.getElementById('sumStreet');
+        try{ renderRoute('sum', c, dv, finalPath, '#c4ff3d', false); }
+        catch(e){ dv.style.display = 'none'; c.style.display = 'block'; drawRoute(c, finalPath, '#c4ff3d'); }
+      }, 80);
     } else {
       sumMapWrap.style.display = 'none';
     }

@@ -1,15 +1,18 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
 // IMPORTANTE: si se cambia mirun.html, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v6';
+const CACHE_NAME = 'mirun-cache-v7';
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './mirun.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './lib/leaflet.js',
+  './lib/leaflet.css'
 ];
+// Las imagenes de calles (OpenStreetMap) NO se guardan: se piden solo con internet.
 // Las letras (Google Fonts) tambien se guardan la primera vez que cargan,
 // asi la app se ve igual sin internet.
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
