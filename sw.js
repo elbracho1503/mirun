@@ -1,7 +1,7 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
 // IMPORTANTE: si se cambia mirun.html, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v5';
+const CACHE_NAME = 'mirun-cache-v6';
 const FILES_TO_CACHE = [
   './',
   './index.html',
