@@ -134,22 +134,71 @@
   }
 
   // ---------- PROFILE ----------
-  document.getElementById('profWeight').value = profile.weight;
-  document.getElementById('profAge').value = profile.age;
-  document.getElementById('profSex').value = profile.sex;
+  // objetivo físico y nivel de actividad (v5). El nivel sugiere la meta semanal si no se eligió otra en Metas.
+  const GOAL_TYPES = ['salud','bajar','musculo','mantener','resistencia'];
+  const LEVEL_WEEK = {sedentario:90, ligero:150, moderado:200, activo:250, muy:300};
   if(profile.voice === undefined) profile.voice = true; // voz activada por defecto
-  document.getElementById('profVoice').value = profile.voice ? '1' : '0';
   if(profile.mapMode !== 'linea') profile.mapMode = 'calles'; // calles por defecto
-  document.getElementById('profMap').value = profile.mapMode;
 
-  document.getElementById('profName').value = profile.name || '';
-  document.getElementById('profHeight').value = profile.height || '';
+  // llena el formulario con el perfil guardado (al abrir y después de recuperar una copia)
+  function fillProfileForm(){
+    const set = (id, v)=>{ document.getElementById(id).value = v; };
+    set('profName', profile.name || '');
+    set('profWeight', profile.weight);
+    set('profAge', profile.age);
+    set('profHeight', profile.height || '');
+    set('profSex', profile.sex);
+    set('profGoalType', profile.goalType || 'salud');
+    set('profLevel', profile.level || 'ligero');
+    set('profVoice', profile.voice ? '1' : '0');
+    set('profMap', profile.mapMode);
+    refreshLevelHint(); refreshHello(); refreshAvatars();
+  }
+  function refreshLevelHint(){
+    const lv = document.getElementById('profLevel').value;
+    document.getElementById('levelHint').textContent = 'Meta semanal sugerida: ' + LEVEL_WEEK[lv] + ' min' +
+      (goal.weekMin ? '. Tú elegiste ' + goal.weekMin + ' min en Metas.' : ', se usa mientras no elijas otra en Metas.');
+  }
+  document.getElementById('profLevel').addEventListener('change', refreshLevelHint);
   // saludo en la cabecera: "Hola, Nombre" o la marca si no hay nombre
   function refreshHello(){
     const h = document.getElementById('hello');
     if(profile.name) h.textContent = 'Hola, ' + profile.name; else h.innerHTML = 'Mi<span>Run</span>';
   }
-  refreshHello();
+
+  // Foto de perfil: se recorta al centro, se reduce a 256 px (JPEG ~30 KB) y se guarda en mirun_photo.
+  // Sin foto: círculo negro liso (decisión del usuario).
+  function refreshAvatars(){
+    const ph = LS.get('mirun_photo', null);
+    ['hdrAvatar','profAvatar'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.style.backgroundImage = ph ? 'url("' + ph + '")' : '';
+      el.textContent = '';
+    });
+    document.getElementById('btnPhotoDel').style.display = ph ? '' : 'none';
+  }
+  const photoFile = document.getElementById('photoFile');
+  document.getElementById('btnPhoto').addEventListener('click', ()=>photoFile.click());
+  photoFile.addEventListener('change', ()=>{
+    const f = photoFile.files && photoFile.files[0]; photoFile.value = '';
+    if(!f || !/^image\//.test(f.type)) return;
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = ()=>{
+      const S = 256, s = Math.min(img.width, img.height), c = document.createElement('canvas');
+      c.width = c.height = S;
+      c.getContext('2d').drawImage(img, (img.width - s)/2, (img.height - s)/2, s, s, 0, 0, S, S);
+      URL.revokeObjectURL(url);
+      if(LS.set('mirun_photo', c.toDataURL('image/jpeg', 0.82))){ refreshAvatars(); showSaved(); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); alert('No se pudo abrir esa imagen.'); };
+    img.src = url;
+  });
+  document.getElementById('btnPhotoDel').addEventListener('click', ()=>{
+    if(!confirm('¿Quitar tu foto de perfil?')) return;
+    try{ localStorage.removeItem('mirun_photo'); }catch(e){}
+    refreshAvatars();
+  });
+  fillProfileForm();
 
   document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
     // Object.assign conserva campos que esta pantalla no muestra (no se pierden datos)
@@ -159,12 +208,14 @@
       age: parseInt(document.getElementById('profAge').value)||30,
       height: (h=>h >= 100 && h <= 250 ? h : null)(parseInt(document.getElementById('profHeight').value)),
       sex: document.getElementById('profSex').value,
+      goalType: document.getElementById('profGoalType').value,
+      level: document.getElementById('profLevel').value,
       voice: document.getElementById('profVoice').value === '1',
       mapMode: document.getElementById('profMap').value
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
     LS.set('mirun_profile', profile);
-    refreshHello();
+    refreshHello(); refreshAvatars();
     showSaved();
   });
 
@@ -188,7 +239,7 @@
   // racha y metas de actividad (campos agregados en v5; si no existen se usan estos valores)
   const DEF_DAILY = 20, DEF_WEEK = 150;
   function dailyMin(){ return goal.dailyMin || DEF_DAILY; }
-  function weekMin(){ return goal.weekMin || DEF_WEEK; }
+  function weekMin(){ return goal.weekMin || LEVEL_WEEK[profile.level] || DEF_WEEK; } // sin meta propia: la del nivel
   // Descanso PROGRAMADO: goal.restPlan = [{from:'AAAA-MM-DD' (un lunes), days:[0..6]}].
   // Cada cambio rige desde el lunes siguiente, así no se puede "rescatar" un día ya perdido.
   // goal.restDays (v5 temprano) se lee como un plan vigente desde siempre.
@@ -532,6 +583,11 @@
   ];
   // medidas que sigue la persona (profile.measures). Por defecto, las que existían antes de v5 + cintura
   const DEF_MEAS = ['peso','barriga','cintura','biceps','muslo','pantorrilla'];
+  // dirección de mejora según el objetivo: solo cambia el peso (ganar músculo = subir, mantener = neutral)
+  function goodOf(m){
+    if(m.k !== 'peso') return m.good;
+    return profile.goalType === 'musculo' ? 1 : profile.goalType === 'mantener' ? 0 : -1;
+  }
   function tracked(){ return Array.isArray(profile.measures) && profile.measures.length ? profile.measures : DEF_MEAS; }
   const fmt1 = v => (Math.round(v*10)/10).toLocaleString('es-ES');
 
@@ -588,7 +644,7 @@
       const diff = last[m.k] - first[m.k];
       let cls = 'same', txt = 'igual';
       if(s.length > 1 && Math.abs(diff) >= 0.05){
-        cls = (diff * m.good > 0) ? 'good' : 'bad';
+        cls = goodOf(m) === 0 ? 'same' : (diff * goodOf(m) > 0) ? 'good' : 'bad';
         txt = (diff > 0 ? '▲ +' : '▼ −') + fmt1(Math.abs(diff)) + ' ' + m.u;
       } else if(s.length === 1){ txt = 'inicio'; }
       return `<div class="progRow"><div class="pn">${m.n}</div>
@@ -653,7 +709,7 @@
     ctx.fillText(lastLbl, w - padR - ctx.measureText(lastLbl).width, h-6);
     // linea del avance
     const diff = vals[vals.length-1] - vals[0];
-    const color = Math.abs(diff) < 0.05 ? '#8fa0c2' : (diff * m.good > 0 ? '#4d9bff' : '#ff8a3d');
+    const color = Math.abs(diff) < 0.05 || goodOf(m) === 0 ? '#8fa0c2' : (diff * goodOf(m) > 0 ? '#4d9bff' : '#ff8a3d');
     ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
     ctx.beginPath();
     s.forEach((e,i)=>{ const x = X(e.date), y = Y(e[m.k]); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
@@ -1009,6 +1065,25 @@
       st.onchange = ()=>{ if(st.state !== 'denied'){ hideGpsHelp(); restartGps(); } };
     }).catch(()=>{});
   }
+
+  // ---------- MODO BOLSILLO ----------
+  // Durante una actividad GPS, tapa la pantalla para que nada se toque por error (la pantalla sigue
+  // encendida y se ve debajo). Se desbloquea manteniendo presionado el candado 1,5 s.
+  const lockOv = document.getElementById('lockOverlay'), lockRing = document.getElementById('lockRing');
+  let lockTimer = null;
+  document.getElementById('btnLock').addEventListener('click', ()=>{ lockOv.classList.add('show'); });
+  lockRing.addEventListener('pointerdown', (ev)=>{
+    ev.preventDefault();
+    lockRing.classList.add('holding');
+    lockTimer = setTimeout(()=>{
+      lockOv.classList.remove('show'); lockRing.classList.remove('holding');
+      if(navigator.vibrate) navigator.vibrate(40);
+    }, 1500);
+  });
+  ['pointerup','pointerleave','pointercancel'].forEach(e=>lockRing.addEventListener(e, ()=>{
+    clearTimeout(lockTimer); lockRing.classList.remove('holding');
+  }));
+  lockOv.addEventListener('contextmenu', e=>e.preventDefault());
 
   // ---------- PANTALLA ENCENDIDA ----------
   // Chrome suelta este permiso cada vez que la pantalla se apaga o cambias de
@@ -1477,7 +1552,7 @@
 
   document.getElementById('btnExport').addEventListener('click', ()=>{
     LS.set('mirun_lastBackup', new Date().toISOString());
-    const data = JSON.stringify({app:'MiRun', version:3, exported:new Date().toISOString(),
+    const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
                                  profile, goal, history, body});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
@@ -1486,7 +1561,7 @@
     a.download = 'MiRun-copia-' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
-    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones).');
+    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones, tu perfil y metas).');
   });
 
   const fileInput = document.getElementById('importFile');
@@ -1516,6 +1591,9 @@
             ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
             ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {})
           }));
+        // teléfono "nuevo" (sin datos): la copia restaura perfil, metas y foto completos;
+        // si ya hay datos, solo completa lo que falta y nunca reemplaza lo que existe
+        const fresh = history.length === 0 && body.length === 0;
         const have = new Set(history.map(h=>h.date));
         const nuevas = clean.filter(h=>!have.has(h.date));
         history = history.concat(nuevas).sort((a,b)=>a.date < b.date ? -1 : 1);
@@ -1532,8 +1610,39 @@
           });
           LS.set('mirun_body', body);
         }
+        // perfil, metas y foto (copias de v5 en adelante): solo campos conocidos y valores válidos
+        let perfil = false;
+        const take = (dst, src)=>{ Object.keys(src).forEach(k=>{
+          if(fresh || dst[k] === undefined || dst[k] === null || dst[k] === ''){ dst[k] = src[k]; perfil = true; } }); };
+        if(data.profile && typeof data.profile === 'object'){
+          const p = data.profile, ok = {};
+          if(typeof p.name === 'string') ok.name = p.name.slice(0, 30);
+          [['weight',20,400],['age',5,120],['height',100,250]].forEach(([k,a,b])=>{ const v = Number(p[k]); if(v >= a && v <= b) ok[k] = v; });
+          if(['m','f','x'].includes(p.sex)) ok.sex = p.sex;
+          if(GOAL_TYPES.includes(p.goalType)) ok.goalType = p.goalType;
+          if(p.level in LEVEL_WEEK) ok.level = p.level;
+          if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
+          if(typeof p.voice === 'boolean') ok.voice = p.voice;
+          if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
+          take(profile, ok); LS.set('mirun_profile', profile);
+        }
+        if(data.goal && typeof data.goal === 'object'){
+          const g = data.goal, ok = {}, num = (v, a, b)=>{ v = Number(v); return v >= a && v <= b ? v : undefined; };
+          [['dist',0.1,500],['time',1,1440],['paceMin',1,30],['paceSec',0,59],['dailyMin',10,60],['weekMin',10,3000]]
+            .forEach(([k,a,b])=>{ const v = num(g[k], a, b); if(v !== undefined) ok[k] = v; });
+          if(Array.isArray(g.restPlan)) ok.restPlan = g.restPlan
+            .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(x.from) && Array.isArray(x.days))
+            .map(x=>({from: x.from, days: x.days.map(Number).filter(d=>d >= 0 && d <= 6).slice(0, 3)}));
+          take(goal, ok); LS.set('mirun_goal', goal);
+        }
+        if(typeof data.photo === 'string' && data.photo.length < 400000 &&
+           /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(data.photo) && (fresh || !LS.get('mirun_photo', null))){
+          LS.set('mirun_photo', data.photo); perfil = true;
+        }
+        fillProfileForm(); loadGoalForm(); loadStreakForm(); refreshGoalLabels(); buildBodyForm();
         renderHistory(); checkAchievements(true);
-        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades y ' + nuevasMed + ' mediciones nuevas.');
+        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades y ' + nuevasMed + ' mediciones nuevas' +
+                   (perfil ? ', además de tu perfil y metas.' : '.'));
       }catch(e){
         backupNote('Ese archivo no es una copia de MiRun.');
       }

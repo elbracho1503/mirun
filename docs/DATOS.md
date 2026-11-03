@@ -12,6 +12,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar |
 | `mirun_schema` | Número | Versión del formato de datos (hoy 5) |
 | `mirun_lastBackup` | Texto ISO | Fecha de la última copia exportada (para el recordatorio) |
+| `mirun_photo` | Texto (data URL JPEG 256 px, ~30 KB) | Foto de perfil (v5). Va en la copia de seguridad |
 | `mirun_achSeen` | Array de ids | Logros ya anunciados (los logros en sí se calculan desde el historial) |
 
 ## mirun_history — actividad
@@ -50,6 +51,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 { name: 'Alexis',            // opcional (v5), para el saludo "Hola, ..."
   weight: 70, age: 30,
   height: 175,               // v5, cm (100–250), para el IMC
+  goalType: 'salud',         // v5: salud | bajar | musculo | mantener | resistencia (cambia si bajar el peso es bueno)
+  level: 'ligero',           // v5: sedentario | ligero | moderado | activo | muy (meta semanal sugerida, LEVEL_WEEK)
   measures: ['peso', ...],   // v5, medidas que sigue (orden de MEASURES). Sin esto = DEF_MEAS
   sex: 'm'|'f'|'x',          // 'x' = prefiero no decir (v5)
   voice: true/false, mapMode: 'calles'|'linea' }
@@ -72,6 +75,7 @@ Perfil y metas se guardan con `Object.assign` para no perder campos que la panta
 `dayStatus()` = done / rest / part / miss → `streakInfo()` = racha actual y récord.
 
 ## Copia de seguridad (archivo .json)
-Exporta `{app:'MiRun', version:3, exported, profile, goal, history, body}`.
-Importa `history` y `body` (copias version 2 y 3), filtrando a campos y valores conocidos,
-y solo agrega fechas nuevas (nunca sobrescribe). Si se agregan campos, actualizar este filtro.
+Exporta `{app:'MiRun', version:4, exported, photo, profile, goal, history, body}`.
+Importa todo (copias version 2, 3 y 4), filtrando a campos y valores conocidos.
+Actividades y medidas: solo agrega fechas nuevas. Perfil, metas y foto: en un teléfono sin datos se
+restauran completos; si ya hay datos, solo completan lo que falta. Si se agregan campos, actualizar este filtro.

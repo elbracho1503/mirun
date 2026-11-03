@@ -11,6 +11,6 @@ MIRUN Monster. Lema: *Tu cuerpo, tu mejor versión*.
 ## Para quien trabaje en el código (personas o IAs)
 - Empieza por [`CLAUDE.md`](CLAUDE.md): mapa del código y reglas.
 - Detalle en [`docs/`](docs/): datos guardados, diseño, decisiones, plan por etapas y registro de cambios.
-- La app son 3 archivos: `mirun.html` (pantallas), `app.css` (estilos) y `app.js` (lógica).
+- La app son 3 archivos: `mirun.html` (pantallas), `css/app.css` (estilos) y `js/app.js` (lógica).
 - Si cambia cualquiera de ellos, subir el número de `CACHE_NAME` en `sw.js` para que los teléfonos
   reciban la versión nueva.

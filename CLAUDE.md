@@ -6,9 +6,9 @@ Sin servidor ni cuentas: los datos viven en `localStorage` del teléfono. Funcio
 Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 
 ## Cómo trabajar aquí (ahorrar tokens)
-- La app está en 3 archivos: `mirun.html` (pantallas, ~380 líneas), `app.css` (estilos), `app.js` (lógica).
+- La app está en 3 archivos: `mirun.html` (pantallas, ~380 líneas), `css/app.css` (estilos), `js/app.js` (lógica).
   **No leas ninguno completo**: busca el marcador de la sección
-  (`grep -n "MARCADOR" app.js`) y lee solo ese bloque.
+  (`grep -n "MARCADOR" js/app.js`) y lee solo ese bloque.
 - Antes de explorar, revisa `docs/`: probablemente la respuesta ya está ahí.
 - Al terminar un cambio: actualiza el doc afectado y agrega una línea a `docs/CAMBIOS.md`
   con el costo aproximado en tokens. Decirle al usuario ese costo.
@@ -24,13 +24,14 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | Archivo | Qué es |
 |---|---|
 | `mirun.html` | Estructura HTML de las pantallas (sin estilos ni código) |
-| `app.css` | Todos los estilos |
-| `app.js` | Toda la lógica (secciones con marcadores `// ---------- NOMBRE`) |
+| `css/app.css` | Todos los estilos |
+| `js/app.js` | Toda la lógica (secciones con marcadores `// ---------- NOMBRE`) |
 | `index.html` | Solo redirige a `mirun.html` |
 | `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché |
-| `manifest.json`, `icon-*.png` | Instalación como app |
+| `manifest.json` | Instalación como app (íconos en `img/iconos/`) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de la mascota MIRUN Monster (PNG 256 px transparentes) |
+| `.gitignore` | Excluye `respaldo/` de GitHub |
 | `.claude/herramientas/` | Scripts Node sin dependencias: `png_lib.js` (leer/escribir PNG), `recortar.js` (cortar hoja de poses) |
 | `respaldo/` | Copias de versiones anteriores de `mirun.html` antes de cambios grandes |
 | `docs/DATOS.md` | Esquema de datos en `localStorage` |
@@ -38,9 +39,10 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `docs/DECISIONES.md` | Decisiones tomadas y pendientes |
 | `docs/PLAN.md` | Plan por etapas y estado |
 | `docs/CAMBIOS.md` | Registro de cambios con costo en tokens |
+| `docs/PROMPTS.md` | Prompts para generar imágenes (siluetas, ícono) y lecciones aprendidas |
 
 ## Mapa de mirun.html
-Los números de línea cambian; busca por marcador. CSS → `app.css`, HTML → `mirun.html`, `//` → `app.js`.
+Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML → `mirun.html`, `//` → `js/app.js`.
 
 | Zona | Marcador |
 |---|---|
@@ -55,7 +57,7 @@ Los números de línea cambian; busca por marcador. CSS → `app.css`, HTML → 
 | Mascota: qué pose va en cada momento (`MASCOT`, `mascotMsg`) | `// ---------- MASCOTA` (CSS: `MASCOTA MIRUN Monster`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
-| Perfil y saludo | `// ---------- PROFILE` |
+| Perfil: saludo, foto (`mirun_photo`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
@@ -66,17 +68,26 @@ Los números de línea cambian; busca por marcador. CSS → `app.css`, HTML → 
 | GPS, tiempo, calorías, splits | `// ---------- RUN LOGIC` |
 | Voz | `// ---------- AVISO POR VOZ` |
 | Carrera en curso / iniciar / terminar | `// ---------- CARRERA EN CURSO` |
+| Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
 | Racha, minutos por día, Inicio, registrar actividad | `// ---------- RACHA Y REGISTRO` |
 | Logros (`ACH`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
+
+## Publicar (GitHub Pages)
+- Esta carpeta es el repositorio Git (`origin` = github.com/elbracho1503/mirun, rama `main`).
+  Publicar = commit + `git push`; GitHub Pages actualiza en 1–2 min. **Solo cuando el usuario lo pida.**
+- Autor de los commits: `elbracho1503 <332559409+elbracho1503@users.noreply.github.com>` (correo privado de GitHub, ya configurado).
+  Nunca usar un correo real.
+  El repositorio es **público** y el correo de cada commit queda visible.
+- `respaldo/` está en `.gitignore` (no se sube).
 
 ## Reglas que no se rompen
 1. **Nunca perder datos del usuario.** No borrar ni renombrar claves de `localStorage` ni campos
    existentes; solo agregar. Detalle en `docs/DATOS.md`.
 2. Si se agrega un campo a un registro, actualizar también la **importación de copias**
    (`COPIA DE SEGURIDAD`), que solo acepta campos conocidos.
-3. Si cambia `mirun.html`, `app.css`, `app.js` (o cualquier archivo cacheado), **subir `CACHE_NAME` en `sw.js`**.
+3. Si cambia `mirun.html`, `css/app.css`, `js/app.js` (o cualquier archivo cacheado), **subir `CACHE_NAME` en `sw.js`**.
    Un archivo nuevo se agrega también a `FILES_TO_CACHE`.
 4. Sin scripts externos: la CSP del `<head>` solo permite código propio, Google Fonts y
    tiles de OpenStreetMap. Íconos = SVG en línea.

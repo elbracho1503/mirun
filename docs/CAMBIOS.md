@@ -5,6 +5,9 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-02 | Modo bolsillo (bloqueo de toques, mantener presionado para salir), avatar negro sin foto, correo de commits → noreply de GitHub y corrección del historial publicado. Caché v13 | `mirun.html`, `css/app.css`, `js/app.js`, `sw.js`, `docs/*`, `CLAUDE.md` | ~35k tokens |
+| 2026-11-02 | Orden de carpetas (`css/`, `js/`, `img/iconos/`), Git conectado a la carpeta de trabajo, plan con futuro (comunidad, Play Store, venta). Etapa 6: foto de perfil, objetivo, nivel de actividad, copia con perfil/metas/foto. Caché v12 | `mirun.html`, `css/`, `js/`, `sw.js`, `manifest.json`, `docs/*`, `CLAUDE.md` | ~75k tokens |
+| 2026-11-02 | Publicado en GitHub Pages (commit b8993d7). README actualizado, `.gitignore` excluye `respaldo/` | `README.md`, `.gitignore` | ~15k tokens |
 | 2026-11-02 | Mascota integrada en 9 lugares (lista `MASCOT`), caché v11 con las 12 poses usadas | `mirun.html`, `app.css`, `app.js`, `sw.js`, `docs/*`, `CLAUDE.md` | ~35k tokens |
 | 2026-11-02 | Mascota: revisión de 2 juegos de imágenes, recorte de 15 poses con transparencia real a 256 px en `img/mascota/` | `img/mascota/*`, `.claude/herramientas/*` | ~30k tokens |
 | 2026-11-02 | Logro Todoterreno: 🌈 → 🚙 (pedido del usuario) | `app.js` | ~3k tokens |

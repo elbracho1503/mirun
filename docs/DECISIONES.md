@@ -26,18 +26,26 @@
 
 ## Pendientes (el usuario decide)
 1. ~~Mascota~~ → integrada (ver "Tomadas"). Poses sin usar aún: 05 Decidido, 08 Agotado, 11 Frustrado.
-2. **Silueta**: la versión dibujada por la IA fue rechazada (se ve mal). Usar imágenes tipo la referencia
+2. **Silueta**: la versión dibujada por la IA fue rechazada. Usar imágenes generadas (prompt en `docs/PROMPTS.md`)
    de ChatGPT (cuerpo 3D azul), hechas por el usuario: masculina, femenina y neutra.
 3. Logros legendarios (dorados): Veterano, Leyenda, Maestro del tiempo, Conquistador, Media maratón
    (el más difícil de cada categoría). Propuesta de la IA, el usuario puede cambiarla.
 
 
 ## Tomadas el 2026-11-02 (tarde)
-- **Separar en 3 archivos**: `mirun.html` + `app.css` + `app.js` (hecho).
+- **Separar en 3 archivos**: `mirun.html` + `css/app.css` + `js/app.js` (hecho).
 - **Logros**: nombres y emojis del diseñador, agrupados en 7 categorías, 3 estados
   (bloqueado gris con candado · desbloqueado azul · legendario dorado). Ids sin cambiar.
-- **Mascota MIRUN Monster integrada** (2026-11-02): poses según la lista `MASCOT` en `app.js`.
+- **Mascota MIRUN Monster integrada** (2026-11-02): poses según la lista `MASCOT` en `js/app.js`.
   Inicio: ¡Tú puedes! / Emocionado (meta cumplida) / Durmiendo (descanso) / Cansado (racha reiniciada en
   los últimos 3 días). Logro: Celebrando; legendario: Aprobación. GPS: Corriendo. "+": Pesas.
   Guardar actividad: Cariño. Error: Pensando. Vacío: Asomado. IMC: Estudiando.
   Solo las 12 poses usadas están en el caché sin internet (`sw.js`).
+
+## Repositorio público (2026-11-02)
+- github.com/elbracho1503/mirun es **público**: cualquiera puede ver y copiar el código, la documentación
+  y la mascota. Los datos de las personas NO están ahí (viven solo en cada teléfono).
+- Un commit quedó con un correo personal del usuario como autor (error de la IA); se corrigió el
+  historial el 2026-11-02 (ver CAMBIOS). Los commits usan el correo privado "noreply" de GitHub.
+- GitHub Pages en repositorio privado requiere plan pago (GitHub Pro). Alternativa gratis para cuando se
+  quiera vender: repositorio privado + Cloudflare Pages o Netlify. Decidir antes de F5 (vender).

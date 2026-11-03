@@ -15,15 +15,15 @@
 <link rel="stylesheet" href="lib/leaflet.css">
 <script src="lib/leaflet.js"></script>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="img/iconos/icon-192.png">
+<link rel="apple-touch-icon" href="img/iconos/icon-192.png">
 <meta name="theme-color" content="#070d1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MiRun">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body data-tab="home">
 <div id="app">
@@ -35,7 +35,7 @@
     </div>
     <div class="hdrRight">
       <div id="gpsStatus">Buscando GPS…</div>
-      <button class="tabBtn hdrBtn" data-tab="profile" aria-label="Perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
+      <button class="tabBtn hdrBtn" data-tab="profile" aria-label="Perfil"><span class="avatar" id="hdrAvatar"></span></button>
     </div>
   </header>
 
@@ -142,6 +142,7 @@
     <div class="btnRow" id="activeBtns" style="display:none;">
       <button class="btn btn-pause" id="btnPause">Pausar</button>
       <button class="btn btn-stop" id="btnStop">Terminar</button>
+      <button class="btn btn-ghost lockBtn" id="btnLock">🔒 Bloquear pantalla (modo bolsillo)</button>
     </div>
   </div>
 
@@ -227,7 +228,7 @@
     </div>
     <div class="panel">
       <h3>Copia de seguridad</h3>
-      <div class="hint">Guarda tus carreras y tus medidas en un archivo. Si se borran los datos de Chrome o cambias de teléfono, las recuperas con ese archivo.</div>
+      <div class="hint">Guarda tus actividades, medidas, perfil, metas y foto en un archivo. Tus datos viven solo en este teléfono: si se borran los datos de Chrome o cambias de teléfono, los recuperas con ese archivo.</div>
       <div class="btnRow" style="margin-top:12px;">
         <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
         <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
@@ -289,6 +290,36 @@
 
   <!-- PROFILE SCREEN -->
   <div class="screen" id="tab-profile">
+    <!-- Foto de perfil: se guarda reducida (256 px) en mirun_photo; ver PROFILE en js/app.js -->
+    <div class="panel photoPanel">
+      <div class="avatar big" id="profAvatar"></div>
+      <div class="btnRow" style="margin-top:12px;">
+        <button class="btn btn-ghost" id="btnPhoto">Cambiar foto</button>
+        <button class="btn btn-ghost" id="btnPhotoDel">Quitar</button>
+      </div>
+      <input type="file" id="photoFile" accept="image/*" style="display:none;">
+    </div>
+    <div class="panel">
+      <h3>Tu objetivo</h3>
+      <label>¿Qué buscas principalmente?</label>
+      <select id="profGoalType">
+        <option value="salud">Salud y bienestar general</option>
+        <option value="bajar">Bajar de peso</option>
+        <option value="musculo">Ganar músculo</option>
+        <option value="mantener">Mantener mi peso</option>
+        <option value="resistencia">Mejorar mi resistencia</option>
+      </select>
+      <div class="hint" style="margin-top:6px;">Con esto la app sabe si una medida que sube o baja es un avance para ti.</div>
+      <label>Nivel de actividad actual</label>
+      <select id="profLevel">
+        <option value="sedentario">Sedentario (casi no hago ejercicio)</option>
+        <option value="ligero">Ligero (1–2 días por semana)</option>
+        <option value="moderado">Moderado (3–4 días por semana)</option>
+        <option value="activo">Activo (5–6 días por semana)</option>
+        <option value="muy">Muy activo (todos los días)</option>
+      </select>
+      <div class="hint" id="levelHint" style="margin-top:6px;"></div>
+    </div>
     <div class="panel">
       <h3>Tus datos (para calorías)</h3>
       <label>Tu nombre (opcional)</label>
@@ -383,8 +414,21 @@
   </div>
 </div>
 
+<!-- Modo bolsillo: tapa la pantalla para que no se toque nada por error durante el GPS.
+     Se ve lo de abajo; se desbloquea manteniendo presionado el candado (ver MODO BOLSILLO en js/app.js) -->
+<div id="lockOverlay">
+  <div class="lockBox">
+    <div class="lockRing" id="lockRing">
+      <svg class="ring" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36"/></svg>
+      <svg class="padlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    </div>
+    <div class="lockTitle">Pantalla bloqueada</div>
+    <div class="lockHint">Mantén presionado el candado para desbloquear</div>
+  </div>
+</div>
+
 <div class="savedbar" id="savedBar">Guardado</div>
 
-<script src="app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

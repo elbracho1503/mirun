@@ -13,7 +13,30 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 4b | Menú con "+" central, Perfil arriba, descanso programado por semana | ✅ 2026-11-02 |
 | 3b | Logros por categorías con nombres del diseñador, 3 estados (bloqueado, desbloqueado, legendario) | ✅ 2026-11-02 |
 | 3c | Mascota MIRUN Monster: Inicio (con mensaje según el día), aviso de logro, GPS, menú "+", formularios, historial vacío, IMC | ✅ 2026-11-02 |
-| 5 | Evolución: minutos/semana, calorías, metas cumplidas, comparar fechas | ⬜ |
+| P | Publicado en GitHub Pages (v5, caché v11). Carpeta ordenada (`css/`, `js/`, `img/`) y conectada a Git | ✅ 2026-11-02 |
+
+## Próximas etapas (en este orden, aprobado por el usuario 2026-11-02)
+| # | Etapa | Estado |
+|---|---|---|
+| 6 | **Perfil y objetivos**: foto de perfil, objetivo físico, nivel de actividad; la copia de seguridad incluye perfil, metas y foto | ✅ 2026-11-02 |
+| 6b | Unidades (kg/lb, km/millas, cm/pulgadas) | ⬜ |
+| 7 | **Ícono de la app** con el logo M de ChatGPT (esperando imagen del usuario) | ⬜ |
+| 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
+| 9 | **Evolución**: minutos/semana, calorías, metas cumplidas, comparar fechas | ⬜ |
+| 10 | Editar actividades (hoy solo se borran) | ⬜ |
+| 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
+| 12 | Silueta del cuerpo con medidas (esperando imágenes del usuario, prompt en DECISIONES) | ⬜ |
+| 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
+
+## Futuro grande (cada uno es un proyecto; se planea aparte antes de empezar)
+| # | Proyecto | Qué implica |
+|---|---|---|
+| F1 | **Cuentas y respaldo en la nube** | Servidor (ej. Firebase o Supabase), inicio de sesión. Base para todo lo siguiente. La copia manual deja de ser necesaria. |
+| F2 | **Comunidad de amigos** | Elegir amigos y ver entre ustedes logros, rachas y metas. Requiere F1 y reglas de privacidad. |
+| F3 | **App en Play Store** | Empaquetar la PWA (TWA/PWABuilder) o como app nativa (Capacitor). Cuenta de desarrollador de Google (pago único). |
+| F4 | **GPS con pantalla apagada / app en segundo plano** | Una web no puede seguir el GPS con la pantalla apagada. Requiere app nativa (va junto con F3). Mientras tanto: modo bolsillo (etapa 8). |
+| F5 | **Vender la app** (suscripción o pago) | Requiere F1 y F3; cobro con Google Play Billing. Antes: repositorio privado (el código hoy es público). |
+| F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. |
 
 ## Reglas de la racha (implementadas)
 - Un día cuenta si la suma de minutos de actividad ≥ mínimo (por defecto 20, configurable 10–60).
