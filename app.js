@@ -1,0 +1,1553 @@
+// MiRun — lógica de la app. Busca secciones por marcador "// ---------- NOMBRE" (mapa en CLAUDE.md)
+(function(){
+  "use strict";
+
+  // ---------- STORAGE ----------
+  const LS = {
+    get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+    // devuelve true si se guardó; si el teléfono no tiene espacio avisa (una vez por sesión)
+    set(k, v){
+      try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch(e){
+        if(!LS.warned){ LS.warned = true;
+          alert('No se pudo guardar: la memoria de la app está llena. Ve a Historial → "Guardar copia" para no perder tus datos.'); }
+        return false;
+      }
+    }
+  };
+
+  // Versión del formato de datos. Las migraciones SOLO agregan campos, nunca borran.
+  const SCHEMA = 5;
+  if(LS.get('mirun_schema', 0) < SCHEMA) LS.set('mirun_schema', SCHEMA);
+
+  // ---------- MASCOTA ----------
+  // MIRUN Monster: qué pose se muestra en cada momento (archivos en img/mascota/, también en sw.js).
+  // Para cambiar una pose: editar solo esta lista.
+  const MASCOT = {
+    hoy:        '13_tu_puedes',   // Inicio, todavía sin cumplir hoy
+    cumplido:   '07_emocionado',  // Inicio, meta del día cumplida
+    descanso:   '14_durmiendo',   // Inicio, día de descanso
+    rota:       '10_cansado',     // Inicio, se rompió la racha
+    logro:      '09_celebrando',  // aviso de logro nuevo
+    legendario: '01_aprobacion',  // aviso de logro legendario
+    guardado:   '04_carino',      // al guardar una actividad
+    vacio:      '15_asomado',     // listas vacías
+    cuerpo:     '12_estudiando',  // IMC y medidas
+    error:      '06_pensando'     // error en un formulario
+  };
+  function mascot(k){ return 'img/mascota/' + MASCOT[k] + '.png'; }
+  // mensaje con la mascota pequeña al lado (formularios)
+  function mascotMsg(el, k, text, color){
+    el.innerHTML = `<span class="msgM"><img src="${mascot(k)}" alt=""><span></span></span>`;
+    el.querySelector('span span').textContent = text;
+    el.style.color = color;
+  }
+
+  // ---------- TIPOS DE ACTIVIDAD ----------
+  // k = valor guardado en history[].type (sin type = 'correr'). met = gasto [baja, media, alta].
+  // gps:true = se registra con la pantalla GPS (su gasto sale de la velocidad, ver calcCalories)
+  const ACTIVITIES = [
+    {k:'correr',     n:'Correr',              e:'🏃', gps:true},
+    {k:'caminar',    n:'Caminar',             e:'🚶', gps:true},
+    {k:'bici',       n:'Bicicleta',           e:'🚴', gps:true},
+    {k:'gimnasio',   n:'Gimnasio',            e:'🏋️', met:[3.5, 5.0, 6.0]},
+    {k:'ejercicios', n:'Flexiones, abdominales, burpees', e:'💪', met:[3.8, 5.0, 8.0]},
+    {k:'natacion',   n:'Natación',            e:'🏊', met:[5.8, 8.0, 10.0]},
+    {k:'deportes',   n:'Deportes',            e:'⚽', met:[5.0, 7.0, 9.0]},
+    {k:'baile',      n:'Baile',               e:'💃', met:[4.5, 5.5, 7.8]},
+    {k:'yoga',       n:'Yoga / estiramiento', e:'🧘', met:[2.5, 3.0, 4.0]},
+    {k:'otros',      n:'Otra actividad',      e:'✨', met:[3.0, 4.5, 6.0]}
+  ];
+  const INTENSITY = ['baja', 'media', 'alta'];
+  function actInfo(k){ return ACTIVITIES.find(a=>a.k === (k || 'correr')) || ACTIVITIES[ACTIVITIES.length-1]; }
+  function typeName(k){ return actInfo(k).n; }
+  function isRun(h){ return !h.type || h.type === 'correr'; }
+  function selectedGpsType(){ const c = document.querySelector('#gpsTypeRow .chip.on'); return c ? c.dataset.gtype : 'correr'; }
+
+  let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'m'});
+  let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
+  let history = LS.get('mirun_history', []);
+  let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
+
+  // ---------- TABS ----------
+  // showTab('history') muestra una pantalla; también sirve para pantallas sin botón en el menú (goal)
+  function showTab(tab){
+    document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    document.body.dataset.tab = tab; // el CSS muestra el estado del GPS solo en la pantalla GPS
+    window.scrollTo(0, 0);
+    if(tab==='home') renderHome();
+    if(tab==='history') renderHistory();
+    if(tab==='records'){ renderRecords(); renderAchievements(); }
+    if(tab==='body') renderBody();
+  }
+  document.querySelectorAll('.tabBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
+  });
+  // botones con data-goto="pantalla" (o "actForm": historial y baja al formulario de actividad)
+  document.addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-goto]');
+    if(!b) return;
+    if(b.dataset.goto === 'actForm'){
+      showTab('history');
+      document.getElementById('actForm').scrollIntoView({block:'start'});
+    } else showTab(b.dataset.goto);
+  });
+  // botón "+": si hay una actividad GPS en curso va directo a ella; si no, abre el menú de opciones
+  const plusSheet = document.getElementById('plusSheet');
+  document.getElementById('plusBtn').addEventListener('click', ()=>{
+    if(running){ showTab('run'); return; }
+    plusSheet.classList.add('show');
+  });
+  plusSheet.addEventListener('click', (ev)=>{
+    const o = ev.target.closest('[data-plus]');
+    plusSheet.classList.remove('show'); // tocar fuera también cierra
+    if(!o) return;
+    if(o.dataset.plus === 'manual'){
+      showTab('history');
+      document.getElementById('actForm').scrollIntoView({block:'start'});
+    } else {
+      document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === o.dataset.plus));
+      showTab('run');
+    }
+  });
+
+  // fecha de hoy en formato del campo de fecha (AAAA-MM-DD, hora local)
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function fmtShortDate(s){
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T12:00:00') : new Date(s);
+    return d.toLocaleDateString('es-ES', {day:'numeric', month:'short', year:'2-digit'});
+  }
+  function fmtPace(secPerKm){
+    const t = Math.round(secPerKm);
+    return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0');
+  }
+
+  function showSaved(){
+    const bar = document.getElementById('savedBar');
+    bar.classList.add('show');
+    setTimeout(()=>bar.classList.remove('show'), 1500);
+  }
+
+  // ---------- PROFILE ----------
+  document.getElementById('profWeight').value = profile.weight;
+  document.getElementById('profAge').value = profile.age;
+  document.getElementById('profSex').value = profile.sex;
+  if(profile.voice === undefined) profile.voice = true; // voz activada por defecto
+  document.getElementById('profVoice').value = profile.voice ? '1' : '0';
+  if(profile.mapMode !== 'linea') profile.mapMode = 'calles'; // calles por defecto
+  document.getElementById('profMap').value = profile.mapMode;
+
+  document.getElementById('profName').value = profile.name || '';
+  document.getElementById('profHeight').value = profile.height || '';
+  // saludo en la cabecera: "Hola, Nombre" o la marca si no hay nombre
+  function refreshHello(){
+    const h = document.getElementById('hello');
+    if(profile.name) h.textContent = 'Hola, ' + profile.name; else h.innerHTML = 'Mi<span>Run</span>';
+  }
+  refreshHello();
+
+  document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
+    // Object.assign conserva campos que esta pantalla no muestra (no se pierden datos)
+    profile = Object.assign(profile, {
+      name: document.getElementById('profName').value.trim().slice(0,30),
+      weight: parseFloat(document.getElementById('profWeight').value)||70,
+      age: parseInt(document.getElementById('profAge').value)||30,
+      height: (h=>h >= 100 && h <= 250 ? h : null)(parseInt(document.getElementById('profHeight').value)),
+      sex: document.getElementById('profSex').value,
+      voice: document.getElementById('profVoice').value === '1',
+      mapMode: document.getElementById('profMap').value
+    });
+    if(typeof refreshLiveMap === 'function') refreshLiveMap();
+    LS.set('mirun_profile', profile);
+    refreshHello();
+    showSaved();
+  });
+
+  // ---------- GOAL ----------
+  function loadGoalForm(){
+    document.getElementById('goalDist').value = goal.dist || '';
+    document.getElementById('goalTime').value = goal.time || '';
+    document.getElementById('paceMin').value = goal.paceMin ?? '';
+    document.getElementById('paceSec').value = goal.paceSec ?? '';
+  }
+  loadGoalForm();
+
+  function refreshGoalLabels(){
+    document.getElementById('goalDistLbl').textContent = goal.dist ? goal.dist+' km' : '--';
+    document.getElementById('goalTimeLbl').textContent = goal.time ? goal.time+' min' : '--';
+    document.getElementById('goalPaceLbl').textContent = (goal.paceMin!=null && goal.paceMin!=='') ?
+      pad(goal.paceMin)+':'+pad(goal.paceSec||0) : '--';
+  }
+  refreshGoalLabels();
+
+  // racha y metas de actividad (campos agregados en v5; si no existen se usan estos valores)
+  const DEF_DAILY = 20, DEF_WEEK = 150;
+  function dailyMin(){ return goal.dailyMin || DEF_DAILY; }
+  function weekMin(){ return goal.weekMin || DEF_WEEK; }
+  // Descanso PROGRAMADO: goal.restPlan = [{from:'AAAA-MM-DD' (un lunes), days:[0..6]}].
+  // Cada cambio rige desde el lunes siguiente, así no se puede "rescatar" un día ya perdido.
+  // goal.restDays (v5 temprano) se lee como un plan vigente desde siempre.
+  const WD = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  function mondayOf(d){ const m = new Date(d); m.setHours(12,0,0,0); m.setDate(m.getDate() - ((m.getDay()+6) % 7)); return m; }
+  function nextMonday(){ const m = mondayOf(new Date()); m.setDate(m.getDate() + 7); return m; }
+  function restPlan(){
+    if(Array.isArray(goal.restPlan)) return goal.restPlan;
+    return Array.isArray(goal.restDays) && goal.restDays.length ? [{from:'2000-01-03', days:goal.restDays}] : [];
+  }
+  function restDaysOn(d){ const k = dayKey(d); let days = []; restPlan().forEach(p=>{ if(p.from <= k) days = p.days; }); return days; }
+  function restDays(){ return restDaysOn(nextMonday()); } // lo que se edita: el plan desde el próximo lunes
+  function loadStreakForm(){
+    document.getElementById('goalDailyMin').value = goal.dailyMin || '';
+    document.getElementById('goalWeekMin').value = goal.weekMin || '';
+    document.querySelectorAll('#restChips .chip').forEach(c=>c.classList.toggle('on', restDays().includes(+c.dataset.wd)));
+    const now = restDaysOn(new Date()), nm = nextMonday();
+    document.getElementById('restNote').textContent = 'Esta semana: ' + (now.length ? now.map(x=>WD[x]).join(', ') : 'sin descanso') +
+      '. Lo que marques aquí empieza el lunes ' + nm.getDate() + '/' + (nm.getMonth()+1) + '.';
+  }
+  loadStreakForm();
+  document.getElementById('restChips').addEventListener('click', (ev)=>{
+    const c = ev.target.closest('.chip'); if(!c) return;
+    if(!c.classList.contains('on') && document.querySelectorAll('#restChips .chip.on').length >= 3){
+      alert('Máximo 3 días de descanso por semana.'); return;
+    }
+    c.classList.toggle('on');
+  });
+
+  document.getElementById('btnSaveGoal').addEventListener('click', ()=>{
+    const dm = parseInt(document.getElementById('goalDailyMin').value);
+    const wm = parseInt(document.getElementById('goalWeekMin').value);
+    const newRest = [...document.querySelectorAll('#restChips .chip.on')].map(c=>+c.dataset.wd).sort();
+    if(newRest.join() !== restDays().slice().sort().join()){
+      const nk = dayKey(nextMonday()); // reemplaza lo que estuviera programado desde ese lunes
+      goal.restPlan = restPlan().filter(p=>p.from < nk).concat([{from: nk, days: newRest}]);
+    }
+    // Object.assign conserva cualquier otro campo de la meta
+    goal = Object.assign(goal, {
+      dist: parseFloat(document.getElementById('goalDist').value)||null,
+      time: parseFloat(document.getElementById('goalTime').value)||null,
+      paceMin: document.getElementById('paceMin').value!=='' ? parseInt(document.getElementById('paceMin').value) : null,
+      paceSec: document.getElementById('paceSec').value!=='' ? parseInt(document.getElementById('paceSec').value) : null,
+      dailyMin: dm > 0 ? Math.min(60, Math.max(10, dm)) : null, // racha: entre 10 y 60 min
+      weekMin: wm > 0 ? Math.min(3000, wm) : null
+    });
+    LS.set('mirun_goal', goal);
+    loadStreakForm();
+    refreshGoalLabels();
+    showSaved();
+    showTab('home');
+  });
+
+  // ---------- ROUTE DRAWING (canvas, no internet needed) ----------
+  function drawRoute(canvas, points, color){
+    if(!canvas || !points || points.length < 2) {
+      if(canvas){
+        const ctx = canvas.getContext('2d');
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w * (window.devicePixelRatio||1);
+        canvas.height = h * (window.devicePixelRatio||1);
+        ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+      }
+      return;
+    }
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0,w,h);
+
+    const lats = points.map(p=>p.lat), lons = points.map(p=>p.lon);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+    const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+    const pad = 14;
+    const spanLat = (maxLat-minLat)||0.0001;
+    const spanLon = (maxLon-minLon)||0.0001;
+    const scaleX = (w-pad*2)/spanLon;
+    const scaleY = (h-pad*2)/spanLat;
+    const scale = Math.min(scaleX, scaleY);
+    const offX = (w - spanLon*scale)/2;
+    const offY = (h - spanLat*scale)/2;
+
+    function toXY(p){
+      const x = offX + (p.lon-minLon)*scale;
+      const y = h - (offY + (p.lat-minLat)*scale);
+      return [x,y];
+    }
+
+    ctx.beginPath();
+    points.forEach((p,i)=>{
+      const [x,y] = toXY(p);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle = color || '#4d9bff';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    const [sx,sy] = toXY(points[0]);
+    ctx.beginPath(); ctx.arc(sx,sy,4.5,0,Math.PI*2); ctx.fillStyle='#eef3ff'; ctx.fill();
+    const [ex,ey] = toXY(points[points.length-1]);
+    ctx.beginPath(); ctx.arc(ex,ey,4.5,0,Math.PI*2); ctx.fillStyle=color||'#4d9bff'; ctx.fill();
+  }
+
+  // ---------- MAPA CON CALLES (OpenStreetMap + Leaflet) ----------
+  // Si se eligio "calles", hay internet y la libreria cargo: mapa real.
+  // Si no: la linea dibujada de siempre (drawRoute), que no necesita internet.
+  const streetMaps = {};
+  function streetsAvailable(){
+    return profile.mapMode !== 'linea' && navigator.onLine && typeof window.L !== 'undefined';
+  }
+  function renderRoute(key, canvas, div, points, color, follow){
+    if(!streetsAvailable()){
+      div.style.display = 'none';
+      canvas.style.display = 'block';
+      drawRoute(canvas, points, color);
+      return 'linea';
+    }
+    canvas.style.display = 'none';
+    div.style.display = 'block';
+    let m = streetMaps[key];
+    if(!m){
+      const map = L.map(div, {zoomControl:false, attributionControl:false});
+      L.control.attribution({prefix:false}).addTo(map);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom:19, attribution:'© OpenStreetMap'
+      }).addTo(map);
+      const line = L.polyline([], {color:color, weight:5, opacity:.95, lineJoin:'round'}).addTo(map);
+      const start = L.circleMarker([0,0], {radius:5, color:'#070d1f', weight:2, fillColor:'#eef3ff', fillOpacity:1});
+      const dot = L.circleMarker([0,0], {radius:8, color:'#070d1f', weight:3, fillColor:color, fillOpacity:1});
+      m = streetMaps[key] = {map, line, start, dot, n:-1, touchedAt:0, centered:false};
+      // si mueves el mapa con el dedo, deja de seguirte 15 s
+      map.on('dragstart zoomstart', ()=>{ m.touchedAt = Date.now(); });
+    }
+    m.map.invalidateSize();
+    if(points.length === 0) return 'calles';
+    const ll = points.map(p=>[p.lat, p.lon]);
+    // el mapa necesita una posicion antes de dibujar encima
+    if(!m.centered){ m.map.setView(ll[ll.length-1], 17); m.centered = true; }
+    if(m.n !== points.length){
+      m.n = points.length;
+      m.line.setLatLngs(ll);
+      m.start.setLatLng(ll[0]);
+      m.dot.setLatLng(ll[ll.length-1]);
+      if(!m.map.hasLayer(m.start)) m.start.addTo(m.map);
+      if(!m.map.hasLayer(m.dot)) m.dot.addTo(m.map); // se agrega despues: queda encima
+    }
+    if(follow){
+      if(Date.now() - m.touchedAt > 15000) m.map.panTo(ll[ll.length-1], {animate:true});
+    } else if(ll.length > 1){
+      m.map.fitBounds(m.line.getBounds(), {padding:[24,24], maxZoom:17});
+    } else {
+      m.map.setView(ll[0], 17);
+    }
+    return 'calles';
+  }
+  function resetStreetMap(key){
+    const m = streetMaps[key];
+    if(m){ m.n = -1; m.centered = false; m.touchedAt = 0; m.line.setLatLngs([]); m.start.remove(); m.dot.remove(); }
+  }
+
+  // ---------- HISTORY ----------
+  function renderHistory(){
+    const list = document.getElementById('histList');
+    if(history.length===0){
+      list.innerHTML = '<div class="empty"><img src="' + mascot('vacio') + '" alt="">Todavía no tienes actividades registradas.<br>¡Muévete hoy!</div>';
+    } else {
+      list.innerHTML = history.slice().reverse().map((h,ri)=>{
+        const d = new Date(h.date);
+        const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
+                      d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+        const hasRoute = h.path && h.path.length > 1;
+        const a = actInfo(h.type);
+        const head = `<div class="top"><span>${a.e} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}</span>
+            <button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></div>`;
+        if(!(h.dist > 0)){ // actividad sin distancia (gimnasio, natación, etc.)
+          return `<div class="histItem">${head}<div class="stats">
+            <div><div class="num">${Math.round(h.seconds/60)}</div><small>min</small></div>
+            <div><div class="num">${h.intensity || '-'}</div><small>intensidad</small></div>
+            <div><div class="num">${h.cal}</div><small>kcal</small></div></div></div>`;
+        }
+        return `<div class="histItem">
+          ${head}
+          <div class="stats">
+            <div><div class="num">${h.dist.toFixed(2)}</div><small>km</small></div>
+            <div><div class="num">${fmtTime(h.seconds)}</div><small>tiempo</small></div>
+            <div><div class="num">${h.pace}</div><small>min/km</small></div>
+            <div><div class="num">${h.cal}</div><small>kcal</small></div>
+          </div>
+          ${hasRoute ? `<div class="mini-route"><canvas id="hist-route-${ri}"></canvas></div>` : ''}
+        </div>`;
+      }).join('');
+
+      history.slice().reverse().forEach((h,ri)=>{
+        if(h.path && h.path.length > 1){
+          const c = document.getElementById('hist-route-'+ri);
+          if(c) drawRoute(c, h.path, '#7cc4ff');
+        }
+      });
+    }
+    document.getElementById('totRuns').textContent = history.length;
+    document.getElementById('totKm').textContent = history.reduce((s,h)=>s+h.dist,0).toFixed(1);
+    document.getElementById('totCal').textContent = Math.round(history.reduce((s,h)=>s+h.cal,0));
+    // recordatorio de copia de seguridad si hay datos y la última copia es vieja (o nunca se hizo)
+    const lastB = LS.get('mirun_lastBackup', null);
+    const daysB = lastB ? Math.floor((Date.now() - new Date(lastB).getTime()) / 86400000) : null;
+    const bm = document.getElementById('backupMsg');
+    if(history.length >= 3 && (daysB === null || daysB >= 30) && !bm.dataset.set){
+      bm.textContent = daysB === null ? 'Aún no has guardado una copia de tus datos. Te recomendamos hacerlo.'
+                                      : 'Tu última copia es de hace ' + daysB + ' días. Te recomendamos guardar una nueva.';
+      bm.style.color = 'var(--amber)';
+    }
+  }
+  renderHistory();
+
+  // Borrar una carrera del historial (con confirmacion)
+  document.getElementById('histList').addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-del]');
+    if(!b) return;
+    const date = decodeURIComponent(b.dataset.del);
+    const h = history.find(x=>x.date === date);
+    if(!h) return;
+    const what = h.dist > 0 ? h.dist.toFixed(2) + ' km' : Math.round(h.seconds/60) + ' min';
+    if(!confirm('¿Borrar ' + typeName(h.type) + ' (' + what + ') del ' + fmtShortDate(h.date) + '? No se puede deshacer.')) return;
+    history = history.filter(x=>x.date !== date);
+    LS.set('mirun_history', history);
+    renderHistory();
+  });
+
+  // ---------- CARRERA A MANO ----------
+  document.getElementById('manDate').value = todayStr();
+  document.getElementById('btnManual').addEventListener('click', ()=>{
+    const msg = document.getElementById('manMsg');
+    const dateStr = document.getElementById('manDate').value;
+    const km = parseFloat(document.getElementById('manKm').value);
+    const mins = parseInt(document.getElementById('manMin').value)||0;
+    const secs = parseInt(document.getElementById('manSec').value)||0;
+    const total = mins*60 + secs;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || !(km > 0) || !(total > 0)){
+      msg.textContent = 'Falta la fecha, los kilómetros o el tiempo.'; msg.style.color = 'var(--danger)'; return;
+    }
+    if(km > 300 || total/km < 120){ // menos de 2 min/km no es correr
+      msg.textContent = 'Revisa los datos: ese ritmo no parece real.'; msg.style.color = 'var(--danger)'; return;
+    }
+    const before = computeRecords(history);
+    // hora fija al mediodia para que no choque con otra carrera del mismo dia
+    let iso = new Date(dateStr + 'T12:00:00').toISOString();
+    while(history.some(h=>h.date === iso)) iso = new Date(new Date(iso).getTime() + 1000).toISOString();
+    history.push({date: iso, dist: km, seconds: total, pace: fmtPace(total/km),
+                  cal: calcCalories(km, total), path: [], splits: [], manual: true});
+    history.sort((a,b)=>a.date < b.date ? -1 : 1);
+    LS.set('mirun_history', history);
+    const news = newRecords(before, computeRecords(history));
+    msg.style.color = 'var(--signal)';
+    msg.textContent = 'Carrera agregada.' + (news.length ? ' ¡Nuevo récord en ' + news.map(n=>n.k + ' km').join(', ') + '!' : '');
+    document.getElementById('manKm').value = '';
+    document.getElementById('manMin').value = '';
+    document.getElementById('manSec').value = '';
+    renderHistory(); checkAchievements();
+  });
+
+  // ---------- RECORDS ----------
+  // Categorias de distancia. 21 y 42 = media maraton y maraton.
+  const REC_CATS = [1, 3, 5, 10, 21, 42];
+  const REC_TOL = 0.97; // el GPS suele marcar un poquito menos: 4.86 km cuenta como 5 km
+
+  // Tiempo del tramo mas rapido de k km dentro de una carrera (segundos), o null
+  function bestEffort(h, k){
+    if(!(h.dist >= k*REC_TOL)) return null;
+    const full = (h.splits||[]).filter(s=>!s.partial);
+    if(full.length >= k){
+      let best = Infinity;
+      for(let i=0; i+k<=full.length; i++){
+        let sum = 0;
+        for(let j=i; j<i+k; j++) sum += full[j].seconds;
+        if(sum < best) best = sum;
+      }
+      return best;
+    }
+    // sin tramos por km (carrera a mano o muy corta): se usa el ritmo promedio
+    return h.seconds * k / h.dist;
+  }
+
+  function computeRecords(list){
+    list = list.filter(isRun); // los récords solo cuentan carreras (no caminatas, bici, etc.)
+    return REC_CATS.map((k,i)=>{
+      const next = REC_CATS[i+1] || Infinity;
+      let best = null;
+      list.forEach(h=>{
+        const s = bestEffort(h, k);
+        if(s && (!best || s < best.sec)) best = {sec: s, date: h.date};
+      });
+      // carreras "de esa distancia": desde k hasta antes de la siguiente categoria
+      const inCat = list.filter(h=>h.dist >= k*REC_TOL && h.dist < next*REC_TOL);
+      let bestPace = null;
+      inCat.forEach(h=>{
+        const p = h.seconds / h.dist;
+        if(!bestPace || p < bestPace.p) bestPace = {p, date: h.date};
+      });
+      return {k, best, bestPace, count: inCat.length};
+    });
+  }
+
+  function newRecords(before, after){
+    return after.filter((r,i)=>r.best && (!before[i].best || r.best.sec < before[i].best.sec - 0.5));
+  }
+
+  function renderRecords(){
+    const recs = computeRecords(history);
+    document.getElementById('recList').innerHTML = recs.map(r=>{
+      const name = r.k === 21 ? '21 km' : r.k === 42 ? '42 km' : r.k + ' km';
+      if(!r.best) return `<div class="recRow none"><div class="recCat">${name}</div>
+        <div class="recCol"><div class="l">Todavía no has corrido esta distancia</div></div></div>`;
+      return `<div class="recRow"><div class="recCat">${name}</div>
+        <div class="recCol"><div class="v">${fmtTime(r.best.sec)}</div>
+          <div class="l">MEJOR TIEMPO · ${fmtPace(r.best.sec / r.k)} /km<br>${fmtShortDate(r.best.date)}</div></div>
+        <div class="recCol"><div class="v">${r.bestPace ? fmtPace(r.bestPace.p) : '--'}</div>
+          <div class="l">MEJOR RITMO PROM.<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------- CUERPO (medidas) ----------
+  // good: hacia donde es "mejorar". -1 = bajar es bueno, 1 = subir es bueno.
+  // h = cómo medir (se muestra bajo el campo). ph = ejemplo. Para agregar una medida: una línea nueva.
+  const MEASURES = [
+    {k:'peso',        n:'Peso',        u:'kg', id:'bPeso',        good:-1, ph:'70', h:'En ayunas, con poca ropa'},
+    {k:'barriga',     n:'Abdomen',     u:'cm', id:'bBarriga',     good:-1, ph:'85', h:'A la altura del ombligo'}, // clave 'barriga' se conserva por los datos guardados
+    {k:'cintura',     n:'Cintura',     u:'cm', id:'bCintura',     good:-1, ph:'80', h:'Parte más angosta, entre costilla y cadera'},
+    {k:'cadera',      n:'Cadera',      u:'cm', id:'bCadera',      good:-1, ph:'95', h:'Parte más ancha de los glúteos'},
+    {k:'pecho',       n:'Pecho',       u:'cm', id:'bPecho',       good: 1, ph:'95', h:'A la altura de las axilas, al soltar el aire'},
+    {k:'hombros',     n:'Hombros',     u:'cm', id:'bHombros',     good: 1, ph:'110', h:'Contorno por la parte más ancha'},
+    {k:'biceps',      n:'Bíceps',      u:'cm', id:'bBiceps',      good: 1, ph:'32', h:'Brazo relajado, en la parte más gruesa'},
+    {k:'antebrazo',   n:'Antebrazo',   u:'cm', id:'bAntebrazo',   good: 1, ph:'27', h:'Parte más gruesa, bajo el codo'},
+    {k:'muslo',       n:'Muslo',       u:'cm', id:'bMuslo',       good: 1, ph:'55', h:'Parte más gruesa, bajo el glúteo'},
+    {k:'pantorrilla', n:'Pantorrilla', u:'cm', id:'bPantorrilla', good: 1, ph:'37', h:'Parte más gruesa, de pie'}
+  ];
+  // medidas que sigue la persona (profile.measures). Por defecto, las que existían antes de v5 + cintura
+  const DEF_MEAS = ['peso','barriga','cintura','biceps','muslo','pantorrilla'];
+  function tracked(){ return Array.isArray(profile.measures) && profile.measures.length ? profile.measures : DEF_MEAS; }
+  const fmt1 = v => (Math.round(v*10)/10).toLocaleString('es-ES');
+
+  function buildBodyForm(){
+    document.getElementById('bodyInputs').innerHTML = MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
+      `<div class="measIn"><label>${m.n} (${m.u})</label>
+        <input type="number" id="${m.id}" step="0.1" placeholder="${m.ph}"><small>${m.h}</small></div>`).join('');
+    document.getElementById('measChips').innerHTML = MEASURES.map(m=>
+      `<button class="chip${tracked().includes(m.k) ? ' on' : ''}" data-meas="${m.k}">${m.n}</button>`).join('');
+    // el gráfico ofrece lo que se sigue y también lo que tenga datos guardados
+    chartSel.innerHTML = MEASURES.filter(m=>tracked().includes(m.k) || seriesOf(m.k).length)
+      .map(m=>`<option value="${m.k}">${m.n} (${m.u})</option>`).join('');
+  }
+  document.getElementById('measChips').addEventListener('click', (ev)=>{
+    const c = ev.target.closest('.chip'); if(!c) return;
+    const list = tracked().slice(), k = c.dataset.meas, i = list.indexOf(k);
+    if(i >= 0){ if(list.length === 1) return; list.splice(i, 1); } else list.push(k);
+    profile.measures = MEASURES.map(m=>m.k).filter(x=>list.includes(x)); // mismo orden que MEASURES
+    LS.set('mirun_profile', profile);
+    buildBodyForm();
+  });
+
+  // IMC = peso / estatura² (estatura en el perfil, peso de la última medición o del perfil)
+  function renderBMI(){
+    const box = document.getElementById('bmiBox');
+    const ps = seriesOf('peso'), w = ps.length ? ps[ps.length-1].peso : profile.weight;
+    if(!(profile.height > 0)){
+      box.innerHTML = '<div class="hint">Agrega tu estatura en <button class="linkBtn" data-goto="profile" style="padding:0;color:var(--signal);">Perfil</button> para ver tu IMC.</div>';
+      return;
+    }
+    const bmi = w / Math.pow(profile.height/100, 2);
+    const [cat, cls] = bmi < 18.5 ? ['Bajo peso','warn'] : bmi < 25 ? ['Saludable','ok'] : bmi < 30 ? ['Sobrepeso','warn'] : ['Obesidad','bad'];
+    box.innerHTML = `<img class="mascotSide" src="${mascot('cuerpo')}" alt=""><div class="bmiRow"><div class="num bmiV">${fmt1(bmi)}</div><div class="bmiTag ${cls}">${cat}</div></div>
+      <div class="hint">Con ${fmt1(w)} kg y ${profile.height} cm. El IMC es solo una referencia: no distingue músculo de grasa.
+      Tu cintura y tu progreso dicen más.</div>`;
+  }
+
+  document.getElementById('bodyDate').value = todayStr();
+  const chartSel = document.getElementById('bodyChartSel');
+  chartSel.addEventListener('change', drawBodyChart);
+  buildBodyForm();
+
+  function seriesOf(k){
+    return body.filter(e=>isFinite(e[k]) && e[k] > 0).sort((a,b)=>a.date < b.date ? -1 : 1);
+  }
+
+  function renderBody(){
+    renderBMI();
+    const prog = document.getElementById('bodyProg');
+    const rows = MEASURES.map(m=>{
+      const s = seriesOf(m.k);
+      if(s.length === 0) return '';
+      const first = s[0], last = s[s.length-1];
+      const diff = last[m.k] - first[m.k];
+      let cls = 'same', txt = 'igual';
+      if(s.length > 1 && Math.abs(diff) >= 0.05){
+        cls = (diff * m.good > 0) ? 'good' : 'bad';
+        txt = (diff > 0 ? '▲ +' : '▼ −') + fmt1(Math.abs(diff)) + ' ' + m.u;
+      } else if(s.length === 1){ txt = 'inicio'; }
+      return `<div class="progRow"><div class="pn">${m.n}</div>
+        <div class="pv">${fmt1(last[m.k])} ${m.u}
+          <small>${s.length > 1 ? 'empezaste en ' + fmt1(first[m.k]) + ' ' + m.u + ' (' + fmtShortDate(first.date) + ')' : 'primera medición ' + fmtShortDate(first.date)}</small></div>
+        <div class="pd ${cls}">${txt}</div></div>`;
+    }).join('');
+    if(rows){
+      const lastDate = body.map(e=>e.date).sort().pop();
+      const days = Math.round((new Date(todayStr()+'T12:00:00') - new Date(lastDate+'T12:00:00')) / 86400000);
+      prog.innerHTML = rows + `<div class="hint" style="margin-top:10px;">Última medición: ${days===0 ? 'hoy' : 'hace ' + days + (days===1?' día':' días')}.
+        ${days >= 14 ? ' <b>Ya toca medirte otra vez.</b>' : ''}</div>`;
+    } else {
+      prog.innerHTML = '<div class="hint">Todavía no tienes medidas. Llena tu primera medición abajo y desde ahí la app te muestra cuánto has avanzado.</div>';
+    }
+    document.getElementById('bodyChartPanel').style.display = rows ? 'block' : 'none';
+
+    const list = document.getElementById('bodyList');
+    if(body.length === 0){
+      list.innerHTML = '<div class="hint">Sin mediciones todavía.</div>';
+    } else {
+      list.innerHTML = body.slice().sort((a,b)=>a.date < b.date ? 1 : -1).map(e=>`<div class="bodyItem">
+        <div class="top"><span>${fmtShortDate(e.date)}</span><button class="linkBtn" data-bdel="${e.date}">Borrar</button></div>
+        <div class="vals">${MEASURES.filter(m=>isFinite(e[m.k]) && e[m.k] > 0)
+          .map(m=>`<span><small>${m.n}</small>${fmt1(e[m.k])}</span>`).join('')}</div></div>`).join('');
+    }
+    if(rows) setTimeout(drawBodyChart, 30);
+  }
+
+  function drawBodyChart(){
+    const canvas = document.getElementById('bodyChart');
+    const m = MEASURES.find(x=>x.k === chartSel.value) || MEASURES[0];
+    const s = seriesOf(m.k);
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if(!w) return;
+    canvas.width = w*dpr; canvas.height = h*dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0,w,h);
+    ctx.font = '11px Inter, sans-serif';
+    if(s.length < 2){
+      ctx.fillStyle = '#8fa0c2';
+      ctx.fillText(s.length ? 'Con la próxima medición verás la línea de tu avance.' : 'Sin datos de ' + m.n.toLowerCase() + ' todavía.', 4, h/2);
+      return;
+    }
+    const padL = 40, padR = 10, padT = 12, padB = 24;
+    const vals = s.map(e=>e[m.k]);
+    let min = Math.min(...vals), max = Math.max(...vals);
+    if(max - min < 1){ min -= 0.5; max += 0.5; }
+    const t0 = new Date(s[0].date+'T12:00:00').getTime(), t1 = new Date(s[s.length-1].date+'T12:00:00').getTime();
+    const X = d => padL + (t1===t0 ? 0 : (new Date(d+'T12:00:00').getTime()-t0)/(t1-t0)) * (w-padL-padR);
+    const Y = v => padT + (1 - (v-min)/(max-min)) * (h-padT-padB);
+    // lineas guia
+    ctx.strokeStyle = '#1e2c4d'; ctx.lineWidth = 1; ctx.fillStyle = '#5d6d8f';
+    [max, (max+min)/2, min].forEach(v=>{
+      ctx.beginPath(); ctx.moveTo(padL, Y(v)); ctx.lineTo(w-padR, Y(v)); ctx.stroke();
+      ctx.fillText(fmt1(v), 2, Y(v)+4);
+    });
+    ctx.fillText(fmtShortDate(s[0].date), padL, h-6);
+    const lastLbl = fmtShortDate(s[s.length-1].date);
+    ctx.fillText(lastLbl, w - padR - ctx.measureText(lastLbl).width, h-6);
+    // linea del avance
+    const diff = vals[vals.length-1] - vals[0];
+    const color = Math.abs(diff) < 0.05 ? '#8fa0c2' : (diff * m.good > 0 ? '#4d9bff' : '#ff8a3d');
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.forEach((e,i)=>{ const x = X(e.date), y = Y(e[m.k]); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    ctx.stroke();
+    ctx.fillStyle = color;
+    s.forEach(e=>{ ctx.beginPath(); ctx.arc(X(e.date), Y(e[m.k]), 3.5, 0, Math.PI*2); ctx.fill(); });
+  }
+
+  document.getElementById('btnSaveBody').addEventListener('click', ()=>{
+    const date = document.getElementById('bodyDate').value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ alert('Elige la fecha de la medición.'); return; }
+    const entry = {date};
+    let any = false;
+    MEASURES.forEach(m=>{
+      const el = document.getElementById(m.id); if(!el) return; // medida que no se sigue
+      const v = parseFloat(el.value);
+      if(v > 0 && v < 400){ entry[m.k] = v; any = true; }
+    });
+    if(!any){ alert('Escribe al menos una medida.'); return; }
+    const i = body.findIndex(e=>e.date === date);
+    if(i >= 0) body[i] = Object.assign(body[i], entry); else body.push(entry);
+    LS.set('mirun_body', body);
+    // el peso tambien se usa para calcular las calorias
+    if(entry.peso){
+      profile.weight = entry.peso;
+      LS.set('mirun_profile', profile);
+      document.getElementById('profWeight').value = entry.peso;
+    }
+    MEASURES.forEach(m=>{ const el = document.getElementById(m.id); if(el) el.value = ''; });
+    buildBodyForm();
+    renderBody();
+    showSaved();
+  });
+
+  document.getElementById('bodyList').addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-bdel]');
+    if(!b) return;
+    if(!confirm('¿Borrar la medición del ' + fmtShortDate(b.dataset.bdel) + '?')) return;
+    body = body.filter(e=>e.date !== b.dataset.bdel);
+    LS.set('mirun_body', body);
+    renderBody();
+  });
+
+  // ---------- RUN LOGIC ----------
+  let watchId = null;
+  let running = false, paused = false;
+  let startTime = 0, elapsedBeforePause = 0;
+  let totalDist = 0; // km
+  let runType = 'correr'; // tipo de actividad con GPS: correr | caminar | bici
+  let lastPos = null;
+  let timerInterval = null;
+  let path = [];
+  let splits = []; // {km: 1, seconds: 320}
+  let lastSplitDist = 0;
+  let lastSplitTime = 0;
+  let lastFixTime = 0;   // ultima vez que llego una posicion buena
+  let badJumps = 0;      // saltos imposibles seguidos
+  let wakeLock = null;
+  let hiddenSince = 0;   // cuando se apago la pantalla / se cambio de app
+
+  const gpsStatus = document.getElementById('gpsStatus');
+  const liveMapWrap = document.getElementById('liveMapWrap');
+  const liveMapCanvas = document.getElementById('liveMap');
+  const liveStreet = document.getElementById('liveStreet');
+  const liveMapMode = document.getElementById('liveMapMode');
+  const liveMapNote = document.getElementById('liveMapNote');
+
+  // Dibuja el mapa en vivo (calles o linea) y actualiza el boton de cambio
+  function refreshLiveMap(){
+    if(!running){ liveMapWrap.style.display = 'none'; return; }
+    liveMapWrap.style.display = 'block';
+    let shown;
+    // Un fallo del mapa nunca debe frenar el cronometro ni el guardado
+    try{ shown = renderRoute('live', liveMapCanvas, liveStreet, path, '#4d9bff', true); }
+    catch(e){ liveStreet.style.display = 'none'; liveMapCanvas.style.display = 'block';
+              drawRoute(liveMapCanvas, path, '#4d9bff'); shown = 'linea'; }
+    liveMapMode.textContent = profile.mapMode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
+    if(profile.mapMode !== 'linea' && shown === 'linea'){
+      liveMapNote.textContent = 'Sin internet: mostrando solo la línea';
+    } else if(path.length === 0){
+      liveMapNote.textContent = 'Esperando tu primera posición…';
+    } else {
+      liveMapNote.textContent = '';
+    }
+  }
+  liveMapMode.addEventListener('click', ()=>{
+    profile.mapMode = profile.mapMode === 'linea' ? 'calles' : 'linea';
+    LS.set('mirun_profile', profile);
+    document.getElementById('profMap').value = profile.mapMode;
+    refreshLiveMap();
+  });
+  window.addEventListener('online', ()=>{ if(running) refreshLiveMap(); });
+  window.addEventListener('offline', ()=>{ if(running) refreshLiveMap(); });
+
+  function haversine(lat1, lon1, lat2, lon2){
+    const R = 6371; // km
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function pad(n){ n = Math.floor(n); return n<10 ? '0'+n : ''+n; }
+  function fmtTime(totalSec){
+    const h = Math.floor(totalSec/3600);
+    const m = Math.floor((totalSec%3600)/60);
+    const s = Math.floor(totalSec%60);
+    return h>0 ? pad(h)+':'+pad(m)+':'+pad(s) : pad(m)+':'+pad(s);
+  }
+
+  function currentElapsedSec(){
+    if(!running) return elapsedBeforePause/1000;
+    if(paused) return elapsedBeforePause/1000;
+    return (elapsedBeforePause + (Date.now()-startTime))/1000;
+  }
+
+  // kcal = MET × peso × horas × ajuste por edad/sexo
+  function metCalories(met, seconds){
+    const sexFactor = profile.sex === 'f' ? 0.93 : (profile.sex === 'm' ? 1.0 : 0.965); // 'x' = promedio
+    const ageFactor = profile.age > 50 ? 0.95 : (profile.age > 35 ? 0.98 : 1.0);
+    return Math.round(met * profile.weight * (seconds/3600) * sexFactor * ageFactor);
+  }
+
+  // type: 'correr' (por defecto), 'caminar' o 'bici'; el MET sale de la velocidad
+  function calcCalories(distKm, seconds, type){
+    const hrs = seconds/3600;
+    const kmh = hrs > 0 ? distKm/hrs : 0;
+    if(type === 'caminar') return metCalories(kmh < 4 ? 2.8 : kmh < 5.5 ? 3.5 : kmh < 6.5 ? 4.3 : 5.0, seconds);
+    if(type === 'bici') return metCalories(kmh < 16 ? 4.0 : kmh < 19 ? 6.8 : kmh < 22 ? 8.0 : kmh < 25 ? 10.0 : 12.0, seconds);
+    const paceMinPerKm = hrs>0 ? (seconds/60)/Math.max(distKm,0.001) : 0;
+    let met = 8;
+    if(paceMinPerKm > 0){
+      if(paceMinPerKm <= 4.3) met = 14.5;
+      else if(paceMinPerKm <= 5) met = 12.8;
+      else if(paceMinPerKm <= 5.6) met = 11.5;
+      else if(paceMinPerKm <= 6.2) met = 10.3;
+      else if(paceMinPerKm <= 7) met = 9.0;
+      else if(paceMinPerKm <= 8) met = 8.3;
+      else if(paceMinPerKm <= 9.6) met = 6.7;
+      else met = 6.0;
+    }
+    return metCalories(met, seconds);
+  }
+
+  function checkSplit(sec){
+    const currentKm = Math.floor(totalDist);
+    if(currentKm > lastSplitDist){
+      const splitTime = sec - lastSplitTime;
+      splits.push({km: currentKm, seconds: splitTime});
+      lastSplitDist = currentKm;
+      lastSplitTime = sec;
+      try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+      const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
+      say('Kilómetro ' + currentKm + '. Ese kilómetro en ' + pm + ' minutos ' +
+          (ps ? 'y ' + ps + ' segundos' : '') + '. Tiempo total ' + spokenTime(sec) + '.');
+    }
+  }
+
+  // ---------- AVISO POR VOZ (funciona sin internet) ----------
+  function say(text){
+    if(!profile.voice || !('speechSynthesis' in window)) return;
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES'; u.rate = 1;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function spokenTime(sec){
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+    return (h ? h + (h===1?' hora ':' horas ') : '') + m + (m===1?' minuto':' minutos');
+  }
+
+  // ---------- CARRERA EN CURSO (se guarda por si se cierra la app) ----------
+  let lastSaveAt = 0;
+  function saveCurrentRun(force){
+    if(!running) return;
+    if(!force && Date.now() - lastSaveAt < 5000) return;
+    lastSaveAt = Date.now();
+    LS.set('mirun_current', {
+      type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
+      lastSplitDist, lastSplitTime, savedAt: Date.now()
+    });
+  }
+  function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
+
+  function updateDisplay(){
+    const sec = currentElapsedSec();
+    document.getElementById('distVal').textContent = totalDist.toFixed(2);
+    document.getElementById('timeVal').textContent = fmtTime(sec);
+    const paceMinPerKm = totalDist > 0.02 ? sec/60/totalDist : 0;
+    if(paceMinPerKm > 0 && isFinite(paceMinPerKm)){
+      const pm = Math.floor(paceMinPerKm);
+      const ps = Math.round((paceMinPerKm-pm)*60);
+      document.getElementById('paceVal').textContent = pad(pm)+':'+pad(ps>=60?59:ps);
+    } else {
+      document.getElementById('paceVal').textContent = '--:--';
+    }
+    document.getElementById('calVal').textContent = calcCalories(totalDist, sec, runType);
+    checkSplit(sec);
+
+    const alertEl = document.getElementById('paceAlert');
+    if(runType==='correr' && goal.paceMin!=null && paceMinPerKm>0){
+      const goalPace = goal.paceMin + (goal.paceSec||0)/60;
+      const diff = paceMinPerKm - goalPace;
+      if(diff > 0.33){
+        alertEl.className = 'slow';
+        alertEl.textContent = 'Vas más lento que tu ritmo objetivo';
+      } else if(diff < -0.33){
+        alertEl.className = 'fast';
+        alertEl.textContent = 'Vas más rápido que tu ritmo objetivo';
+      } else {
+        alertEl.className = 'good';
+        alertEl.textContent = 'Ritmo perfecto';
+      }
+    } else {
+      alertEl.className = '';
+      alertEl.textContent='';
+    }
+
+    refreshLiveMap();
+
+    if(running && !paused){
+      // Avisa si el GPS lleva rato sin dar posicion buena
+      if(watchId !== null && lastFixTime && Date.now() - lastFixTime > 20000){
+        gpsStatus.textContent = 'GPS perdido';
+        gpsStatus.className = 'bad';
+      }
+      saveCurrentRun(false);
+      if(goal.dist && totalDist >= goal.dist){
+        say('Meta de distancia cumplida.');
+        finishRun();
+        return;
+      }
+      if(goal.time && sec/60 >= goal.time){
+        say('Meta de tiempo cumplida.');
+        finishRun();
+        return;
+      }
+    }
+  }
+
+  const gpsHelp = document.getElementById('gpsHelp');
+  const gpsHelpMsg = document.getElementById('gpsHelpMsg');
+  let gpsGotFix = false;
+  let gpsLowAccuracy = false; // segundo intento: acepta ubicacion por red/wifi
+
+  function showGpsHelp(msg){
+    gpsHelpMsg.innerHTML = msg;
+    gpsHelp.style.display = 'block';
+  }
+  function hideGpsHelp(){ gpsHelp.style.display = 'none'; }
+
+  function onPosition(pos){
+    gpsGotFix = true;
+    hideGpsHelp();
+    const {latitude, longitude, accuracy} = pos.coords;
+    if(accuracy && accuracy > 30){
+      // Hay ubicacion pero todavia imprecisa (normal los primeros segundos o bajo techo)
+      gpsStatus.textContent = 'GPS débil (±' + Math.round(accuracy) + ' m)';
+      gpsStatus.className = '';
+      return;
+    }
+    gpsStatus.textContent = 'GPS activo (±' + Math.round(accuracy||0) + ' m)';
+    gpsStatus.className = 'ok';
+    const now = Date.now();
+    lastFixTime = now;
+    if(!running || paused || !lastPos){
+      // Sin correr (o en pausa) solo se mueve el punto de referencia: no suma distancia
+      lastPos = {lat:latitude, lon:longitude, t:now};
+      if(running && !paused && path.length === 0) path.push({lat:latitude, lon:longitude, t:now});
+      return;
+    }
+    const dMeters = haversine(lastPos.lat, lastPos.lon, latitude, longitude) * 1000;
+    const dtSec = Math.max((now - lastPos.t)/1000, 1);
+    // Filtro de "temblor": parado, el GPS salta unos metros. Solo cuenta si
+    // el movimiento supera la mitad del margen de error (minimo 3 m).
+    if(dMeters < Math.max(3, (accuracy||0)*0.5)) return;
+    // Filtro de saltos imposibles: mas de 10 m/s (36 km/h) no es correr.
+    if(dMeters/dtSec > 10){
+      badJumps++;
+      if(badJumps >= 3){ lastPos = {lat:latitude, lon:longitude, t:now}; badJumps = 0; }
+      return;
+    }
+    badJumps = 0;
+    totalDist += dMeters/1000;
+    path.push({lat:latitude, lon:longitude, t:now});
+    lastPos = {lat:latitude, lon:longitude, t:now};
+  }
+
+  // Detecta si la pagina esta metida dentro de otra (ej. el visor de Claude),
+  // donde el navegador bloquea el GPS sin preguntar.
+  function inFrame(){ try{ return window.self !== window.top; }catch(e){ return true; } }
+
+  function onGpsError(err){
+    if(err.code === 1){ // PERMISSION_DENIED
+      stopGps();
+      gpsStatus.textContent = 'GPS bloqueado';
+      gpsStatus.className = 'bad';
+      if(inFrame()){
+        showGpsHelp('Esta página está abierta <b>dentro de otra aplicación</b> y ahí el GPS no funciona.<br>Ábrela directamente en <b>Chrome</b> con su propio link.');
+      } else {
+        showGpsHelp('Chrome tiene el GPS <b>bloqueado para esta página</b>.<br>Toca el ícono que está a la izquierda de la dirección (arriba) → <b>Permisos</b> → <b>Ubicación</b> → <b>Permitir</b>. Luego toca “Reintentar GPS”.');
+      }
+      return;
+    }
+    if(err.code === 3 && !gpsGotFix){ // TIMEOUT: aun buscando satelites
+      gpsStatus.textContent = 'Buscando GPS…';
+      gpsStatus.className = '';
+      if(!gpsLowAccuracy){
+        // segundo intento con menos precision para no quedarse en "no disponible"
+        gpsLowAccuracy = true;
+        restartGps();
+      }
+      showGpsHelp('Todavía no hay señal de GPS. Sal al aire libre, revisa que la <b>Ubicación</b> del teléfono esté encendida y espera unos segundos.');
+      return;
+    }
+    if(err.code === 2){ // POSITION_UNAVAILABLE
+      gpsStatus.textContent = 'GPS sin señal';
+      gpsStatus.className = 'bad';
+      showGpsHelp('El teléfono no da ubicación. Baja la cortina de notificaciones y enciende <b>Ubicación</b>. Luego toca “Reintentar GPS”.');
+    }
+  }
+
+  function startGps(){
+    if(!window.isSecureContext){
+      gpsStatus.textContent = 'GPS bloqueado';
+      gpsStatus.className = 'bad';
+      showGpsHelp('El GPS solo funciona si el link empieza por <b>https://</b>.');
+      return;
+    }
+    if(!navigator.geolocation){
+      gpsStatus.textContent = 'Sin GPS';
+      gpsStatus.className = 'bad';
+      return;
+    }
+    gpsStatus.textContent = 'Buscando GPS…';
+    gpsStatus.className = '';
+    watchId = navigator.geolocation.watchPosition(onPosition, onGpsError, {
+      enableHighAccuracy: !gpsLowAccuracy, maximumAge: 2000, timeout: 20000
+    });
+  }
+  function restartGps(){ stopGps(); startGps(); }
+
+  document.getElementById('btnGpsRetry').addEventListener('click', ()=>{
+    gpsLowAccuracy = false; gpsGotFix = false;
+    hideGpsHelp();
+    restartGps();
+  });
+
+  // Si el permiso cambia (ej. lo activa en los ajustes de Chrome), reintenta solo
+  if(navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({name:'geolocation'}).then(st=>{
+      st.onchange = ()=>{ if(st.state !== 'denied'){ hideGpsHelp(); restartGps(); } };
+    }).catch(()=>{});
+  }
+
+  // ---------- PANTALLA ENCENDIDA ----------
+  // Chrome suelta este permiso cada vez que la pantalla se apaga o cambias de
+  // app, por eso se vuelve a pedir al regresar.
+  async function keepScreenOn(){
+    if(!('wakeLock' in navigator) || !running) return;
+    try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+  }
+  function releaseScreen(){
+    try{ if(wakeLock) wakeLock.release(); }catch(e){}
+    wakeLock = null;
+  }
+
+  const runNote = document.getElementById('runNote');
+  function showRunNote(msg){ runNote.innerHTML = msg; runNote.style.display = 'block'; }
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'hidden'){
+      hiddenSince = Date.now();
+      saveCurrentRun(true);
+      return;
+    }
+    // volvio a la app
+    if(watchId === null && gpsHelp.style.display === 'none') startGps();
+    if(running){
+      keepScreenOn();
+      const away = hiddenSince ? Math.round((Date.now() - hiddenSince)/1000) : 0;
+      if(!paused && away >= 15){
+        showRunNote('La pantalla estuvo apagada ' + (away >= 60 ? Math.round(away/60) + ' min' : away + ' s') +
+          '. En ese rato Chrome no deja usar el GPS, así que la distancia de ese tramo se calculó en línea recta. ' +
+          '<b>Para que sea exacta, deja la pantalla encendida mientras corres.</b>');
+      }
+      updateDisplay();
+    }
+    hiddenSince = 0;
+  });
+  function stopGps(){
+    if(watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
+  }
+
+  startGps();
+
+  function beginRun(state){
+    running = true;
+    paused = !!(state && state.paused);
+    startTime = state ? state.startTime : Date.now();
+    elapsedBeforePause = state ? state.elapsedBeforePause : 0;
+    totalDist = state ? state.totalDist : 0;
+    runType = (state && state.type) || selectedGpsType();
+    document.getElementById('gpsTypeRow').style.display = 'none';
+    path = state ? (state.path || []) : [];
+    splits = state ? (state.splits || []) : [];
+    lastSplitDist = state ? state.lastSplitDist : 0;
+    lastSplitTime = state ? state.lastSplitTime : 0;
+    lastPos = null; badJumps = 0; lastFixTime = Date.now();
+    runNote.style.display = 'none';
+    resetStreetMap('live');
+    document.getElementById('btnStart').style.display='none';
+    document.getElementById('resumeBox').style.display='none';
+    document.getElementById('activeBtns').style.display='flex';
+    document.getElementById('btnPause').textContent = paused ? 'Reanudar' : 'Pausar';
+    clearInterval(timerInterval);
+    timerInterval = setInterval(updateDisplay, 1000);
+    keepScreenOn();
+    saveCurrentRun(true);
+    updateDisplay();
+  }
+
+  document.getElementById('btnStart').addEventListener('click', ()=>{
+    clearCurrentRun();
+    // "Despierta" la voz con el toque del usuario (algunos telefonos lo exigen)
+    if(profile.voice) say(typeName(selectedGpsType()) + '. Iniciado.');
+    beginRun(null);
+  });
+
+  // Si quedo una carrera a medias (se cerro la app o se recargo), ofrecer seguirla
+  const pending = LS.get('mirun_current', null);
+  if(pending && pending.startTime && Date.now() - pending.savedAt < 6*3600*1000){
+    showTab('run'); // la app abre en Inicio; si hay una actividad sin terminar, mostrarla
+    const box = document.getElementById('resumeBox');
+    document.getElementById('resumeInfo').textContent =
+      'Tienes una actividad sin terminar: ' + (pending.totalDist||0).toFixed(2) + ' km.';
+    box.style.display = 'block';
+    document.getElementById('btnResume').addEventListener('click', ()=>beginRun(pending));
+    document.getElementById('btnResumeSave').addEventListener('click', ()=>{
+      beginRun(pending); finishRun();
+    });
+    document.getElementById('btnResumeDiscard').addEventListener('click', ()=>{
+      clearCurrentRun(); box.style.display = 'none';
+    });
+  } else if(pending){
+    clearCurrentRun();
+  }
+
+  document.getElementById('btnPause').addEventListener('click', function(){
+    if(!paused){
+      paused = true;
+      elapsedBeforePause += Date.now()-startTime;
+      this.textContent = 'Reanudar';
+    } else {
+      paused = false;
+      startTime = Date.now();
+      lastFixTime = Date.now();
+      this.textContent = 'Pausar';
+    }
+    saveCurrentRun(true);
+  });
+
+  document.getElementById('btnStop').addEventListener('click', ()=>{
+    finishRun();
+  });
+
+  function finishRun(){
+    if(!running) return;
+    const sec = currentElapsedSec();
+    running = false;
+    clearInterval(timerInterval);
+    releaseScreen();
+    clearCurrentRun();
+    runNote.style.display = 'none';
+    const cal = calcCalories(totalDist, sec, runType);
+    const paceMinPerKm = totalDist > 0.02 ? sec/60/totalDist : 0;
+    const paceTotalSec = Math.round(paceMinPerKm*60);
+    const paceStr = paceMinPerKm>0 ? pad(Math.floor(paceTotalSec/60))+':'+pad(paceTotalSec%60) : '--:--';
+
+    if(totalDist > lastSplitDist){
+      splits.push({km: Math.round((totalDist-lastSplitDist)*100)/100, seconds: sec-lastSplitTime, partial:true});
+    }
+
+    const recBefore = computeRecords(history);
+    if(totalDist > 0.01){
+      history.push({
+        date: new Date().toISOString(),
+        dist: totalDist,
+        seconds: sec,
+        pace: paceStr,
+        cal: cal,
+        path: path.map(p=>({lat:p.lat, lon:p.lon})),
+        splits: splits,
+        type: runType
+      });
+      LS.set('mirun_history', history);
+    }
+
+    document.querySelector('#summaryOverlay h2').textContent = typeName(runType) + ': guardado';
+    document.getElementById('gpsTypeRow').style.display = 'flex';
+    document.getElementById('btnStart').style.display='block';
+    document.getElementById('activeBtns').style.display='none';
+    document.getElementById('btnPause').textContent='Pausar';
+    paused = false;
+
+    document.getElementById('sumDist').textContent = totalDist.toFixed(2)+' km';
+    document.getElementById('sumTime').textContent = fmtTime(sec);
+    document.getElementById('sumPace').textContent = paceStr;
+    document.getElementById('sumCal').textContent = cal;
+
+    const sumMapWrap = document.getElementById('sumMapWrap');
+    refreshLiveMap(); // ya no esta corriendo: oculta el mapa en vivo
+    if(path.length > 1){
+      sumMapWrap.style.display = 'block';
+      resetStreetMap('sum');
+      const finalPath = path.slice();
+      setTimeout(()=>{
+        const c = document.getElementById('sumMap'), dv = document.getElementById('sumStreet');
+        try{ renderRoute('sum', c, dv, finalPath, '#4d9bff', false); }
+        catch(e){ dv.style.display = 'none'; c.style.display = 'block'; drawRoute(c, finalPath, '#4d9bff'); }
+      }, 80);
+    } else {
+      sumMapWrap.style.display = 'none';
+    }
+
+    const splitsCard = document.getElementById('sumSplitsCard');
+    const splitsList = document.getElementById('sumSplitsList');
+    if(splits.length > 0){
+      splitsCard.style.display = 'block';
+      const fastest = Math.min(...splits.filter(s=>!s.partial).map(s=>s.seconds));
+      const maxSec = Math.max(...splits.map(s=>s.seconds));
+      splitsList.innerHTML = splits.map(s=>{
+        const isBest = !s.partial && s.seconds === fastest;
+        const pct = Math.max(15, (s.seconds/maxSec)*100);
+        return `<div class="splitRow ${isBest?'best':''}">
+          <div class="splitnum">${s.partial ? s.km : s.km}</div>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%;"></div></div>
+          <div class="time num">${fmtTime(s.seconds)}</div>
+        </div>`;
+      }).join('');
+    } else {
+      splitsCard.style.display = 'none';
+    }
+
+    // ¿Rompio algun record con esta carrera?
+    const recCard = document.getElementById('sumRecCard');
+    const news = newRecords(recBefore, computeRecords(history));
+    if(news.length){
+      recCard.style.display = 'block';
+      document.getElementById('sumRecList').innerHTML = news.map(r=>{
+        const old = recBefore[REC_CATS.indexOf(r.k)].best;
+        return `<div class="newRec">${r.k} km en ${fmtTime(r.best.sec)}
+          <small>${old ? 'Antes: ' + fmtTime(old.sec) + ' · mejoraste ' + fmtTime(old.sec - r.best.sec) : 'Primera vez que corres esta distancia'}</small></div>`;
+      }).join('');
+      say('Nuevo récord en ' + news.map(r=>r.k + ' kilómetros').join(' y ') + '.');
+    } else {
+      recCard.style.display = 'none';
+    }
+
+    document.getElementById('summaryOverlay').classList.add('show');
+
+    totalDist = 0; elapsedBeforePause=0;
+    document.getElementById('distVal').textContent='0.00';
+    document.getElementById('timeVal').textContent='00:00';
+    document.getElementById('paceVal').textContent='--:--';
+    document.getElementById('calVal').textContent='0';
+    document.getElementById('paceAlert').className='';
+    document.getElementById('paceAlert').textContent='';
+  }
+
+  document.getElementById('btnCloseSummary').addEventListener('click', ()=>{
+    document.getElementById('summaryOverlay').classList.remove('show');
+    renderHistory(); checkAchievements();
+  });
+
+  // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------
+  // fecha local AAAA-MM-DD de un Date
+  function dayKey(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+  // [inicio, fin] en ms. Con GPS 'date' es el final; en las registradas a mano 'date' es el inicio
+  function actRange(h){
+    const t = new Date(h.date).getTime();
+    return h.manual ? [t, t + h.seconds*1000] : [t - h.seconds*1000, t];
+  }
+  // minutos de actividad por día; si dos actividades se cruzan, el tiempo común se cuenta una vez
+  function minutesByDay(){
+    const byDay = new Map();
+    history.forEach(h=>{
+      if(!(h.seconds > 0)) return;
+      const r = actRange(h), k = dayKey(new Date(r[0]));
+      if(!byDay.has(k)) byDay.set(k, []);
+      byDay.get(k).push(r);
+    });
+    const out = new Map();
+    byDay.forEach((rs, k)=>{
+      rs.sort((a,b)=>a[0]-b[0]);
+      let total = 0, s = rs[0][0], e = rs[0][1];
+      for(let i=1; i<rs.length; i++){
+        if(rs[i][0] <= e) e = Math.max(e, rs[i][1]);
+        else { total += e - s; s = rs[i][0]; e = rs[i][1]; }
+      }
+      out.set(k, (total + e - s) / 60000);
+    });
+    return out;
+  }
+  // done = llegó al mínimo · rest = día de descanso · part = algo, sin llegar · miss = nada
+  function dayStatus(mins, d){
+    const m = mins.get(dayKey(d)) || 0;
+    if(m >= dailyMin()) return 'done';
+    if(restDaysOn(d).includes(d.getDay())) return 'rest';
+    return m > 0 ? 'part' : 'miss';
+  }
+  // Se calcula desde el historial (no se guarda): el descanso no suma ni rompe; hoy solo rompe al terminar el día
+  function streakInfo(mins){
+    const keys = [...mins.keys()].sort();
+    if(!keys.length) return {cur:0, best:0};
+    const today = new Date(); today.setHours(12,0,0,0);
+    const tk = dayKey(today);
+    let best = 0, run = 0;
+    for(const d = new Date(keys[0] + 'T12:00:00'); d <= today; d.setDate(d.getDate()+1)){
+      const s = dayStatus(mins, d);
+      if(s === 'done'){ run++; if(run > best) best = run; }
+      else if(s !== 'rest' && dayKey(d) !== tk) run = 0;
+    }
+    return {cur: run, best};
+  }
+
+  function setBar(id, val, goalVal){
+    document.getElementById(id+'Min').textContent = val;
+    document.getElementById(id+'Goal').textContent = 'de ' + goalVal + ' min';
+    const bar = document.getElementById(id+'Bar');
+    bar.style.width = Math.min(100, val/goalVal*100) + '%';
+    bar.classList.toggle('full', val >= goalVal);
+  }
+
+  function renderHome(){
+    const mins = minutesByDay(), st = streakInfo(mins);
+    document.getElementById('streakVal').textContent = st.cur;
+    document.getElementById('streakLbl').textContent = st.cur === 1 ? 'día de racha' : 'días de racha';
+    document.getElementById('streakRec').textContent = st.best
+      ? 'Tu récord: ' + st.best + (st.best === 1 ? ' día' : ' días')
+      : 'Haz ' + dailyMin() + ' min de actividad hoy para empezar tu racha';
+    const today = new Date(); today.setHours(12,0,0,0);
+    const tk = dayKey(today);
+    // semana de lunes a domingo
+    const monday = new Date(today); monday.setDate(today.getDate() - ((today.getDay()+6) % 7));
+    let wMin = 0;
+    for(let i=0; i<7; i++){ const d = new Date(monday); d.setDate(monday.getDate()+i); wMin += mins.get(dayKey(d)) || 0; }
+    setBar('today', Math.round(mins.get(tk) || 0), dailyMin());
+    setBar('week', Math.round(wMin), weekMin());
+    // mascota: pose y mensaje según cómo va el día
+    const tStat = dayStatus(mins, today), left = Math.max(0, Math.ceil(dailyMin() - (mins.get(tk) || 0)));
+    const recent = [1,2,3].some(n=>{ const d = new Date(today); d.setDate(d.getDate()-n); return (mins.get(dayKey(d)) || 0) > 0; });
+    let mk, msg;
+    if(tStat === 'done'){ mk = 'cumplido'; msg = '¡Meta de hoy cumplida! Llevas ' + st.cur + (st.cur === 1 ? ' día' : ' días') + ' de racha.'; }
+    else if(tStat === 'rest'){ mk = 'descanso'; msg = 'Hoy es tu día de descanso. Recupera energía, tu racha sigue a salvo.'; }
+    else if(st.cur === 0 && st.best > 0 && recent){ mk = 'rota'; msg = 'Tu racha se reinició, pero hoy empieza otra. ¡Vamos!'; }
+    else { mk = 'hoy'; msg = 'Te faltan ' + left + ' min para cumplir hoy. ¡Tú puedes!'; }
+    document.getElementById('homeMascot').src = mascot(mk);
+    document.getElementById('homeMsg').textContent = msg;
+    // calendario: las últimas 4 semanas (lunes a domingo)
+    const start = new Date(monday); start.setDate(monday.getDate() - 21);
+    let html = ['L','M','X','J','V','S','D'].map(x=>`<div class="h">${x}</div>`).join('');
+    for(let i=0; i<28; i++){
+      const d = new Date(start); d.setDate(start.getDate()+i);
+      const s = d > today ? 'future' : dayStatus(mins, d);
+      html += `<div class="d ${s}${dayKey(d) === tk ? ' today' : ''}">${d.getDate()}</div>`;
+    }
+    document.getElementById('calGrid').innerHTML = html;
+    const todays = history.filter(h=>dayKey(new Date(actRange(h)[0])) === tk);
+    document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
+      const a = actInfo(h.type);
+      return `<div class="actRow"><div class="ic">${a.e}</div><div class="an">${a.n}
+        <small>${Math.round(h.seconds/60)} min${h.dist > 0 ? ' · ' + h.dist.toFixed(2) + ' km' : ''}${h.intensity ? ' · intensidad ' + h.intensity : ''}</small></div>
+        <div class="num">${h.cal} kcal</div></div>`;
+    }).join('') : '<div class="hint">Todavía no registras actividad hoy.</div>';
+  }
+
+  // elegir una sola opción dentro de un grupo de chips
+  function pickOne(group, ev){
+    const c = ev.target.closest('.chip'); if(!c) return;
+    group.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on', x === c));
+  }
+  const actChips = document.getElementById('actChips'), actInt = document.getElementById('actInt');
+  const gpsTypeRow = document.getElementById('gpsTypeRow');
+  actChips.innerHTML = ACTIVITIES.filter(a=>!a.gps).map((a,i)=>
+    `<button class="chip${i === 0 ? ' on' : ''}" data-act="${a.k}"><span>${a.e}</span>${a.n}</button>`).join('');
+  actChips.addEventListener('click', ev=>pickOne(actChips, ev));
+  actInt.addEventListener('click', ev=>pickOne(actInt, ev));
+  gpsTypeRow.addEventListener('click', ev=>pickOne(gpsTypeRow, ev));
+  document.getElementById('actDate').value = todayStr();
+  { const n = new Date(); document.getElementById('actTime').value = pad(n.getHours()) + ':' + pad(n.getMinutes()); }
+
+  document.getElementById('btnAct').addEventListener('click', ()=>{
+    const msg = document.getElementById('actMsg');
+    const bad = t=>mascotMsg(msg, 'error', t, 'var(--danger)');
+    const type = actChips.querySelector('.chip.on').dataset.act;
+    const intensity = actInt.querySelector('.chip.on').dataset.int;
+    const dateStr = document.getElementById('actDate').value;
+    const timeStr = document.getElementById('actTime').value;
+    const mins = parseInt(document.getElementById('actMin').value);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || !/^\d{2}:\d{2}$/.test(timeStr)) return bad('Falta la fecha o la hora de inicio.');
+    if(!(mins >= 1 && mins <= 600)) return bad('La duración debe estar entre 1 y 600 minutos.');
+    const startD = new Date(dateStr + 'T' + timeStr + ':00');
+    if(startD.getTime() > Date.now()) return bad('La hora de inicio no puede ser en el futuro.');
+    let iso = startD.toISOString();
+    while(history.some(h=>h.date === iso)) iso = new Date(new Date(iso).getTime() + 1000).toISOString();
+    const seconds = mins * 60;
+    history.push({date: iso, type, intensity, seconds,
+                  cal: metCalories(actInfo(type).met[INTENSITY.indexOf(intensity)], seconds),
+                  dist: 0, pace: '--:--', path: [], splits: [], manual: true});
+    history.sort((a,b)=>a.date < b.date ? -1 : 1);
+    LS.set('mirun_history', history);
+    document.getElementById('actMin').value = '';
+    const st = streakInfo(minutesByDay());
+    mascotMsg(msg, 'guardado', typeName(type) + ' guardado. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
+    renderHistory(); checkAchievements();
+  });
+
+  // ---------- LOGROS ----------
+  // Se calculan desde el historial; solo se guarda cuáles ya se mostraron (mirun_achSeen).
+  // v(s) = valor actual, g = meta, c = categoría (ACH_CATS), leg = legendario (insignia dorada especial).
+  // Nombres y emojis propuestos por el diseñador. Para agregar un logro: una línea con id nuevo y único
+  // (los id no se cambian: se usan en mirun_achSeen).
+  const ACH_CATS = ['Actividades', 'Constancia y rachas', 'Metas semanales', 'Tiempo de entrenamiento',
+                    'Distancia acumulada', 'Distancia en una carrera', 'Variedad'];
+  const ACH = [
+    {id:'first',   c:0, e:'🐣', n:'Primer paso',         d:'Completa 1 actividad',          g:1,   v:s=>s.count},
+    {id:'act10',   c:0, e:'🥉', n:'Explorador',          d:'Completa 10 actividades',       g:10,  v:s=>s.count},
+    {id:'act50',   c:0, e:'🥈', n:'Aventurero',          d:'Completa 50 actividades',       g:50,  v:s=>s.count},
+    {id:'act100',  c:0, e:'🥇', n:'Veterano',            d:'Completa 100 actividades',      g:100, v:s=>s.count, leg:true},
+    {id:'st3',     c:1, e:'🔥', n:'En llamas',           d:'3 días seguidos',               g:3,   v:s=>s.best},
+    {id:'st7',     c:1, e:'⚡', n:'Semana eléctrica',    d:'7 días seguidos',               g:7,   v:s=>s.best},
+    {id:'st15',    c:1, e:'💥', n:'Disciplina total',    d:'15 días seguidos',              g:15,  v:s=>s.best},
+    {id:'st30',    c:1, e:'💎', n:'Diamante',            d:'30 días seguidos',              g:30,  v:s=>s.best},
+    {id:'st60',    c:1, e:'🚀', n:'Imparable',           d:'60 días seguidos',              g:60,  v:s=>s.best},
+    {id:'st100',   c:1, e:'👑', n:'Leyenda',             d:'100 días seguidos',             g:100, v:s=>s.best, leg:true},
+    {id:'week',    c:2, e:'🎯', n:'Objetivo cumplido',   d:'Alcanza tu meta semanal',       g:1,   v:s=>s.bestWeek >= weekMin() ? 1 : 0},
+    {id:'h10',     c:3, e:'⏳', n:'Tiempo inicial',      d:'10 horas acumuladas',           g:600, v:s=>s.totalMin},
+    {id:'h50',     c:3, e:'⌛', n:'Maestro del tiempo',  d:'50 horas acumuladas',           g:3000,v:s=>s.totalMin, leg:true},
+    {id:'km50',    c:4, e:'🛤️', n:'Primer recorrido',    d:'50 km acumulados',              g:50,  v:s=>s.totalKm},
+    {id:'km250',   c:4, e:'🌍', n:'Conquistador',        d:'250 km acumulados',             g:250, v:s=>s.totalKm, leg:true},
+    {id:'run5',    c:5, e:'🏃', n:'Primeros kilómetros', d:'Corre 5 km de una vez',         g:5,   v:s=>s.longRun},
+    {id:'run10',   c:5, e:'🏅', n:'Corredor de 10K',     d:'Corre 10 km de una vez',        g:10,  v:s=>s.longRun},
+    {id:'run21',   c:5, e:'🏆', n:'Media maratón',       d:'Corre 21,1 km de una vez',      g:21.1,v:s=>s.longRun, leg:true},
+    {id:'variety', c:6, e:'🚙', n:'Todoterreno',         d:'Prueba 4 tipos de actividad',   g:4,   v:s=>s.types}
+  ];
+
+  function achStats(){
+    const mins = minutesByDay();
+    const weeks = new Map(); // minutos por semana (clave = lunes)
+    mins.forEach((m, k)=>{
+      const d = new Date(k + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay()+6) % 7));
+      const wk = dayKey(d); weeks.set(wk, (weeks.get(wk) || 0) + m);
+    });
+    return {
+      count: history.length,
+      best: streakInfo(mins).best,
+      bestWeek: Math.max(0, ...weeks.values()),
+      totalMin: [...mins.values()].reduce((a,b)=>a+b, 0),
+      totalKm: history.reduce((a,h)=>a + (h.dist || 0), 0),
+      longRun: Math.max(0, ...history.filter(isRun).map(h=>h.dist || 0)),
+      types: new Set(history.map(h=>h.type || 'correr')).size
+    };
+  }
+
+  function renderAchievements(){
+    const s = achStats();
+    let on = 0;
+    // tres estados: bloqueado (gris + candado), desbloqueado (azul), legendario (dorado)
+    const card = a=>{
+      const v = a.v(s), ok = v >= a.g; if(ok) on++;
+      const pct = Math.min(100, v / a.g * 100);
+      const st = !ok ? 'lock' : a.leg ? 'leg' : 'on';
+      return `<div class="ach ${st}"><div class="medal">${a.e}${ok ? '' : '<i class="lk">🔒</i>'}</div>
+        <div class="an2">${a.n}</div><div class="ad">${a.d}</div>
+        ${ok || a.g === 1 ? '' : `<div class="pbar"><div style="width:${pct}%"></div></div>`}</div>`;
+    };
+    document.getElementById('achGrid').innerHTML = ACH_CATS.map((name, ci)=>
+      `<div class="achCat">${name}</div><div class="achRow">${ACH.filter(a=>a.c === ci).map(card).join('')}</div>`).join('');
+    document.getElementById('achCount').textContent = on + ' de ' + ACH.length;
+  }
+
+  // Muestra los logros nuevos de a uno. silent = marcarlos como vistos sin aviso
+  // (primera vez con esta versión o al recuperar una copia, para no llenar de avisos).
+  let achQueue = [];
+  function checkAchievements(silent){
+    const s = achStats();
+    const seen = LS.get('mirun_achSeen', null);
+    const unlocked = ACH.filter(a=>a.v(s) >= a.g).map(a=>a.id);
+    const fresh = seen ? unlocked.filter(id=>!seen.includes(id)) : [];
+    if(!seen || fresh.length) LS.set('mirun_achSeen', [...new Set([...(seen || []), ...unlocked])]);
+    if(silent || !seen || !fresh.length) return;
+    achQueue = achQueue.concat(fresh);
+    if(!document.getElementById('achOverlay').classList.contains('show')) showAchievement();
+  }
+  function showAchievement(){
+    const id = achQueue.shift(); if(!id) return;
+    const a = ACH.find(x=>x.id === id);
+    document.getElementById('achMedal').textContent = a.e;
+    document.getElementById('achMedal').classList.toggle('blue', !a.leg); // legendario = dorado
+    document.querySelector('#achOverlay .achTitle').textContent = a.leg ? '¡Logro legendario!' : '¡Nuevo logro!';
+    document.getElementById('achName').textContent = a.n;
+    document.getElementById('achDesc').textContent = a.d + '. ¡Sigue así!';
+    document.getElementById('achMascot').src = mascot(a.leg ? 'legendario' : 'logro');
+    document.getElementById('achOverlay').classList.add('show');
+    say('Nuevo logro: ' + a.n);
+  }
+  document.getElementById('btnAchOk').addEventListener('click', ()=>{
+    document.getElementById('achOverlay').classList.remove('show');
+    renderHome();
+    setTimeout(showAchievement, 250);
+  });
+
+  checkAchievements(true); // al abrir: los logros que ya tenías no se anuncian
+  renderHome();
+
+  // ---------- COPIA DE SEGURIDAD DEL HISTORIAL ----------
+  const backupMsg = document.getElementById('backupMsg');
+  function backupNote(t){ backupMsg.textContent = t; backupMsg.style.color = 'var(--signal)'; backupMsg.dataset.set = '1'; }
+
+  document.getElementById('btnExport').addEventListener('click', ()=>{
+    LS.set('mirun_lastBackup', new Date().toISOString());
+    const data = JSON.stringify({app:'MiRun', version:3, exported:new Date().toISOString(),
+                                 profile, goal, history, body});
+    const blob = new Blob([data], {type:'application/json'});
+    const a = document.createElement('a');
+    const d = new Date();
+    a.href = URL.createObjectURL(blob);
+    a.download = 'MiRun-copia-' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones).');
+  });
+
+  const fileInput = document.getElementById('importFile');
+  document.getElementById('btnImport').addEventListener('click', ()=>fileInput.click());
+  fileInput.addEventListener('change', ()=>{
+    const f = fileInput.files && fileInput.files[0];
+    if(!f) return;
+    if(f.size > 20*1024*1024){ backupNote('Ese archivo es demasiado grande.'); return; }
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const data = JSON.parse(r.result);
+        if(!data || data.app !== 'MiRun' || !Array.isArray(data.history)) throw 0;
+        // Solo se aceptan campos esperados y con el tipo correcto (nada de codigo)
+        const clean = data.history.filter(h=>h && typeof h.date==='string' && isFinite(h.dist) && isFinite(h.seconds))
+          .map(h=>({
+            date: String(h.date).slice(0,40),
+            dist: Number(h.dist), seconds: Number(h.seconds),
+            pace: String(h.pace||'--:--').replace(/[^0-9:\-]/g,'').slice(0,8),
+            cal: Math.round(Number(h.cal)||0),
+            path: Array.isArray(h.path) ? h.path.filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon))
+                    .map(p=>({lat:Number(p.lat), lon:Number(p.lon)})) : [],
+            splits: Array.isArray(h.splits) ? h.splits.filter(s=>s&&isFinite(s.km)&&isFinite(s.seconds))
+                    .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
+            manual: !!h.manual,
+            // campos de v5 (actividades): solo valores conocidos
+            ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
+            ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {})
+          }));
+        const have = new Set(history.map(h=>h.date));
+        const nuevas = clean.filter(h=>!have.has(h.date));
+        history = history.concat(nuevas).sort((a,b)=>a.date < b.date ? -1 : 1);
+        LS.set('mirun_history', history);
+        // medidas del cuerpo (copias nuevas): solo fechas validas y numeros
+        let nuevasMed = 0;
+        if(Array.isArray(data.body)){
+          const haveB = new Set(body.map(e=>e.date));
+          data.body.forEach(e=>{
+            if(!e || typeof e.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(e.date) || haveB.has(e.date)) return;
+            const c = {date: e.date};
+            MEASURES.forEach(m=>{ const v = Number(e[m.k]); if(v > 0 && v < 400) c[m.k] = v; });
+            body.push(c); haveB.add(e.date); nuevasMed++;
+          });
+          LS.set('mirun_body', body);
+        }
+        renderHistory(); checkAchievements(true);
+        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades y ' + nuevasMed + ' mediciones nuevas.');
+      }catch(e){
+        backupNote('Ese archivo no es una copia de MiRun.');
+      }
+      fileInput.value = '';
+    };
+    r.readAsText(f);
+  });
+
+})();
+
+// Registrar Service Worker para que la app funcione sin internet
+// de forma garantizada despues de la primera carga.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}

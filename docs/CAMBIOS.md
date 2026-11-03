@@ -1,0 +1,16 @@
+# Registro de cambios
+
+Costo = tokens aproximados de la sesión de IA para ese cambio (lectura + escritura + pruebas).
+Una línea por cambio, el más nuevo arriba.
+
+| Fecha | Cambio | Archivos | Costo aprox. |
+|---|---|---|---|
+| 2026-11-02 | Mascota integrada en 9 lugares (lista `MASCOT`), caché v11 con las 12 poses usadas | `mirun.html`, `app.css`, `app.js`, `sw.js`, `docs/*`, `CLAUDE.md` | ~35k tokens |
+| 2026-11-02 | Mascota: revisión de 2 juegos de imágenes, recorte de 15 poses con transparencia real a 256 px en `img/mascota/` | `img/mascota/*`, `.claude/herramientas/*` | ~30k tokens |
+| 2026-11-02 | Logro Todoterreno: 🌈 → 🚙 (pedido del usuario) | `app.js` | ~3k tokens |
+| 2026-11-02 | Separación en mirun.html + app.css + app.js; logros por categorías con nombres del diseñador y 3 estados de insignia | `mirun.html`, `app.css`, `app.js`, `sw.js` (v10), `docs/*`, `CLAUDE.md` | ~40k tokens |
+| 2026-11-02 | Etapa 4 (parte): medidas a elección + 4 nuevas con instrucciones, estatura e IMC, menú con "+", Perfil arriba, descanso programado; vista previa de siluetas y medallas | `mirun.html`, `docs/*`, `CLAUDE.md` | ~70k tokens |
+| 2026-11-02 | Etapa 3: logros (19 medallas con progreso), aviso "¡Nuevo logro!" con voz, pestaña Logros | `mirun.html`, `docs/*`, `CLAUDE.md` | ~45k tokens |
+| 2026-11-02 | Etapas 0, 1 y 2: protección de datos, tipos de actividad (GPS correr/caminar/bici + 7 actividades a mano), calorías por MET, racha, calendario, metas diaria/semanal, días de descanso, pantalla Inicio, pruebas | `mirun.html`, `docs/*`, `CLAUDE.md` | ~150k tokens |
+| 2026-11-01 | Diseño azul v5, menú inferior con íconos, saludo con nombre, sexo opcional, Abdomen + Cintura, `CACHE_NAME` v9, servidor de pruebas, documentación | `mirun.html`, `sw.js`, `manifest.json`, `index.html`, `.claude/*`, `CLAUDE.md`, `docs/*` | ~90k tokens |
+| 2026-11-01 | Análisis del proyecto y de la propuesta (sin cambios de código) | — | ~45k tokens |

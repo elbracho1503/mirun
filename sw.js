@@ -1,14 +1,29 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
-// IMPORTANTE: si se cambia mirun.html, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v8';
+// IMPORTANTE: si se cambia mirun.html, app.css o app.js, subir el numero de CACHE_NAME.
+const CACHE_NAME = 'mirun-cache-v11';
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './mirun.html',
+  './app.css',
+  './app.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  // mascota: solo las poses que usa la app (lista MASCOT en app.js y la de pantallas en mirun.html)
+  './img/mascota/01_aprobacion.png',
+  './img/mascota/02_pesas.png',
+  './img/mascota/03_corriendo.png',
+  './img/mascota/04_carino.png',
+  './img/mascota/06_pensando.png',
+  './img/mascota/07_emocionado.png',
+  './img/mascota/09_celebrando.png',
+  './img/mascota/10_cansado.png',
+  './img/mascota/12_estudiando.png',
+  './img/mascota/13_tu_puedes.png',
+  './img/mascota/14_durmiendo.png',
+  './img/mascota/15_asomado.png',
   './lib/leaflet.js',
   './lib/leaflet.css'
 ];

@@ -1,0 +1,380 @@
+/* MiRun — estilos. Base (v4) arriba; diseño azul v5 y componentes nuevos debajo (ver docs/DISENO.md) */
+  :root{
+    --bg:#070d1f;
+    --track:#0f1a33;        /* superficie de tarjetas */
+    --track2:#13203d;       /* campos y fondos internos */
+    --lane-line:#1e2c4d;    /* bordes y separadores */
+    --signal:#4d9bff;       /* azul principal (acento) */
+    --signal-dim:#2f6fd6;
+    --signal-ink:#ffffff;   /* texto sobre el azul */
+    --grad:linear-gradient(135deg,#3b82f6 0%,#2563eb 55%,#1d4ed8 100%);
+    --gold:#f5b82e;         /* rachas y logros */
+    --good:#34d399;
+    --amber:#ff8a3d;
+    --danger:#ff4d4d;
+    --blue:#7cc4ff;
+    --text:#eef3ff;
+    --sub:#8fa0c2;
+    --sub2:#5d6d8f;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    height:100%;overflow-x:hidden;}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+  .num{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;}
+
+  /* ---- HEADER: lane-number plate ---- */
+  header{padding:22px 20px 14px;display:flex;align-items:baseline;justify-content:space-between;
+    border-bottom:1px solid var(--lane-line);}
+  header .brand{display:flex;align-items:baseline;gap:8px;}
+  header h1{font-family:'Inter',sans-serif;font-size:26px;margin:0;font-weight:600;letter-spacing:.5px;}
+  header h1 span{color:var(--signal);}
+  #gpsStatus{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:6px;font-weight:500;}
+  #gpsStatus::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--sub2);flex-shrink:0;}
+  #gpsStatus.ok{color:var(--signal);}
+  #gpsStatus.ok::before{background:var(--signal);box-shadow:0 0 8px var(--signal);}
+  #gpsStatus.bad{color:var(--danger);}
+  #gpsStatus.bad::before{background:var(--danger);}
+
+  /* ---- NAV: lane tabs, underline style (not pill buttons) ---- */
+  nav{display:flex;padding:0 8px;border-bottom:1px solid var(--lane-line);overflow-x:auto;scrollbar-width:none;}
+  nav::-webkit-scrollbar{display:none;}
+  nav button{flex:1 0 auto;padding:13px 9px;background:transparent;border:none;color:var(--sub);
+    font-size:12.5px;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;
+    font-family:'Inter',sans-serif;white-space:nowrap;}
+  nav button.active{color:var(--signal);border-bottom-color:var(--signal);}
+
+  .screen{display:none;padding:0 16px 100px;flex:1;}
+  .screen.active{display:block;}
+
+  .panel{background:var(--track);border:1px solid var(--lane-line);border-radius:16px;padding:18px;margin-top:16px;}
+  .panel h3{margin:0 0 12px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.2px;}
+
+  /* ---- RUN SCREEN: the clock is the hero ---- */
+  .clock{padding:28px 0 6px;border-bottom:1px solid var(--lane-line);}
+  .clock .val{font-family:'Inter',sans-serif;font-size:76px;font-weight:600;line-height:1;
+    font-variant-numeric:tabular-nums;letter-spacing:.5px;color:var(--text);}
+  .clock .lbl{font-size:13px;color:var(--sub);margin-top:6px;font-weight:500;}
+
+  .lanes{margin-top:2px;}
+  .lane{display:flex;align-items:center;justify-content:space-between;padding:13px 2px;
+    border-bottom:1px solid var(--lane-line);}
+  .lane:last-child{border-bottom:none;}
+  .lane .lane-label{font-size:13px;color:var(--sub);font-weight:500;}
+  .lane .lane-val{font-family:'Inter',sans-serif;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;}
+
+  .goalStrip{display:flex;gap:0;margin-top:4px;border:1px solid var(--lane-line);border-radius:16px;overflow:hidden;}
+  .goalStrip .g{flex:1;padding:11px 8px;text-align:center;border-right:1px solid var(--lane-line);}
+  .goalStrip .g:last-child{border-right:none;}
+  .goalStrip .g .v{font-family:'Inter',sans-serif;font-size:15px;font-weight:600;}
+  .goalStrip .g .l{font-size:9.5px;color:var(--sub2);margin-top:2px;letter-spacing:.3px;}
+
+  #paceAlert{text-align:left;font-size:13px;font-weight:600;padding:11px 14px;margin:12px 0 0;display:none;
+    border-left:3px solid transparent;}
+  #paceAlert.fast{display:block;background:rgba(255,138,61,0.08);color:var(--amber);border-left-color:var(--amber);}
+  #paceAlert.slow{display:block;background:rgba(255,77,77,0.08);color:var(--danger);border-left-color:var(--danger);}
+  #paceAlert.good{display:block;background:rgba(77,155,255,0.08);color:var(--signal);border-left-color:var(--signal);}
+
+  #gpsHelp{margin-top:12px;padding:12px 14px;border-left:3px solid var(--danger);
+    background:rgba(255,77,77,0.08);font-size:13.5px;line-height:1.5;}
+  #gpsHelp .btn{margin-top:10px;width:100%;padding:12px;}
+  #resumeBox{margin-top:12px;padding:14px;border-left:3px solid var(--signal);
+    background:rgba(77,155,255,0.06);font-size:14px;font-weight:600;}
+  #resumeBox .btn{padding:13px;}
+  #runNote{margin-top:12px;padding:12px 14px;border-left:3px solid var(--amber);
+    background:rgba(255,138,61,0.08);font-size:13px;line-height:1.5;color:var(--text);}
+  .hint{font-size:12.5px;color:var(--sub);line-height:1.5;}
+
+  /* ---- MAPA CON CALLES ---- */
+  .street{height:240px;display:none;background:var(--track2);}
+  .street.leaflet-container{background:var(--track2);font-family:'Inter',sans-serif;}
+  /* calles en modo oscuro para que combine con la app (la linea de la ruta no se altera) */
+  .street .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9);}
+  .street .leaflet-control-attribution{background:rgba(7,13,31,.75);color:var(--sub);font-size:9px;}
+  .street .leaflet-control-attribution a{color:var(--sub);}
+  .mapWrap .mapLbl{z-index:1000;}
+  .mapMode{position:absolute;top:8px;right:8px;z-index:1000;background:rgba(7,13,31,.85);
+    color:var(--signal);border:1px solid var(--lane-line);border-radius:16px;padding:6px 10px;
+    font-size:11px;font-weight:600;font-family:'Inter',sans-serif;}
+  .mapNote{position:absolute;bottom:6px;left:10px;z-index:1000;font-size:10px;color:var(--sub);}
+
+  .btnRow{display:flex;gap:10px;margin-top:20px;}
+  .btn{flex:1;padding:18px;border-radius:16px;border:none;font-size:15px;font-weight:600;
+    font-family:'Inter',sans-serif;letter-spacing:.2px;transition:transform .08s;}
+  .btn-start{background:var(--signal);color:var(--signal-ink);}
+  .btn-pause{background:transparent;color:var(--amber);border:1px solid var(--amber);}
+  .btn-stop{background:transparent;color:var(--danger);border:1px solid var(--danger);}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--lane-line);}
+  .btn:active{transform:scale(0.97);}
+
+  /* ---- ROUTE (canvas) ---- */
+  .mapWrap{background:var(--track2);border:1px solid var(--lane-line);border-radius:16px;overflow:hidden;
+    margin-top:16px;position:relative;}
+  .mapWrap canvas{display:block;width:100%;height:150px;}
+  .mapWrap .mapLbl{position:absolute;top:10px;left:12px;font-size:10px;color:var(--sub);letter-spacing:.3px;font-weight:600;}
+
+  /* ---- SPLITS ---- */
+  .splitRow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--lane-line);}
+  .splitRow:last-child{border-bottom:none;}
+  .splitRow .splitnum{font-family:'Inter',sans-serif;width:26px;font-size:13px;font-weight:600;color:var(--sub);flex-shrink:0;}
+  .splitRow.best .splitnum{color:var(--signal);}
+  .splitRow .bar{flex:1;height:3px;background:var(--lane-line);border-radius:2px;overflow:hidden;}
+  .splitRow .bar-fill{height:100%;background:var(--sub2);}
+  .splitRow.best .bar-fill{background:var(--signal);}
+  .splitRow .time{font-family:'Inter',sans-serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;width:56px;text-align:right;}
+  .splitRow.best .time{color:var(--signal);}
+
+  /* ---- FORMS ---- */
+  label{display:block;font-size:12.5px;color:var(--sub);margin:12px 0 6px;font-weight:500;}
+  input[type=number]{width:100%;padding:13px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:16px;color:var(--text);font-size:16px;font-family:'Inter',sans-serif;}
+  input[type=number]:focus{outline:none;border-color:var(--signal-dim);}
+  select{width:100%;padding:13px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:16px;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  /* ---- HISTORY ---- */
+  .histItem{padding:16px 2px;border-bottom:1px solid var(--lane-line);}
+  .histItem .top{font-size:12.5px;color:var(--sub);margin-bottom:10px;font-weight:500;}
+  .histItem .stats{display:flex;gap:22px;}
+  .histItem .stats .num{font-size:17px;font-weight:600;}
+  .histItem .stats small{display:block;font-size:10px;color:var(--sub2);font-weight:500;margin-top:2px;letter-spacing:.2px;}
+  .histItem .mini-route{margin-top:12px;}
+  .histItem .mini-route canvas{width:100%;height:56px;display:block;border-radius:16px;background:var(--track2);}
+  .histItem .top{display:flex;justify-content:space-between;align-items:center;}
+  .tag{font-size:10px;color:var(--blue);border:1px solid var(--blue);border-radius:3px;padding:1px 5px;margin-left:6px;}
+  .linkBtn{background:none;border:none;color:var(--sub2);font-size:12px;font-family:'Inter',sans-serif;padding:4px 0 4px 10px;}
+
+  /* ---- RECORDS ---- */
+  .recRow{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--lane-line);}
+  .recRow:last-child{border-bottom:none;}
+  .recCat{width:58px;flex-shrink:0;font-family:'Inter',sans-serif;font-size:18px;font-weight:600;color:var(--signal);}
+  .recRow.none .recCat{color:var(--sub2);}
+  .recCol{flex:1;min-width:0;}
+  .recCol .v{font-family:'Inter',sans-serif;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .recCol .l{font-size:9.5px;color:var(--sub2);margin-top:2px;letter-spacing:.3px;line-height:1.35;}
+  .newRec{padding:9px 0;border-bottom:1px solid var(--lane-line);font-size:14px;font-weight:600;color:var(--signal);}
+  .newRec:last-child{border-bottom:none;}
+  .newRec small{display:block;color:var(--sub);font-weight:500;font-size:11.5px;margin-top:2px;}
+
+  /* ---- BODY ---- */
+  .progRow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--lane-line);}
+  .progRow:last-child{border-bottom:none;}
+  .progRow .pn{width:86px;flex-shrink:0;font-size:13px;color:var(--sub);font-weight:500;}
+  .progRow .pv{flex:1;font-family:'Inter',sans-serif;font-size:17px;font-weight:600;}
+  .progRow .pv small{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--sub2);font-weight:500;display:block;}
+  .progRow .pd{font-family:'Inter',sans-serif;font-size:16px;font-weight:600;text-align:right;min-width:74px;}
+  .pd.good{color:var(--signal);} .pd.bad{color:var(--amber);} .pd.same{color:var(--sub);}
+  #bodyChart{width:100%;height:170px;display:block;margin-top:10px;}
+  input[type=date]{width:100%;padding:12px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:16px;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;color-scheme:dark;}
+  .bodyItem{padding:12px 0;border-bottom:1px solid var(--lane-line);font-size:13px;}
+  .bodyItem:last-child{border-bottom:none;}
+  .bodyItem .top{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-weight:500;}
+  .bodyItem .vals{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px 16px;}
+  .bodyItem .vals span{font-family:'Inter',sans-serif;font-size:15px;}
+  .bodyItem .vals small{font-family:'Inter',sans-serif;color:var(--sub2);font-size:10.5px;margin-right:4px;}
+  .empty{text-align:center;color:var(--sub);padding:60px 20px;font-size:14px;line-height:1.7;}
+
+  .totRow{display:flex;border:1px solid var(--lane-line);border-radius:16px;overflow:hidden;margin-top:16px;margin-bottom:8px;}
+  .totRow .t{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--lane-line);}
+  .totRow .t:last-child{border-right:none;}
+  .totRow .t .v{font-size:19px;font-weight:600;}
+  .totRow .t .l{font-size:9.5px;color:var(--sub2);margin-top:3px;letter-spacing:.3px;}
+
+  .savedbar{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--signal);
+    color:var(--signal-ink);text-align:center;padding:14px;font-weight:600;font-size:14px;transform:translateY(100%);
+    transition:transform .3s; z-index:50;}
+  .savedbar.show{transform:translateY(0);}
+
+  #summaryOverlay{position:fixed;inset:0;background:rgba(3,7,18,.94);display:none;align-items:center;justify-content:center;
+    z-index:100;padding:20px;}
+  #summaryOverlay.show{display:flex;}
+  #summaryOverlay .box{background:var(--track);border:1px solid var(--lane-line);border-radius:16px;padding:28px 24px;
+    max-width:400px;width:100%;max-height:90vh;overflow-y:auto;}
+  #summaryOverlay h2{color:var(--signal);margin:0 0 20px;font-family:'Inter',sans-serif;font-size:20px;font-weight:600;
+    letter-spacing:.3px;}
+  #summaryOverlay .panel{margin-top:0;}
+
+  /* ==== DISEÑO v5 (azul): se aplica encima de lo anterior ==== */
+  body{background:radial-gradient(120% 60% at 50% 0%,#12244a 0%,var(--bg) 60%) fixed;}
+  .num{font-weight:700;}
+  header{border-bottom:none;padding:20px 20px 6px;align-items:center;}
+  header .brand{flex-direction:column;align-items:flex-start;gap:2px;}
+  header h1{font-size:24px;font-weight:800;letter-spacing:0;}
+  header .tagline{font-size:12px;color:var(--sub);font-weight:500;}
+  #gpsStatus{background:var(--track);border:1px solid var(--lane-line);border-radius:20px;padding:6px 10px;}
+  /* menú inferior fijo */
+  nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:40;
+    background:rgba(9,16,34,.96);backdrop-filter:blur(10px);border-top:1px solid var(--lane-line);border-bottom:none;
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));overflow:visible;}
+  nav button{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;
+    font-size:10.5px;border-bottom:none;margin:0;border-radius:12px;}
+  nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  nav button.active{color:var(--signal);background:rgba(77,155,255,.12);}
+  .screen{padding-bottom:110px;}
+  .panel{border-radius:18px;box-shadow:0 6px 24px rgba(0,0,0,.25);}
+  .panel h3{font-size:15px;color:var(--text);font-weight:700;}
+  /* pantalla Correr: tarjeta principal con degradado */
+  .clock{margin-top:12px;padding:26px 20px 20px;border:none;border-radius:22px;text-align:center;
+    background:var(--grad);box-shadow:0 10px 30px rgba(37,99,235,.35);}
+  .clock .val{font-size:68px;font-weight:800;color:#fff;}
+  .clock .lbl{color:rgba(255,255,255,.85);}
+  .lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
+  .lane{flex-direction:column;gap:4px;padding:14px 6px;border:1px solid var(--lane-line);border-radius:16px;
+    background:var(--track);text-align:center;}
+  .lane:last-child{border-bottom:1px solid var(--lane-line);}
+  .lane .lane-val{font-size:20px;}
+  #summaryOverlay .lanes{grid-template-columns:repeat(2,1fr);}
+  .goalStrip{margin-top:12px;background:var(--track);}
+  .btn{border-radius:16px;font-weight:700;}
+  .btn-start{background:var(--grad);box-shadow:0 8px 20px rgba(37,99,235,.35);}
+  input[type=number],input[type=date],input[type=text],select{border-radius:12px;}
+  input[type=text]{width:100%;padding:13px;background:var(--track2);border:1px solid var(--lane-line);
+    color:var(--text);font-size:16px;font-family:'Inter',sans-serif;}
+  input:focus,select:focus{outline:none;border-color:var(--signal);}
+  .histItem{background:var(--track);border:1px solid var(--lane-line);border-radius:18px;padding:16px;margin-top:12px;}
+  .totRow{background:var(--track);border-radius:18px;}
+  .totRow .t .v{color:var(--signal);}
+  .recCat{color:var(--gold);}
+  .newRec{color:var(--gold);}
+  .pd.good{color:var(--good);}
+  #summaryOverlay .box{border-radius:22px;}
+  #summaryOverlay h2{color:var(--text);font-size:22px;font-weight:800;}
+  .savedbar{background:var(--good);color:#04241a;bottom:calc(64px + env(safe-area-inset-bottom));
+    border-radius:14px;left:16px;right:16px;max-width:448px;transform:none;opacity:0;pointer-events:none;
+    transition:opacity .3s;}
+  .savedbar.show{opacity:1;}
+
+  /* ==== INICIO: racha, metas, calendario ==== */
+  .streakCard{margin-top:12px;padding:22px 16px 18px;border-radius:22px;text-align:center;
+    background:radial-gradient(90% 80% at 50% 0%,rgba(245,184,46,.22),transparent 70%),var(--track);
+    border:1px solid rgba(245,184,46,.35);}
+  .streakCard .flame svg{width:46px;height:46px;fill:var(--gold);filter:drop-shadow(0 0 12px rgba(245,184,46,.6));}
+  .streakCard .sv{font-size:58px;font-weight:800;line-height:1;margin-top:4px;}
+  .streakCard .sl{color:var(--gold);font-weight:700;font-size:14px;margin-top:4px;}
+  .streakCard .sr{color:var(--sub);font-size:12.5px;margin-top:8px;}
+  .goalCards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+  .gc{background:var(--track);border:1px solid var(--lane-line);border-radius:18px;padding:14px;}
+  .gc .gt{font-size:12px;color:var(--sub);font-weight:600;}
+  .gc .gv{font-size:28px;margin-top:4px;}
+  .gc .gu{font-size:11.5px;color:var(--sub2);}
+  .pbar{height:7px;background:var(--track2);border-radius:6px;margin-top:10px;overflow:hidden;}
+  .pbar div{height:100%;width:0;background:var(--grad);border-radius:6px;transition:width .4s;}
+  .pbar div.full{background:var(--good);}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;}
+  .cal .h{font-size:11px;color:var(--sub);font-weight:600;padding-bottom:2px;}
+  .cal .d{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:600;background:var(--track2);color:var(--sub);}
+  .cal .d.done{background:var(--good);color:#04241a;}
+  .cal .d.part{background:rgba(77,155,255,.25);color:var(--text);}
+  .cal .d.rest{background:transparent;border:1.5px dashed var(--sub2);}
+  .cal .d.today{outline:2px solid var(--signal);outline-offset:1px;}
+  .cal .d.future{opacity:.3;}
+  .calLegend{display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:11px;color:var(--sub);}
+  .calLegend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+  .calLegend i.done{background:var(--good);} .calLegend i.part{background:rgba(77,155,255,.45);}
+  .calLegend i.rest{border:1.5px dashed var(--sub2);}
+  .actRow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--lane-line);font-size:14px;}
+  .actRow:last-child{border-bottom:none;}
+  .actRow .ic{font-size:22px;width:30px;text-align:center;}
+  .actRow .an{flex:1;font-weight:600;} .actRow .an small{display:block;color:var(--sub);font-weight:500;font-size:11.5px;}
+  /* chips (botones de opción) */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{padding:9px 13px;border-radius:12px;border:1px solid var(--lane-line);background:var(--track2);
+    color:var(--text);font-size:13.5px;font-weight:600;font-family:'Inter',sans-serif;}
+  .chip.on{background:rgba(77,155,255,.18);border-color:var(--signal);color:#fff;}
+  #restChips .chip{width:40px;padding:9px 0;}
+  .actChips{display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px;}
+  .actChips .chip{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;font-size:11.5px;}
+  .actChips .chip span{font-size:22px;}
+  input[type=time]{width:100%;padding:12px;background:var(--track2);border:1px solid var(--lane-line);
+    border-radius:12px;color:var(--text);font-size:15px;font-family:'Inter',sans-serif;color-scheme:dark;}
+
+  /* ==== LOGROS: medallas y aviso ==== */
+  /* insignias por categoría, 3 estados: .lock (bloqueado) · .on (desbloqueado, azul) · .leg (legendario, dorado) */
+  .achCat{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.6px;
+    margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--lane-line);}
+  .achCat:first-child{margin-top:4px;padding-top:0;border-top:none;}
+  .achRow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 8px;}
+  .ach{text-align:center;}
+  .medal{position:relative;width:64px;height:64px;margin:0 auto;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:28px;}
+  .ach.lock .medal{background:var(--track2);border:2px solid var(--lane-line);}
+  .ach.lock .medal{color:transparent;text-shadow:0 0 0 rgba(143,160,194,.35);} /* emoji en gris apagado */
+  .ach.lock .an2{color:var(--sub);}
+  .medal .lk{position:absolute;right:-2px;bottom:-2px;font-size:13px;font-style:normal;width:24px;height:24px;border-radius:50%;
+    background:var(--bg);border:1px solid var(--lane-line);display:flex;align-items:center;justify-content:center;
+    color:initial;text-shadow:none;}
+  .ach.on .medal{border:2px solid #7cc4ff;background:radial-gradient(circle at 35% 30%,#2a5bb8,#163a7c 60%,#0d2350 100%);
+    box-shadow:0 0 0 4px rgba(77,155,255,.12),0 6px 16px rgba(37,99,235,.35);}
+  .ach.leg .medal{border:2px solid #ffe08a;background:radial-gradient(circle at 35% 30%,#ffe08a,#f5b82e 45%,#a86a12 100%);
+    box-shadow:0 0 0 4px rgba(245,184,46,.18),0 0 22px rgba(245,184,46,.45);}
+  .ach.leg .an2{color:var(--gold);}
+  .ach .an2{font-size:11.5px;font-weight:700;margin-top:6px;line-height:1.25;}
+  .ach .ad{font-size:10px;color:var(--sub);margin-top:2px;line-height:1.3;}
+  .ach .pbar{height:4px;margin:5px 8px 0;}
+  #achOverlay{position:fixed;inset:0;background:rgba(3,7,18,.94);display:none;align-items:center;justify-content:center;z-index:110;padding:20px;}
+  #achOverlay.show{display:flex;}
+  #achOverlay .box{max-width:340px;width:100%;text-align:center;padding:30px 24px;border-radius:24px;
+    background:radial-gradient(90% 70% at 50% 20%,rgba(245,184,46,.25),transparent 70%),var(--track);border:1px solid rgba(245,184,46,.4);}
+  .achTitle{font-size:24px;font-weight:800;color:var(--gold);}
+  .medal.big{width:120px;height:120px;font-size:56px;margin:22px auto 16px;filter:none;opacity:1;border:3px solid var(--gold);
+    background:radial-gradient(circle at 35% 30%,#ffe08a,#f5b82e 45%,#b9781a 100%);box-shadow:0 0 40px rgba(245,184,46,.5);
+    animation:pop .5s ease-out;}
+  .medal.big.blue{border-color:#7cc4ff;background:radial-gradient(circle at 35% 30%,#2a5bb8,#163a7c 60%,#0d2350 100%);
+    box-shadow:0 0 40px rgba(77,155,255,.5);}
+  @keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  .achName{font-size:20px;font-weight:800;}
+  .achDesc{font-size:13.5px;color:var(--sub);margin-top:6px;line-height:1.5;}
+  .btn-gold{background:linear-gradient(135deg,#ffd35c,#f5b82e);color:#2a1a00;box-shadow:0 8px 20px rgba(245,184,46,.3);}
+
+  /* ==== MENÚ CON "+", PERFIL ARRIBA, MEDIDAS E IMC ==== */
+  .hdrRight{display:flex;align-items:center;gap:10px;}
+  #gpsStatus{display:none;}
+  body[data-tab="run"] #gpsStatus{display:flex;}
+  .hdrBtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--lane-line);background:var(--track);
+    color:var(--sub);display:flex;align-items:center;justify-content:center;padding:0;}
+  .hdrBtn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+  .hdrBtn.active{color:var(--signal);border-color:var(--signal);}
+  .plusBtn{flex:0 0 auto;width:56px;height:56px;margin:-22px 6px 0;border-radius:50%;border:4px solid var(--bg);
+    background:var(--grad);box-shadow:0 6px 18px rgba(37,99,235,.5);display:flex;align-items:center;justify-content:center;padding:0;}
+  .plusBtn svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;}
+  #plusSheet{position:fixed;inset:0;background:rgba(3,7,18,.75);display:none;align-items:flex-end;justify-content:center;z-index:90;}
+  #plusSheet.show{display:flex;}
+  #plusSheet .sheet{width:100%;max-width:480px;background:var(--track);border-radius:24px 24px 0 0;border:1px solid var(--lane-line);
+    padding:18px 16px calc(20px + env(safe-area-inset-bottom));}
+  .sheetTitle{font-weight:800;font-size:17px;margin:0 4px 12px;}
+  .sheetOpt{display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin-top:8px;
+    border-radius:16px;border:1px solid var(--lane-line);background:var(--track2);color:var(--text);font:600 15px 'Inter',sans-serif;}
+  .sheetOpt span{font-size:24px;width:32px;text-align:center;}
+  .sheetOpt small{flex-basis:100%;margin-left:44px;margin-top:-8px;color:var(--sub);font-weight:500;font-size:12px;}
+  .measIn small{display:block;font-size:11px;color:var(--sub2);margin-top:4px;}
+  #bodyInputs{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;}
+  .bmiRow{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+  .bmiV{font-size:38px;font-weight:800;}
+  .bmiTag{padding:6px 12px;border-radius:20px;font-size:13px;font-weight:700;}
+  .bmiTag.ok{background:rgba(52,211,153,.15);color:var(--good);}
+  .bmiTag.warn{background:rgba(245,184,46,.15);color:var(--gold);}
+  .bmiTag.bad{background:rgba(255,77,77,.15);color:var(--danger);}
+
+  /* ==== MASCOTA MIRUN Monster (poses en img/mascota/, lista MASCOT en app.js) ==== */
+  .mascotCard{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .mascotCard img{width:112px;height:112px;flex-shrink:0;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));}
+  .bubble{position:relative;flex:1;background:var(--track);border:1px solid var(--lane-line);border-radius:18px;
+    padding:12px 14px;font-size:14px;font-weight:600;line-height:1.45;}
+  .bubble::before{content:'';position:absolute;left:-7px;top:50%;width:12px;height:12px;background:var(--track);
+    border-left:1px solid var(--lane-line);border-bottom:1px solid var(--lane-line);transform:translateY(-50%) rotate(45deg);}
+  #gpsTypeRow{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .mascotInline{width:100px;height:100px;
+    filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));}
+  .sheetTitle img{width:52px;height:52px;vertical-align:middle;margin-right:8px;}
+  .achMascot{display:block;width:120px;height:120px;margin:-84px auto 4px;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5));}
+  #achOverlay .box{margin-top:60px;}
+  #achOverlay .medal.big{width:92px;height:92px;font-size:44px;margin:14px auto 12px;}
+  .msgM{display:flex;align-items:center;gap:8px;}
+  .msgM img{width:48px;height:48px;flex-shrink:0;}
+  .empty img{display:block;width:120px;height:120px;margin:0 auto 10px;}
+  .mascotSide{float:right;width:80px;height:80px;margin:-38px -4px 0 0;}

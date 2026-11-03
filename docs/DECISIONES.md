@@ -1,0 +1,43 @@
+# Decisiones
+
+## Tomadas
+- App 100 % local (sin servidor ni cuentas). Datos en `localStorage`; respaldo por archivo .json.
+- Un solo archivo `mirun.html`; Leaflet copiado en `lib/` para no depender de otros servidores.
+- **Nombre: MiRun** (se mantiene) + lema "Tu cuerpo, tu mejor versión". (2026-11-01)
+- **Diseño: el azul de la imagen de referencia** (ver `docs/DISENO.md`). (2026-11-01)
+- **Medidas:** Abdomen (clave `barriga`, ombligo), Cintura, Cadera, Pecho, Hombros, Bíceps,
+  Antebrazo, Muslo, Pantorrilla, Peso. **Sin cuello.** Cada persona elige cuáles seguir. (2026-11-02)
+- **Estatura en el Perfil**; el IMC se muestra en Cuerpo con aviso de que es solo referencia. (2026-11-02)
+- **Sexo opcional** ("Prefiero no decir"); solo afecta la estimación de calorías. (2026-11-01)
+- **Silueta: sí**, masculina / femenina / neutra según el perfil (neutra = figura tipo maniquí,
+  sin rasgos de sexo; se usa con "Prefiero no decir"). Estilo pendiente de aprobar (ver abajo).
+- **Racha:** mínimo 20 min por defecto (configurable 10–60). (2026-11-02)
+- **Descanso:** máximo 3 días por semana, **programados con anticipación**: un cambio rige desde
+  el lunes siguiente (`goal.restPlan`). (2026-11-02)
+- **Menú:** Inicio · Historial · **+** · Cuerpo · Logros. El "+" abre: correr / caminar / bici con
+  GPS o registrar otra actividad. **Perfil** = botón redondo arriba a la derecha. El estado del GPS
+  solo se ve en la pantalla GPS. Metas: desde Inicio y Perfil. (2026-11-02)
+- **Pestaña Logros** aprobada. (2026-11-02)
+- **Íconos de actividades: emojis** (aprobado). (2026-11-02)
+- Una actividad que pasa de medianoche cuenta para el día en que empezó.
+- Pasos diarios: **no se puede** en una app web.
+- Racha, récord de racha y logros se **calculan** desde el historial.
+- Un solo historial (`mirun_history`) con campo `type`; sin `type` = "correr".
+
+## Pendientes (el usuario decide)
+1. ~~Mascota~~ → integrada (ver "Tomadas"). Poses sin usar aún: 05 Decidido, 08 Agotado, 11 Frustrado.
+2. **Silueta**: la versión dibujada por la IA fue rechazada (se ve mal). Usar imágenes tipo la referencia
+   de ChatGPT (cuerpo 3D azul), hechas por el usuario: masculina, femenina y neutra.
+3. Logros legendarios (dorados): Veterano, Leyenda, Maestro del tiempo, Conquistador, Media maratón
+   (el más difícil de cada categoría). Propuesta de la IA, el usuario puede cambiarla.
+
+
+## Tomadas el 2026-11-02 (tarde)
+- **Separar en 3 archivos**: `mirun.html` + `app.css` + `app.js` (hecho).
+- **Logros**: nombres y emojis del diseñador, agrupados en 7 categorías, 3 estados
+  (bloqueado gris con candado · desbloqueado azul · legendario dorado). Ids sin cambiar.
+- **Mascota MIRUN Monster integrada** (2026-11-02): poses según la lista `MASCOT` en `app.js`.
+  Inicio: ¡Tú puedes! / Emocionado (meta cumplida) / Durmiendo (descanso) / Cansado (racha reiniciada en
+  los últimos 3 días). Logro: Celebrando; legendario: Aprobación. GPS: Corriendo. "+": Pesas.
+  Guardar actividad: Cariño. Error: Pensando. Vacío: Asomado. IMC: Estudiando.
+  Solo las 12 poses usadas están en el caché sin internet (`sw.js`).
