@@ -19,7 +19,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | # | Etapa | Estado |
 |---|---|---|
 | 6 | **Perfil y objetivos**: foto de perfil, objetivo físico, nivel de actividad; la copia de seguridad incluye perfil, metas y foto | ✅ 2026-11-02 |
-| 6b | Unidades (kg/lb, km/millas, cm/pulgadas) | ⬜ |
+| 6b | Unidades kg/lb y km/millas (solo al mostrar; se guarda en km y kg). Rama `prueba/unidades`, sin publicar | 🟨 en prueba |
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
 | 7b | Ícono maskable para Android (la M del fondo se corta en el círculo) | ⬜ |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |

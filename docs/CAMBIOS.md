@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-04 | Rama `prueba/unidades`: unidades km/mi y kg/lb en Perfil (convierte al mostrar y al leer; conserva el valor exacto si solo cambió la unidad). Caché v15. Sin publicar | `js/app.js`, `mirun.html`, `sw.js`, `docs/*` | ~110k tokens |
 | 2026-11-03 | Ícono nuevo de la app (192, 512, maskable, 180 iPhone), siluetas del cuerpo con medidas en Cuerpo, originales en `img/`, `png_lib.js` lee PNG RGB y reduce tamaño, F4 sin paréntesis repetido. Caché v14 | `img/*`, `manifest.json`, `mirun.html`, `css/app.css`, `js/app.js`, `sw.js`, `.claude/herramientas/png_lib.js`, `docs/*`, `CLAUDE.md` | ~60k tokens |
 | 2026-11-02 | Modo bolsillo (bloqueo de toques, mantener presionado para salir), avatar negro sin foto, correo de commits → noreply de GitHub y corrección del historial publicado. Caché v13 | `mirun.html`, `css/app.css`, `js/app.js`, `sw.js`, `docs/*`, `CLAUDE.md` | ~35k tokens |
 | 2026-11-02 | Orden de carpetas (`css/`, `js/`, `img/iconos/`), Git conectado a la carpeta de trabajo, plan con futuro (comunidad, Play Store). Etapa 6: foto de perfil, objetivo, nivel de actividad, copia con perfil/metas/foto. Caché v12 | `mirun.html`, `css/`, `js/`, `sw.js`, `manifest.json`, `docs/*`, `CLAUDE.md` | ~75k tokens |

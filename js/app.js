@@ -42,6 +42,7 @@
     const set = (sel, t)=>document.querySelectorAll(sel).forEach(e=>{ e.textContent = t; });
     set('.uD', dU()); set('.uDU', dU().toUpperCase()); set('.uW', wU()); set('.uP', paceU());
     set('.uDL', imp() ? 'Millas' : 'Kilómetros');
+    set('.uDLr', imp() ? 'Millas recorridas' : 'Kilómetros recorridos');
   }
 
   // ---------- MASCOTA ----------
@@ -238,11 +239,14 @@
   document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
     const units = profUnits.value, wIn = parseFloat(document.getElementById('profWeight').value);
     const wKg = wIn > 0 ? (units === 'imperial' ? wIn / KG_LB : wIn) : 70; // el peso se guarda en kg
+    // si el número que se ve es el mismo que había (solo se cambió la unidad), se conserva el peso exacto
+    const shownBefore = Math.round((units === 'imperial' ? profile.weight * KG_LB : profile.weight) * 10) / 10;
+    const keepW = wIn === shownBefore;
     // Object.assign conserva campos que esta pantalla no muestra (no se pierden datos)
     profile = Object.assign(profile, {
       name: document.getElementById('profName').value.trim().slice(0,30),
       units: units,
-      weight: Math.round(wKg * 100) / 100,
+      weight: keepW ? profile.weight : Math.round(wKg * 100) / 100,
       age: parseInt(document.getElementById('profAge').value)||30,
       height: (h=>h >= 100 && h <= 250 ? h : null)(parseInt(document.getElementById('profHeight').value)),
       sex: document.getElementById('profSex').value,
@@ -324,6 +328,10 @@
     const pmIn = document.getElementById('paceMin').value, psIn = document.getElementById('paceSec').value;
     const paceShown = pmIn !== '' ? (parseInt(pmIn) || 0) * 60 + (parseInt(psIn) || 0) : 0;
     const paceKm = paceShown > 0 ? (imp() ? paceShown / KM_MI : paceShown) : 0;
+    // si lo que se ve no cambió, se conserva el valor guardado exacto (evita redondeos al convertir)
+    const gp = goalPaceShown(), distIn = document.getElementById('goalDist').value;
+    const keepDist = goal.dist && parseFloat(distIn) === Math.round(toD(goal.dist) * 100) / 100;
+    const keepPace = gp && pmIn !== '' && parseInt(pmIn) === gp[0] && (parseInt(psIn) || 0) === gp[1];
     const newRest = [...document.querySelectorAll('#restChips .chip.on')].map(c=>+c.dataset.wd).sort();
     if(newRest.join() !== restDays().slice().sort().join()){
       const nk = dayKey(nextMonday()); // reemplaza lo que estuviera programado desde ese lunes
@@ -331,10 +339,10 @@
     }
     // Object.assign conserva cualquier otro campo de la meta
     goal = Object.assign(goal, {
-      dist: fromD(parseFloat(document.getElementById('goalDist').value))||null, // se guarda en km
+      dist: keepDist ? goal.dist : (fromD(parseFloat(document.getElementById('goalDist').value))||null), // se guarda en km
       time: parseFloat(document.getElementById('goalTime').value)||null,
-      paceMin: paceKm ? Math.floor(paceKm / 60) : null,                         // se guarda en min/km
-      paceSec: paceKm ? Math.round((paceKm % 60) * 100) / 100 : null,
+      paceMin: keepPace ? goal.paceMin : (paceKm ? Math.floor(paceKm / 60) : null), // se guarda en min/km
+      paceSec: keepPace ? goal.paceSec : (paceKm ? Math.round((paceKm % 60) * 100) / 100 : null),
       dailyMin: dm > 0 ? Math.min(60, Math.max(10, dm)) : null, // racha: entre 10 y 60 min
       weekMin: wm > 0 ? Math.min(3000, wm) : null
     });
@@ -1546,8 +1554,8 @@
     {id:'week',    c:2, e:'🎯', n:'Objetivo cumplido',   d:'Alcanza tu meta semanal',       g:1,   v:s=>s.bestWeek >= weekMin() ? 1 : 0},
     {id:'h10',     c:3, e:'⏳', n:'Tiempo inicial',      d:'10 horas acumuladas',           g:600, v:s=>s.totalMin},
     {id:'h50',     c:3, e:'⌛', n:'Maestro del tiempo',  d:'50 horas acumuladas',           g:3000,v:s=>s.totalMin, leg:true},
-    {id:'km50',    c:4, e:'🛤️', n:'Primer recorrido',    get d(){ return fmtD(50, 0) + ' acumulados'; }, g:50,  v:s=>s.totalKm},
-    {id:'km250',   c:4, e:'🌍', n:'Conquistador',        get d(){ return fmtD(250, 0) + ' acumulados'; }, g:250, v:s=>s.totalKm, leg:true},
+    {id:'km50',    c:4, e:'🛤️', n:'Primer recorrido',    get d(){ return fmtD(50, 0) + (imp() ? ' acumuladas' : ' acumulados'); }, g:50,  v:s=>s.totalKm},
+    {id:'km250',   c:4, e:'🌍', n:'Conquistador',        get d(){ return fmtD(250, 0) + (imp() ? ' acumuladas' : ' acumulados'); }, g:250, v:s=>s.totalKm, leg:true},
     {id:'run5',    c:5, e:'🏃', n:'Primeros kilómetros', get d(){ return 'Corre ' + raceTxt(5) + ' de una vez'; }, g:5,   v:s=>s.longRun},
     {id:'run10',   c:5, e:'🏅', n:'Corredor de 10K',     get d(){ return 'Corre ' + raceTxt(10) + ' de una vez'; }, g:10,  v:s=>s.longRun},
     {id:'run21',   c:5, e:'🏆', n:'Media maratón',       get d(){ return 'Corre ' + raceTxt(21.1) + ' de una vez'; }, g:21.1,v:s=>s.longRun, leg:true},
