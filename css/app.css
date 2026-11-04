@@ -402,3 +402,13 @@
   .lockRing .padlock{position:absolute;left:26px;top:24px;width:28px;height:28px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
   .lockTitle{font-weight:800;font-size:15px;}
   .lockHint{font-size:12px;color:var(--sub);margin-top:4px;}
+
+  /* ==== SILUETA DEL CUERPO con medidas (img/siluetas/, BODY_POS en js/app.js) ==== */
+  .bodyFig{position:relative;width:100%;max-width:340px;height:340px;margin:4px auto 0;}
+  .bodyFig img{display:block;height:100%;margin:0 auto;filter:drop-shadow(0 0 18px rgba(77,155,255,.35));}
+  .mLbl{position:absolute;transform:translateY(-50%);display:flex;flex-direction:column;line-height:1.15;
+    padding:3px 8px;border-radius:10px;background:rgba(7,13,31,.82);border:1px solid var(--lane-line);}
+  /* las alturas de BODY_POS dejan al menos 11 % entre etiquetas del mismo lado para que no se tapen */
+  .mLbl.L{left:0;text-align:left;} .mLbl.R{right:0;text-align:right;}
+  .mLbl small{font-size:10px;color:var(--sub);font-weight:600;}
+  .mLbl b{font-size:13px;font-weight:800;}

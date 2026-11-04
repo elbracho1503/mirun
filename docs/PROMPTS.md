@@ -7,7 +7,7 @@ Lecciones aprendidas con la mascota (2026-11-02):
 - Una hoja con todas las poses y fondo transparente real también sirve: se corta con
   `.claude/herramientas/recortar.js`.
 
-## Siluetas del cuerpo (etapa 12) — pendiente
+## Siluetas del cuerpo (etapa 12) — hecho 2026-11-03
 
 ```
 Necesito 3 ilustraciones de un cuerpo humano para la pantalla de medidas de una app de ejercicio
@@ -28,6 +28,6 @@ Requisitos, sin excepciones:
 Entrégalas en un zip.
 ```
 
-## Ícono de la app (etapa 7) — pendiente
+## Ícono de la app (etapa 7) — hecho 2026-11-03 (recortado dentro del marco redondeado del original)
 Necesario: PNG cuadrado de 512 × 512 y de 192 × 192. El logo debe caber dentro del **80 % central**
 (Android recorta las esquinas en círculo o en gota). Fondo de color sólido azul oscuro (no transparente).

@@ -19,6 +19,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
   (configurado en `.claude/launch.json` como "mirun"). No entrega `sw.js`, así no hay caché vieja.
 - Si un navegador ya tiene el Service Worker, borrar caché / desregistrarlo para ver cambios.
 - Probar sin GPS real: guardar un `mirun_current` falso en localStorage y usar "Guardarla así".
+- El navegador integrado no registra Service Workers en localhost. El modo offline se prueba en el celular real.
 
 ## Archivos
 | Archivo | Qué es |
@@ -28,9 +29,11 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `js/app.js` | Toda la lógica (secciones con marcadores `// ---------- NOMBRE`) |
 | `index.html` | Solo redirige a `mirun.html` |
 | `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché |
-| `manifest.json` | Instalación como app (íconos en `img/iconos/`) |
+| `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", 512 "maskable", 180 para iPhone) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de la mascota MIRUN Monster (PNG 256 px transparentes) |
+| `img/siluetas/` | Siluetas del cuerpo: masculina, femenina, neutra (PNG 640 px de alto, transparentes) |
+| `img/icono-original.png`, `img/siluetas-original.png` | Imágenes originales del usuario (no van al caché) |
 | `.gitignore` | Excluye `respaldo/` de GitHub |
 | `.claude/herramientas/` | Scripts Node sin dependencias: `png_lib.js` (leer/escribir PNG), `recortar.js` (cortar hoja de poses) |
 | `respaldo/` | Copias de versiones anteriores de `mirun.html` antes de cambios grandes |
@@ -64,7 +67,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Historial | `// ---------- HISTORY` |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
 | Récords | `// ---------- RECORDS` |
-| Mediciones (`MEASURES`, medidas a seguir, IMC) | `// ---------- CUERPO` |
+| Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`) | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |
 | GPS, tiempo, calorías, splits | `// ---------- RUN LOGIC` |
 | Voz | `// ---------- AVISO POR VOZ` |
 | Carrera en curso / iniciar / terminar | `// ---------- CARRERA EN CURSO` |

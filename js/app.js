@@ -634,8 +634,29 @@
     return body.filter(e=>isFinite(e[k]) && e[k] > 0).sort((a,b)=>a.date < b.date ? -1 : 1);
   }
 
+  // Silueta del cuerpo con las últimas medidas encima. La figura depende del sexo del perfil
+  // (m = masculina, f = femenina, x o vacío = neutra). y = altura en % de la imagen; s = lado de la etiqueta.
+  const BODY_FIG = {m:'masculina', f:'femenina', x:'neutra'};
+  const BODY_POS = {
+    hombros:{y:15, s:'L'}, biceps:{y:27, s:'L'}, antebrazo:{y:39, s:'L'}, cadera:{y:51, s:'L'}, muslo:{y:63, s:'L'},
+    pecho:{y:22, s:'R'}, cintura:{y:34, s:'R'}, barriga:{y:46, s:'R'}, pantorrilla:{y:79, s:'R'}
+  };
+  function renderBodyFig(){
+    document.getElementById('bodyFigImg').src = 'img/siluetas/' + (BODY_FIG[profile.sex] || 'neutra') + '.png';
+    const shown = MEASURES.filter(m=>BODY_POS[m.k] && tracked().includes(m.k));
+    document.getElementById('bodyFigLbls').innerHTML = shown.map(m=>{
+      const s = seriesOf(m.k), p = BODY_POS[m.k];
+      const val = s.length ? fmt1(s[s.length-1][m.k]) + ' ' + m.u : '—';
+      return `<div class="mLbl ${p.s}" style="top:${p.y}%"><small>${m.n}</small><b>${val}</b></div>`;
+    }).join('');
+    const ps = seriesOf('peso');
+    document.getElementById('bodyFigHint').textContent = ps.length
+      ? 'Peso ' + fmt1(ps[ps.length-1].peso) + ' kg · última medición ' + fmtShortDate(body.map(e=>e.date).sort().pop())
+      : 'Registra tus medidas abajo y aparecerán aquí.';
+  }
+
   function renderBody(){
-    renderBMI();
+    renderBMI(); renderBodyFig();
     const prog = document.getElementById('bodyProg');
     const rows = MEASURES.map(m=>{
       const s = seriesOf(m.k);

@@ -26,8 +26,7 @@
 
 ## Pendientes (el usuario decide)
 1. ~~Mascota~~ → integrada (ver "Tomadas"). Poses sin usar aún: 05 Decidido, 08 Agotado, 11 Frustrado.
-2. **Silueta**: la versión dibujada por la IA fue rechazada. Usar imágenes generadas (prompt en `docs/PROMPTS.md`)
-   de ChatGPT (cuerpo 3D azul), hechas por el usuario: masculina, femenina y neutra.
+2. ~~Silueta~~ → hecha el 2026-11-03 con la imagen del usuario (3 figuras en `img/siluetas/`).
 3. Logros legendarios (dorados): Veterano, Leyenda, Maestro del tiempo, Conquistador, Media maratón
    (el más difícil de cada categoría). Propuesta de la IA, el usuario puede cambiarla.
 

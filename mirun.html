@@ -16,7 +16,7 @@
 <script src="lib/leaflet.js"></script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/iconos/icon-192.png">
-<link rel="apple-touch-icon" href="img/iconos/icon-192.png">
+<link rel="apple-touch-icon" href="img/iconos/icon-180.png">
 <meta name="theme-color" content="#070d1f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -257,6 +257,12 @@
     <div class="panel" id="bmiPanel">
       <h3>Tu IMC</h3>
       <div id="bmiBox"></div>
+    </div>
+    <!-- Silueta con tus últimas medidas encima (renderBodyFig en js/app.js, sección CUERPO) -->
+    <div class="panel" id="bodyFigPanel">
+      <h3>Tu cuerpo hoy</h3>
+      <div class="bodyFig"><img id="bodyFigImg" alt=""><div id="bodyFigLbls"></div></div>
+      <div class="hint" id="bodyFigHint" style="text-align:center;margin-top:8px;"></div>
     </div>
     <div class="panel">
       <h3>Tu progreso</h3>

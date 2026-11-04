@@ -20,12 +20,13 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 |---|---|---|
 | 6 | **Perfil y objetivos**: foto de perfil, objetivo físico, nivel de actividad; la copia de seguridad incluye perfil, metas y foto | ✅ 2026-11-02 |
 | 6b | Unidades (kg/lb, km/millas, cm/pulgadas) | ⬜ |
-| 7 | **Ícono de la app** con el logo M de ChatGPT (esperando imagen del usuario) | ⬜ |
+| 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
+| 7b | Ícono maskable para Android (la M del fondo se corta en el círculo) | ⬜ |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
 | 9 | **Evolución**: minutos/semana, calorías, metas cumplidas, comparar fechas | ⬜ |
 | 10 | Editar actividades (hoy solo se borran) | ⬜ |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
-| 12 | Silueta del cuerpo con medidas (esperando imágenes del usuario, prompt en DECISIONES) | ⬜ |
+| 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
 
 ## Futuro grande (cada uno es un proyecto; se planea aparte antes de empezar)
@@ -33,7 +34,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 |---|---|---|
 | F1 | **Cuentas y respaldo en la nube** | Servidor (ej. Firebase o Supabase), inicio de sesión. Base para todo lo siguiente. La copia manual deja de ser necesaria. |
 | F2 | **Comunidad de amigos** | Elegir amigos y ver entre ustedes logros, rachas y metas. Requiere F1 y reglas de privacidad. |
-| F4 | **GPS con pantalla apagada / app en segundo plano** | Una web no puede seguir el GPS con la pantalla apagada. Requiere app nativa (requiere app nativa). Mientras tanto: modo bolsillo (etapa 8). |
+| F4 | **GPS con pantalla apagada / app en segundo plano** | Una web no puede seguir el GPS con la pantalla apagada. Requiere app nativa. Mientras tanto: modo bolsillo (etapa 8). |
 | F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. |
 
 Ver docs/privado/NEGOCIO.md (local)
