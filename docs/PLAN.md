@@ -33,10 +33,10 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 |---|---|---|
 | F1 | **Cuentas y respaldo en la nube** | Servidor (ej. Firebase o Supabase), inicio de sesión. Base para todo lo siguiente. La copia manual deja de ser necesaria. |
 | F2 | **Comunidad de amigos** | Elegir amigos y ver entre ustedes logros, rachas y metas. Requiere F1 y reglas de privacidad. |
-| F3 | **App en Play Store** | Empaquetar la PWA (TWA/PWABuilder) o como app nativa (Capacitor). Cuenta de desarrollador de Google (pago único). |
-| F4 | **GPS con pantalla apagada / app en segundo plano** | Una web no puede seguir el GPS con la pantalla apagada. Requiere app nativa (va junto con F3). Mientras tanto: modo bolsillo (etapa 8). |
-| F5 | **Vender la app** (suscripción o pago) | Requiere F1 y F3; cobro con Google Play Billing. Antes: repositorio privado (el código hoy es público). |
+| F4 | **GPS con pantalla apagada / app en segundo plano** | Una web no puede seguir el GPS con la pantalla apagada. Requiere app nativa (requiere app nativa). Mientras tanto: modo bolsillo (etapa 8). |
 | F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. |
+
+Ver docs/privado/NEGOCIO.md (local)
 
 ## Reglas de la racha (implementadas)
 - Un día cuenta si la suma de minutos de actividad ≥ mínimo (por defecto 20, configurable 10–60).

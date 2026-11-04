@@ -94,3 +94,4 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 5. Trabajo incremental: no reconstruir la app. Pedir aprobación antes de cambios grandes.
 6. App inclusiva: el sexo es opcional y nunca bloquea funciones ni mediciones.
 7. El nombre de la app es **MiRun** (decisión del usuario; no cambiarlo).
+8. Planes comerciales, precios, venta o estrategia de negocio NUNCA van en archivos que se suban a GitHub. Van solo en docs/privado/ (ignorado por git).

@@ -47,5 +47,4 @@
   y la mascota. Los datos de las personas NO están ahí (viven solo en cada teléfono).
 - Un commit quedó con un correo personal del usuario como autor (error de la IA); se corrigió el
   historial el 2026-11-02 (ver CAMBIOS). Los commits usan el correo privado "noreply" de GitHub.
-- GitHub Pages en repositorio privado requiere plan pago (GitHub Pro). Alternativa gratis para cuando se
-  quiera vender: repositorio privado + Cloudflare Pages o Netlify. Decidir antes de F5 (vender).
+Ver docs/privado/NEGOCIO.md (local)
