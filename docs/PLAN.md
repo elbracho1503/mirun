@@ -29,6 +29,19 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
 
+## Plan de la etapa 6b — Unidades (rama `prueba/unidades`, 2026-11-03)
+- **Regla:** los datos se guardan SIEMPRE en kg y km (y ritmo en min/km). Solo se convierte al mostrar
+  y al leer lo que la persona escribe. No se toca nada guardado en localStorage.
+- Nuevo campo opcional `profile.units`: `'metric'` (km, kg; por defecto) o `'imperial'` (mi, lb).
+  Sin el campo = métrico, así las copias de seguridad viejas siguen funcionando. La importación acepta `units`.
+- Funciones de conversión en una sección nueva `// ---------- UNIDADES` de `js/app.js`.
+- Pantallas: GPS (distancia y ritmo), resumen al terminar, historial y totales, carrera a mano,
+  récords (ritmos), medidas (peso), IMC, logros (descripciones de distancia), metas (distancia y ritmo
+  objetivo), Inicio (actividad de hoy), perfil (peso).
+- Se mantienen en km a propósito: nombres de distancias de carrera (5 km, 10 km, media maratón),
+  los splits por kilómetro y el aviso por voz en cada km. Medidas del cuerpo y estatura siguen en cm.
+- Caché `sw.js` → v15. Pruebas en tamaño celular con km/kg y con mi/lb.
+
 ## Futuro grande (cada uno es un proyecto; se planea aparte antes de empezar)
 | # | Proyecto | Qué implica |
 |---|---|---|
