@@ -105,7 +105,7 @@
     if(tab==='home') renderHome();
     if(tab==='history') renderHistory();
     if(tab==='records'){ renderRecords(); renderAchievements(); }
-    if(tab==='body') renderBody();
+    if(tab==='body') renderEvo();
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -1664,6 +1664,99 @@
 
   checkAchievements(true); // al abrir: los logros que ya tenías no se anuncian
   renderHome();
+
+  // ---------- EVOLUCIÓN ----------
+  // Pestaña "Evolución" = data-tab "body" con dos vistas: Actividad (aquí) y Cuerpo (medidas, sin cambios).
+  // SOLO LEE datos (history y la suma de minutos de la racha). Respeta km/mi con toD y toPace.
+  // Períodos: 4 semanas y 3 meses se agrupan por semana; 1 año y Todo, por mes.
+  const EVO_RANGES = {s4:{n:4, u:'w'}, m3:{n:13, u:'w'}, a1:{n:12, u:'m'}, all:{n:0, u:'m'}};
+  let evoRange = 's4', evoView = 'act';
+  function evoBuckets(){ // [{s, e, lbl}] con s incluido y e excluido (fechas a mediodía)
+    const r = EVO_RANGES[evoRange], today = new Date(); today.setHours(12,0,0,0);
+    if(r.u === 'w'){
+      const mon = mondayOf(today);
+      return Array.from({length:r.n}, (_, i)=>{
+        const s = new Date(mon); s.setDate(mon.getDate() - 7*(r.n-1-i));
+        const e = new Date(s); e.setDate(s.getDate() + 7);
+        return {s, e, lbl: fmtShortDate(dayKey(s))};
+      });
+    }
+    let n = r.n;
+    if(!n){ // Todo: desde el mes de la primera actividad
+      const first = history.length ? new Date(history.map(h=>h.date).sort()[0]) : today;
+      n = Math.max(1, (today.getFullYear() - first.getFullYear())*12 + today.getMonth() - first.getMonth() + 1);
+    }
+    return Array.from({length:n}, (_, i)=>{
+      const s = new Date(today.getFullYear(), today.getMonth() - (n-1-i), 1, 12);
+      const e = new Date(s.getFullYear(), s.getMonth() + 1, 1, 12);
+      return {s, e, lbl: s.toLocaleDateString('es-ES', {month:'short', year:'2-digit'})};
+    });
+  }
+  // totales de un rango [s, e): minutos (sin contar dos veces lo que se cruza), km y ritmo de carreras
+  function evoTotals(mins, s, e){
+    let min = 0; mins.forEach((m, k)=>{ const d = new Date(k + 'T12:00:00'); if(d >= s && d < e) min += m; });
+    let km = 0, runSec = 0, runKm = 0;
+    history.forEach(h=>{
+      const d = new Date(actRange(h)[0]); if(d < s || d >= e || !(h.dist > 0)) return;
+      km += h.dist;
+      if(isRun(h)){ runSec += h.seconds; runKm += h.dist; }
+    });
+    return {min, km, pace: runKm > 0 ? runSec / runKm : null}; // pace en seg/km
+  }
+  function pct(a, b){ // texto del cambio porcentual de b a a
+    if(!(b > 0)) return a > 0 ? 'nuevo' : '—';
+    const p = Math.round((a - b) / b * 100);
+    return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p) + ' %';
+  }
+
+  function renderEvo(){
+    document.querySelectorAll('#evoTabs .chip').forEach(c=>c.classList.toggle('on', c.dataset.evo === evoView));
+    document.querySelectorAll('#evoRange .chip').forEach(c=>c.classList.toggle('on', c.dataset.r === evoRange));
+    document.getElementById('evoAct').style.display = evoView === 'act' ? '' : 'none';
+    document.getElementById('evoBody').style.display = evoView === 'body' ? '' : 'none';
+    if(evoView === 'body'){ renderBody(); return; }
+    const none = history.length === 0;
+    document.getElementById('evoEmpty').style.display = none ? '' : 'none';
+    document.getElementById('evoCharts').style.display = none ? 'none' : '';
+    if(none) return;
+    const mins = minutesByDay(), B = evoBuckets(), weekly = EVO_RANGES[evoRange].u === 'w';
+    const T = B.map(b=>evoTotals(mins, b.s, b.e));
+    const per = weekly ? 'por semana' : 'por mes';
+    document.getElementById('evoMinT').textContent = 'Minutos de actividad ' + per;
+    document.getElementById('evoDistT').textContent = 'Distancia ' + per + ' (' + dU() + ')';
+    document.getElementById('evoPaceT').textContent = 'Ritmo promedio al correr (' + paceU() + ')';
+    document.getElementById('evoMinH').textContent = weekly ? 'La línea dorada es tu meta semanal: ' + weekMin() + ' min.' : '';
+    const first = B[0].lbl, last = B[B.length-1].lbl;
+    // minutos y distancia: barras (los períodos sin actividad quedan en 0)
+    const totMin = T.reduce((a, t)=>a + t.min, 0), totKm = T.reduce((a, t)=>a + t.km, 0);
+    drawChart(document.getElementById('evoMin'), {type:'bar', color:'#4d9bff', firstLbl:first, lastLbl:last,
+      empty: totMin > 0 ? null : 'Sin actividad en este período.', goal: weekly ? weekMin() : 0,
+      fmtY: v=>String(Math.round(v)), pts: T.map((t, i)=>({x:i, v:Math.round(t.min)}))});
+    drawChart(document.getElementById('evoDist'), {type:'bar', color:'#7cc4ff', firstLbl:first, lastLbl:last,
+      empty: totKm > 0 ? null : 'Sin distancia registrada en este período.',
+      pts: T.map((t, i)=>({x:i, v:toD(t.km)}))});
+    // ritmo: línea solo con los períodos en que hubo carreras (más abajo = más rápido)
+    const P = T.map((t, i)=>({x:i, v:t.pace ? toPace(t.pace)/60 : null, lbl:B[i].lbl})).filter(p=>p.v !== null);
+    drawChart(document.getElementById('evoPace'), {type:'line', color:'#34d399', fmtY: v=>fmtPace(v*60),
+      empty: P.length ? null : 'Aún no hay carreras en este período.',
+      single: P.length === 1 ? fmtPace(P[0].v*60) + ' ' + paceU() : null,
+      firstLbl: P.length ? P[0].lbl : '', lastLbl: P.length ? P[P.length-1].lbl : '', pts: P});
+    // comparación con el período anterior del mismo largo (no aplica a "Todo")
+    const box = document.getElementById('evoCompare');
+    if(evoRange === 'all'){ box.innerHTML = '<div class="hint">Elige 4 semanas, 3 meses o 1 año para comparar.</div>'; return; }
+    const s = B[0].s, e = B[B.length-1].e, ps = new Date(s.getTime() - (e - s)), prev = evoTotals(mins, ps, s), cur = evoTotals(mins, s, e);
+    const paceCur = cur.pace ? fmtPace(toPace(cur.pace)) : '--:--', pacePrev = prev.pace ? fmtPace(toPace(prev.pace)) : '--:--';
+    box.innerHTML = `<div class="evoCmp">
+      <div><small>Minutos</small><b>${Math.round(cur.min)}</b><i>${pct(cur.min, prev.min)}</i></div>
+      <div><small>Distancia</small><b>${toD(cur.km).toFixed(1)} ${dU()}</b><i>${pct(cur.km, prev.km)}</i></div>
+      <div><small>Ritmo</small><b>${paceCur}</b><i>antes ${pacePrev}</i></div></div>`;
+  }
+  document.getElementById('evoTabs').addEventListener('click', ev=>{
+    const c = ev.target.closest('.chip'); if(!c) return; evoView = c.dataset.evo; renderEvo();
+  });
+  document.getElementById('evoRange').addEventListener('click', ev=>{
+    const c = ev.target.closest('.chip'); if(!c) return; evoRange = c.dataset.r; renderEvo();
+  });
 
   // ---------- COPIA DE SEGURIDAD DEL HISTORIAL ----------
   const backupMsg = document.getElementById('backupMsg');

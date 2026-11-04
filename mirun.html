@@ -44,7 +44,7 @@
     <button class="tabBtn active" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 9v12h14V9"/></svg>Inicio</button>
     <button class="tabBtn" data-tab="history"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Historial</button>
     <button class="plusBtn" id="plusBtn" aria-label="Agregar actividad"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-    <button class="tabBtn" data-tab="body"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8M15 8h5v5"/></svg>Cuerpo</button>
+    <button class="tabBtn" data-tab="body"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8M15 8h5v5"/></svg>Evolución</button>
     <button class="tabBtn" data-tab="records"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/></svg>Logros</button>
   </nav>
 
@@ -254,6 +254,31 @@
 
   <!-- BODY SCREEN -->
   <div class="screen" id="tab-body">
+    <!-- EVOLUCIÓN: dos vistas. Actividad (gráficos nuevos, renderEvo en js/app.js) y Cuerpo (medidas de siempre) -->
+    <div class="chips evoTabs" id="evoTabs">
+      <button class="chip on" data-evo="act">Actividad</button>
+      <button class="chip" data-evo="body">Cuerpo</button>
+    </div>
+    <div id="evoAct">
+      <div class="chips evoRange" id="evoRange">
+        <button class="chip on" data-r="s4">4 semanas</button>
+        <button class="chip" data-r="m3">3 meses</button>
+        <button class="chip" data-r="a1">1 año</button>
+        <button class="chip" data-r="all">Todo</button>
+      </div>
+      <div class="panel" id="evoEmpty" style="display:none;">
+        <div class="empty"><img src="img/mascota/15_asomado.png" alt="">Registra actividad para ver tu evolución.</div>
+      </div>
+      <div id="evoCharts">
+        <div class="panel"><h3>Comparado con el período anterior</h3><div id="evoCompare"></div></div>
+        <div class="panel"><h3 id="evoMinT">Minutos de actividad</h3><canvas class="evoChart" id="evoMin"></canvas>
+          <div class="hint" id="evoMinH"></div></div>
+        <div class="panel"><h3 id="evoDistT">Distancia</h3><canvas class="evoChart" id="evoDist"></canvas></div>
+        <div class="panel"><h3 id="evoPaceT">Ritmo promedio al correr</h3><canvas class="evoChart" id="evoPace"></canvas>
+          <div class="hint">Más abajo es más rápido.</div></div>
+      </div>
+    </div>
+    <div id="evoBody" style="display:none;">
     <div class="panel" id="bmiPanel">
       <h3>Tu IMC</h3>
       <div id="bmiBox"></div>
@@ -292,6 +317,7 @@
       <h3>Mediciones guardadas</h3>
       <div id="bodyList"></div>
     </div>
+    </div><!-- /evoBody -->
   </div>
 
   <!-- PROFILE SCREEN -->

@@ -67,7 +67,8 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Historial | `// ---------- HISTORY` |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
 | Récords | `// ---------- RECORDS` |
-| Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`) | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |
+| Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`) y gráfico compartido `drawChart` | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |
+| Evolución: vistas Actividad | Cuerpo, períodos, gráficos y comparación (`renderEvo`) | `// ---------- EVOLUCIÓN` (HTML: `id="evoTabs"`, CSS: `EVOLUCIÓN`) |
 | GPS, tiempo, calorías, splits | `// ---------- RUN LOGIC` |
 | Voz | `// ---------- AVISO POR VOZ` |
 | Carrera en curso / iniciar / terminar | `// ---------- CARRERA EN CURSO` |
