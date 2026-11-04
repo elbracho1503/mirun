@@ -25,7 +25,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
 | 7b | Ícono maskable para Android (la M del fondo se corta en el círculo) | ⬜ |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
-| 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad | Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | 🟨 rama `prueba/evolucion` |
+| 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | 🟨 rama `prueba/evolucion` |
 | 10 | Editar actividades (hoy solo se borran) | ⬜ |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
