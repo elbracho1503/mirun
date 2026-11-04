@@ -53,6 +53,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   height: 175,               // v5, cm (100–250), para el IMC
   goalType: 'salud',         // v5: salud | bajar | musculo | mantener | resistencia (cambia si bajar el peso es bueno)
   level: 'ligero',           // v5: sedentario | ligero | moderado | activo | muy (meta semanal sugerida, LEVEL_WEEK)
+  units: 'metric',           // v5: metric (km, kg) | imperial (mi, lb). SOLO cambia lo que se muestra: todo se guarda en km y kg
   measures: ['peso', ...],   // v5, medidas que sigue (orden de MEASURES). Sin esto = DEF_MEAS
   sex: 'm'|'f'|'x',          // 'x' = prefiero no decir (v5)
   voice: true/false, mapMode: 'calles'|'linea' }

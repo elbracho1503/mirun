@@ -85,7 +85,7 @@
   <div class="screen" id="tab-run">
     <div class="clock">
       <div class="val num" id="distVal">0.00</div>
-      <div class="lbl">Kilómetros recorridos</div>
+      <div class="lbl"><span class="uDL">Kilómetros</span> recorridos</div>
     </div>
 
     <div id="gpsHelp" style="display:none;">
@@ -110,7 +110,7 @@
 
     <div class="lanes">
       <div class="lane"><span class="lane-label">Tiempo</span><span class="lane-val num" id="timeVal">00:00</span></div>
-      <div class="lane"><span class="lane-label">Ritmo</span><span class="lane-val num" id="paceVal">--:--</span></div>
+      <div class="lane"><span class="lane-label">Ritmo <small class="uP">min/km</small></span><span class="lane-val num" id="paceVal">--:--</span></div>
       <div class="lane"><span class="lane-label">Calorías</span><span class="lane-val num" id="calVal">0</span></div>
     </div>
 
@@ -167,7 +167,7 @@
     </div>
     <div class="panel">
       <h3>Meta de la carrera: distancia</h3>
-      <label>Kilómetros a correr</label>
+      <label><span class="uDL">Kilómetros</span> a correr</label>
       <input type="number" id="goalDist" step="0.1" placeholder="5">
     </div>
     <div class="panel">
@@ -176,7 +176,7 @@
       <input type="number" id="goalTime" step="1" placeholder="30">
     </div>
     <div class="panel">
-      <h3>Ritmo objetivo (min/km)</h3>
+      <h3>Ritmo objetivo (<span class="uP">min/km</span>)</h3>
       <div class="row2">
         <div><label>Minutos</label><input type="number" id="paceMin" step="1" placeholder="6"></div>
         <div><label>Segundos</label><input type="number" id="paceSec" step="1" placeholder="0"></div>
@@ -189,7 +189,7 @@
   <div class="screen" id="tab-history">
     <div class="totRow">
       <div class="t"><div class="v num" id="totRuns">0</div><div class="l">ACTIVIDADES</div></div>
-      <div class="t"><div class="v num" id="totKm">0</div><div class="l">KM TOTAL</div></div>
+      <div class="t"><div class="v num" id="totKm">0</div><div class="l"><span class="uDU">KM</span> TOTAL</div></div>
       <div class="t"><div class="v num" id="totCal">0</div><div class="l">KCAL TOTAL</div></div>
     </div>
     <div class="panel" id="actForm">
@@ -217,7 +217,7 @@
       <div class="hint">Para carreras que hiciste sin la app (por ejemplo en la caminadora del gym). Cuentan para tus récords.</div>
       <label>Fecha</label>
       <input type="date" id="manDate">
-      <label>Kilómetros</label>
+      <label><span class="uDL">Kilómetros</span></label>
       <input type="number" id="manKm" step="0.01" placeholder="5">
       <div class="row2">
         <div><label>Minutos</label><input type="number" id="manMin" step="1" placeholder="30"></div>
@@ -330,7 +330,12 @@
       <h3>Tus datos (para calorías)</h3>
       <label>Tu nombre (opcional)</label>
       <input type="text" id="profName" maxlength="30" placeholder="Para saludarte">
-      <label>Peso (kg)</label>
+      <label>Unidades</label>
+      <select id="profUnits">
+        <option value="metric">Kilómetros y kilos (km, kg)</option>
+        <option value="imperial">Millas y libras (mi, lb)</option>
+      </select>
+      <label>Peso (<span class="uW">kg</span>)</label>
       <input type="number" id="profWeight" step="0.1" placeholder="70">
       <label>Edad</label>
       <input type="number" id="profAge" step="1" placeholder="30">

@@ -20,6 +20,30 @@
   const SCHEMA = 5;
   if(LS.get('mirun_schema', 0) < SCHEMA) LS.set('mirun_schema', SCHEMA);
 
+  // ---------- UNIDADES ----------
+  // Los datos se guardan SIEMPRE en km, kg y ritmo en segundos por km. Esto solo convierte al MOSTRAR
+  // y al LEER lo que la persona escribe. profile.units: 'metric' (por defecto) o 'imperial' (mi, lb).
+  const KM_MI = 1.609344, KG_LB = 2.20462262;
+  function imp(){ return profile.units === 'imperial'; }
+  function dU(){ return imp() ? 'mi' : 'km'; }                  // unidad de distancia
+  function wU(){ return imp() ? 'lb' : 'kg'; }                  // unidad de peso
+  function paceU(){ return imp() ? 'min/mi' : 'min/km'; }
+  function toD(km){ return imp() ? km / KM_MI : km; }           // km -> lo que se muestra
+  function fromD(v){ return imp() ? v * KM_MI : v; }            // lo que se escribe -> km
+  function toW(kg){ return imp() ? kg * KG_LB : kg; }
+  function fromW(v){ return imp() ? v / KG_LB : v; }
+  function toPace(secPerKm){ return imp() ? secPerKm * KM_MI : secPerKm; } // seg por km o por milla
+  function fmtD(km, dec){ return toD(km).toFixed(dec === undefined ? 2 : dec) + ' ' + dU(); }
+  function paceTxt(seconds, km){ return km > 0 ? fmtPace(toPace(seconds / km)) : '--:--'; }
+  // distancias de carrera: el nombre queda en km (5 km, 10 km) y en millas se agrega la equivalencia
+  function raceTxt(k){ return k.toLocaleString('es-ES') + ' km' + (imp() ? ' (' + (k / KM_MI).toLocaleString('es-ES', {maximumFractionDigits:1}) + ' mi)' : ''); }
+  // textos fijos del HTML marcados con estas clases
+  function refreshUnitLabels(){
+    const set = (sel, t)=>document.querySelectorAll(sel).forEach(e=>{ e.textContent = t; });
+    set('.uD', dU()); set('.uDU', dU().toUpperCase()); set('.uW', wU()); set('.uP', paceU());
+    set('.uDL', imp() ? 'Millas' : 'Kilómetros');
+  }
+
   // ---------- MASCOTA ----------
   // MIRUN Monster: qué pose se muestra en cada momento (archivos en img/mascota/, también en sw.js).
   // Para cambiar una pose: editar solo esta lista.
@@ -144,7 +168,8 @@
   function fillProfileForm(){
     const set = (id, v)=>{ document.getElementById(id).value = v; };
     set('profName', profile.name || '');
-    set('profWeight', profile.weight);
+    set('profUnits', imp() ? 'imperial' : 'metric');
+    set('profWeight', Math.round(toW(profile.weight) * 10) / 10); // se guarda en kg, se muestra en kg o lb
     set('profAge', profile.age);
     set('profHeight', profile.height || '');
     set('profSex', profile.sex);
@@ -152,7 +177,7 @@
     set('profLevel', profile.level || 'ligero');
     set('profVoice', profile.voice ? '1' : '0');
     set('profMap', profile.mapMode);
-    refreshLevelHint(); refreshHello(); refreshAvatars();
+    refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
   function refreshLevelHint(){
     const lv = document.getElementById('profLevel').value;
@@ -200,11 +225,24 @@
   });
   fillProfileForm();
 
+  // al cambiar la unidad, el peso escrito se convierte en el momento (dataset.prev = unidad que muestra)
+  const profUnits = document.getElementById('profUnits');
+  profUnits.dataset.prev = profUnits.value;
+  profUnits.addEventListener('change', ()=>{
+    const el = document.getElementById('profWeight'), v = parseFloat(el.value), to = profUnits.value;
+    if(v > 0 && to !== profUnits.dataset.prev) el.value = Math.round((to === 'imperial' ? v * KG_LB : v / KG_LB) * 10) / 10;
+    profUnits.dataset.prev = to;
+    document.querySelectorAll('#tab-profile .uW').forEach(e=>{ e.textContent = to === 'imperial' ? 'lb' : 'kg'; });
+  });
+
   document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
+    const units = profUnits.value, wIn = parseFloat(document.getElementById('profWeight').value);
+    const wKg = wIn > 0 ? (units === 'imperial' ? wIn / KG_LB : wIn) : 70; // el peso se guarda en kg
     // Object.assign conserva campos que esta pantalla no muestra (no se pierden datos)
     profile = Object.assign(profile, {
       name: document.getElementById('profName').value.trim().slice(0,30),
-      weight: parseFloat(document.getElementById('profWeight').value)||70,
+      units: units,
+      weight: Math.round(wKg * 100) / 100,
       age: parseInt(document.getElementById('profAge').value)||30,
       height: (h=>h >= 100 && h <= 250 ? h : null)(parseInt(document.getElementById('profHeight').value)),
       sex: document.getElementById('profSex').value,
@@ -216,23 +254,33 @@
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
     LS.set('mirun_profile', profile);
     refreshHello(); refreshAvatars();
+    // las unidades cambian lo que se muestra en varias pantallas
+    fillProfileForm(); profUnits.dataset.prev = profUnits.value;
+    loadGoalForm(); refreshGoalLabels(); buildBodyForm();
     showSaved();
   });
 
   // ---------- GOAL ----------
+  // la meta se guarda en km y min/km; aquí se muestra en la unidad elegida (ver UNIDADES)
+  function goalPaceShown(){ // [min, seg] del ritmo objetivo en min/km o min/mi, o null
+    if(goal.paceMin == null || goal.paceMin === '') return null;
+    const t = Math.round(toPace(goal.paceMin * 60 + (goal.paceSec || 0)));
+    return [Math.floor(t / 60), t % 60];
+  }
   function loadGoalForm(){
-    document.getElementById('goalDist').value = goal.dist || '';
+    document.getElementById('goalDist').value = goal.dist ? Math.round(toD(goal.dist) * 100) / 100 : '';
     document.getElementById('goalTime').value = goal.time || '';
-    document.getElementById('paceMin').value = goal.paceMin ?? '';
-    document.getElementById('paceSec').value = goal.paceSec ?? '';
+    const gp = goalPaceShown();
+    document.getElementById('paceMin').value = gp ? gp[0] : '';
+    document.getElementById('paceSec').value = gp ? gp[1] : '';
   }
   loadGoalForm();
 
   function refreshGoalLabels(){
-    document.getElementById('goalDistLbl').textContent = goal.dist ? goal.dist+' km' : '--';
+    document.getElementById('goalDistLbl').textContent = goal.dist ? fmtD(goal.dist, toD(goal.dist) % 1 ? 1 : 0) : '--';
     document.getElementById('goalTimeLbl').textContent = goal.time ? goal.time+' min' : '--';
-    document.getElementById('goalPaceLbl').textContent = (goal.paceMin!=null && goal.paceMin!=='') ?
-      pad(goal.paceMin)+':'+pad(goal.paceSec||0) : '--';
+    const gp = goalPaceShown();
+    document.getElementById('goalPaceLbl').textContent = gp ? pad(gp[0]) + ':' + pad(gp[1]) : '--';
   }
   refreshGoalLabels();
 
@@ -272,6 +320,10 @@
   document.getElementById('btnSaveGoal').addEventListener('click', ()=>{
     const dm = parseInt(document.getElementById('goalDailyMin').value);
     const wm = parseInt(document.getElementById('goalWeekMin').value);
+    // ritmo objetivo escrito en min/km o min/mi -> segundos por km
+    const pmIn = document.getElementById('paceMin').value, psIn = document.getElementById('paceSec').value;
+    const paceShown = pmIn !== '' ? (parseInt(pmIn) || 0) * 60 + (parseInt(psIn) || 0) : 0;
+    const paceKm = paceShown > 0 ? (imp() ? paceShown / KM_MI : paceShown) : 0;
     const newRest = [...document.querySelectorAll('#restChips .chip.on')].map(c=>+c.dataset.wd).sort();
     if(newRest.join() !== restDays().slice().sort().join()){
       const nk = dayKey(nextMonday()); // reemplaza lo que estuviera programado desde ese lunes
@@ -279,10 +331,10 @@
     }
     // Object.assign conserva cualquier otro campo de la meta
     goal = Object.assign(goal, {
-      dist: parseFloat(document.getElementById('goalDist').value)||null,
+      dist: fromD(parseFloat(document.getElementById('goalDist').value))||null, // se guarda en km
       time: parseFloat(document.getElementById('goalTime').value)||null,
-      paceMin: document.getElementById('paceMin').value!=='' ? parseInt(document.getElementById('paceMin').value) : null,
-      paceSec: document.getElementById('paceSec').value!=='' ? parseInt(document.getElementById('paceSec').value) : null,
+      paceMin: paceKm ? Math.floor(paceKm / 60) : null,                         // se guarda en min/km
+      paceSec: paceKm ? Math.round((paceKm % 60) * 100) / 100 : null,
       dailyMin: dm > 0 ? Math.min(60, Math.max(10, dm)) : null, // racha: entre 10 y 60 min
       weekMin: wm > 0 ? Math.min(3000, wm) : null
     });
@@ -428,9 +480,9 @@
         return `<div class="histItem">
           ${head}
           <div class="stats">
-            <div><div class="num">${h.dist.toFixed(2)}</div><small>km</small></div>
+            <div><div class="num">${toD(h.dist).toFixed(2)}</div><small>${dU()}</small></div>
             <div><div class="num">${fmtTime(h.seconds)}</div><small>tiempo</small></div>
-            <div><div class="num">${h.pace}</div><small>min/km</small></div>
+            <div><div class="num">${paceTxt(h.seconds, h.dist)}</div><small>${paceU()}</small></div>
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
           ${hasRoute ? `<div class="mini-route"><canvas id="hist-route-${ri}"></canvas></div>` : ''}
@@ -445,7 +497,7 @@
       });
     }
     document.getElementById('totRuns').textContent = history.length;
-    document.getElementById('totKm').textContent = history.reduce((s,h)=>s+h.dist,0).toFixed(1);
+    document.getElementById('totKm').textContent = toD(history.reduce((s,h)=>s+h.dist,0)).toFixed(1); // km o mi
     document.getElementById('totCal').textContent = Math.round(history.reduce((s,h)=>s+h.cal,0));
     // recordatorio de copia de seguridad si hay datos y la última copia es vieja (o nunca se hizo)
     const lastB = LS.get('mirun_lastBackup', null);
@@ -466,7 +518,7 @@
     const date = decodeURIComponent(b.dataset.del);
     const h = history.find(x=>x.date === date);
     if(!h) return;
-    const what = h.dist > 0 ? h.dist.toFixed(2) + ' km' : Math.round(h.seconds/60) + ' min';
+    const what = h.dist > 0 ? fmtD(h.dist) : Math.round(h.seconds/60) + ' min';
     if(!confirm('¿Borrar ' + typeName(h.type) + ' (' + what + ') del ' + fmtShortDate(h.date) + '? No se puede deshacer.')) return;
     history = history.filter(x=>x.date !== date);
     LS.set('mirun_history', history);
@@ -478,7 +530,7 @@
   document.getElementById('btnManual').addEventListener('click', ()=>{
     const msg = document.getElementById('manMsg');
     const dateStr = document.getElementById('manDate').value;
-    const km = parseFloat(document.getElementById('manKm').value);
+    const km = fromD(parseFloat(document.getElementById('manKm').value)); // se escribe en km o mi, se guarda en km
     const mins = parseInt(document.getElementById('manMin').value)||0;
     const secs = parseInt(document.getElementById('manSec').value)||0;
     const total = mins*60 + secs;
@@ -498,7 +550,7 @@
     LS.set('mirun_history', history);
     const news = newRecords(before, computeRecords(history));
     msg.style.color = 'var(--signal)';
-    msg.textContent = 'Carrera agregada.' + (news.length ? ' ¡Nuevo récord en ' + news.map(n=>n.k + ' km').join(', ') + '!' : '');
+    msg.textContent = 'Carrera agregada.' + (news.length ? ' ¡Nuevo récord en ' + news.map(n=>raceTxt(n.k)).join(', ') + '!' : '');
     document.getElementById('manKm').value = '';
     document.getElementById('manMin').value = '';
     document.getElementById('manSec').value = '';
@@ -559,8 +611,8 @@
         <div class="recCol"><div class="l">Todavía no has corrido esta distancia</div></div></div>`;
       return `<div class="recRow"><div class="recCat">${name}</div>
         <div class="recCol"><div class="v">${fmtTime(r.best.sec)}</div>
-          <div class="l">MEJOR TIEMPO · ${fmtPace(r.best.sec / r.k)} /km<br>${fmtShortDate(r.best.date)}</div></div>
-        <div class="recCol"><div class="v">${r.bestPace ? fmtPace(r.bestPace.p) : '--'}</div>
+          <div class="l">MEJOR TIEMPO · ${paceTxt(r.best.sec, r.k)} /${dU()}<br>${fmtShortDate(r.best.date)}</div></div>
+        <div class="recCol"><div class="v">${r.bestPace ? fmtPace(toPace(r.bestPace.p)) : '--'}</div>
           <div class="l">MEJOR RITMO PROM.<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
       </div>`;
     }).join('');
@@ -582,6 +634,9 @@
     {k:'pantorrilla', n:'Pantorrilla', u:'cm', id:'bPantorrilla', good: 1, ph:'37', h:'Parte más gruesa, de pie'}
   ];
   // medidas que sigue la persona (profile.measures). Por defecto, las que existían antes de v5 + cintura
+  // el peso se guarda en kg; se muestra en kg o lb (las demás medidas siempre en cm)
+  function mU(m){ return m.k === 'peso' ? wU() : m.u; }
+  function mV(m, v){ return m.k === 'peso' ? toW(v) : v; }
   const DEF_MEAS = ['peso','barriga','cintura','biceps','muslo','pantorrilla'];
   // dirección de mejora según el objetivo: solo cambia el peso (ganar músculo = subir, mantener = neutral)
   function goodOf(m){
@@ -593,13 +648,13 @@
 
   function buildBodyForm(){
     document.getElementById('bodyInputs').innerHTML = MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
-      `<div class="measIn"><label>${m.n} (${m.u})</label>
-        <input type="number" id="${m.id}" step="0.1" placeholder="${m.ph}"><small>${m.h}</small></div>`).join('');
+      `<div class="measIn"><label>${m.n} (${mU(m)})</label>
+        <input type="number" id="${m.id}" step="0.1" placeholder="${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
     document.getElementById('measChips').innerHTML = MEASURES.map(m=>
       `<button class="chip${tracked().includes(m.k) ? ' on' : ''}" data-meas="${m.k}">${m.n}</button>`).join('');
     // el gráfico ofrece lo que se sigue y también lo que tenga datos guardados
     chartSel.innerHTML = MEASURES.filter(m=>tracked().includes(m.k) || seriesOf(m.k).length)
-      .map(m=>`<option value="${m.k}">${m.n} (${m.u})</option>`).join('');
+      .map(m=>`<option value="${m.k}">${m.n} (${mU(m)})</option>`).join('');
   }
   document.getElementById('measChips').addEventListener('click', (ev)=>{
     const c = ev.target.closest('.chip'); if(!c) return;
@@ -621,7 +676,7 @@
     const bmi = w / Math.pow(profile.height/100, 2);
     const [cat, cls] = bmi < 18.5 ? ['Bajo peso','warn'] : bmi < 25 ? ['Saludable','ok'] : bmi < 30 ? ['Sobrepeso','warn'] : ['Obesidad','bad'];
     box.innerHTML = `<img class="mascotSide" src="${mascot('cuerpo')}" alt=""><div class="bmiRow"><div class="num bmiV">${fmt1(bmi)}</div><div class="bmiTag ${cls}">${cat}</div></div>
-      <div class="hint">Con ${fmt1(w)} kg y ${profile.height} cm. El IMC es solo una referencia: no distingue músculo de grasa.
+      <div class="hint">Con ${fmt1(toW(w))} ${wU()} y ${profile.height} cm. El IMC es solo una referencia: no distingue músculo de grasa.
       Tu cintura y tu progreso dicen más.</div>`;
   }
 
@@ -646,12 +701,12 @@
     const shown = MEASURES.filter(m=>BODY_POS[m.k] && tracked().includes(m.k));
     document.getElementById('bodyFigLbls').innerHTML = shown.map(m=>{
       const s = seriesOf(m.k), p = BODY_POS[m.k];
-      const val = s.length ? fmt1(s[s.length-1][m.k]) + ' ' + m.u : '—';
+      const val = s.length ? fmt1(mV(m, s[s.length-1][m.k])) + ' ' + mU(m) : '—';
       return `<div class="mLbl ${p.s}" style="top:${p.y}%"><small>${m.n}</small><b>${val}</b></div>`;
     }).join('');
     const ps = seriesOf('peso');
     document.getElementById('bodyFigHint').textContent = ps.length
-      ? 'Peso ' + fmt1(ps[ps.length-1].peso) + ' kg · última medición ' + fmtShortDate(body.map(e=>e.date).sort().pop())
+      ? 'Peso ' + fmt1(toW(ps[ps.length-1].peso)) + ' ' + wU() + ' · última medición ' + fmtShortDate(body.map(e=>e.date).sort().pop())
       : 'Registra tus medidas abajo y aparecerán aquí.';
   }
 
@@ -666,11 +721,11 @@
       let cls = 'same', txt = 'igual';
       if(s.length > 1 && Math.abs(diff) >= 0.05){
         cls = goodOf(m) === 0 ? 'same' : (diff * goodOf(m) > 0) ? 'good' : 'bad';
-        txt = (diff > 0 ? '▲ +' : '▼ −') + fmt1(Math.abs(diff)) + ' ' + m.u;
+        txt = (diff > 0 ? '▲ +' : '▼ −') + fmt1(mV(m, Math.abs(diff))) + ' ' + mU(m);
       } else if(s.length === 1){ txt = 'inicio'; }
       return `<div class="progRow"><div class="pn">${m.n}</div>
-        <div class="pv">${fmt1(last[m.k])} ${m.u}
-          <small>${s.length > 1 ? 'empezaste en ' + fmt1(first[m.k]) + ' ' + m.u + ' (' + fmtShortDate(first.date) + ')' : 'primera medición ' + fmtShortDate(first.date)}</small></div>
+        <div class="pv">${fmt1(mV(m, last[m.k]))} ${mU(m)}
+          <small>${s.length > 1 ? 'empezaste en ' + fmt1(mV(m, first[m.k])) + ' ' + mU(m) + ' (' + fmtShortDate(first.date) + ')' : 'primera medición ' + fmtShortDate(first.date)}</small></div>
         <div class="pd ${cls}">${txt}</div></div>`;
     }).join('');
     if(rows){
@@ -690,7 +745,7 @@
       list.innerHTML = body.slice().sort((a,b)=>a.date < b.date ? 1 : -1).map(e=>`<div class="bodyItem">
         <div class="top"><span>${fmtShortDate(e.date)}</span><button class="linkBtn" data-bdel="${e.date}">Borrar</button></div>
         <div class="vals">${MEASURES.filter(m=>isFinite(e[m.k]) && e[m.k] > 0)
-          .map(m=>`<span><small>${m.n}</small>${fmt1(e[m.k])}</span>`).join('')}</div></div>`).join('');
+          .map(m=>`<span><small>${m.n}</small>${fmt1(mV(m, e[m.k]))}</span>`).join('')}</div></div>`).join('');
     }
     if(rows) setTimeout(drawBodyChart, 30);
   }
@@ -713,7 +768,7 @@
       return;
     }
     const padL = 40, padR = 10, padT = 12, padB = 24;
-    const vals = s.map(e=>e[m.k]);
+    const vals = s.map(e=>mV(m, e[m.k])); // peso en kg o lb
     let min = Math.min(...vals), max = Math.max(...vals);
     if(max - min < 1){ min -= 0.5; max += 0.5; }
     const t0 = new Date(s[0].date+'T12:00:00').getTime(), t1 = new Date(s[s.length-1].date+'T12:00:00').getTime();
@@ -733,10 +788,10 @@
     const color = Math.abs(diff) < 0.05 || goodOf(m) === 0 ? '#8fa0c2' : (diff * goodOf(m) > 0 ? '#4d9bff' : '#ff8a3d');
     ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
     ctx.beginPath();
-    s.forEach((e,i)=>{ const x = X(e.date), y = Y(e[m.k]); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    s.forEach((e,i)=>{ const x = X(e.date), y = Y(mV(m, e[m.k])); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
     ctx.stroke();
     ctx.fillStyle = color;
-    s.forEach(e=>{ ctx.beginPath(); ctx.arc(X(e.date), Y(e[m.k]), 3.5, 0, Math.PI*2); ctx.fill(); });
+    s.forEach(e=>{ ctx.beginPath(); ctx.arc(X(e.date), Y(mV(m, e[m.k])), 3.5, 0, Math.PI*2); ctx.fill(); });
   }
 
   document.getElementById('btnSaveBody').addEventListener('click', ()=>{
@@ -746,7 +801,7 @@
     let any = false;
     MEASURES.forEach(m=>{
       const el = document.getElementById(m.id); if(!el) return; // medida que no se sigue
-      const v = parseFloat(el.value);
+      const v = m.k === 'peso' ? fromW(parseFloat(el.value)) : parseFloat(el.value); // peso escrito en kg o lb -> kg
       if(v > 0 && v < 400){ entry[m.k] = v; any = true; }
     });
     if(!any){ alert('Escribe al menos una medida.'); return; }
@@ -757,7 +812,7 @@
     if(entry.peso){
       profile.weight = entry.peso;
       LS.set('mirun_profile', profile);
-      document.getElementById('profWeight').value = entry.peso;
+      document.getElementById('profWeight').value = Math.round(toW(entry.peso) * 10) / 10;
     }
     MEASURES.forEach(m=>{ const el = document.getElementById(m.id); if(el) el.value = ''; });
     buildBodyForm();
@@ -918,12 +973,13 @@
 
   function updateDisplay(){
     const sec = currentElapsedSec();
-    document.getElementById('distVal').textContent = totalDist.toFixed(2);
+    document.getElementById('distVal').textContent = toD(totalDist).toFixed(2); // km o mi
     document.getElementById('timeVal').textContent = fmtTime(sec);
     const paceMinPerKm = totalDist > 0.02 ? sec/60/totalDist : 0;
     if(paceMinPerKm > 0 && isFinite(paceMinPerKm)){
-      const pm = Math.floor(paceMinPerKm);
-      const ps = Math.round((paceMinPerKm-pm)*60);
+      const shownPace = toPace(paceMinPerKm); // min/km o min/mi (la alerta de ritmo sigue en min/km)
+      const pm = Math.floor(shownPace);
+      const ps = Math.round((shownPace-pm)*60);
       document.getElementById('paceVal').textContent = pad(pm)+':'+pad(ps>=60?59:ps);
     } else {
       document.getElementById('paceVal').textContent = '--:--';
@@ -1186,7 +1242,7 @@
     showTab('run'); // la app abre en Inicio; si hay una actividad sin terminar, mostrarla
     const box = document.getElementById('resumeBox');
     document.getElementById('resumeInfo').textContent =
-      'Tienes una actividad sin terminar: ' + (pending.totalDist||0).toFixed(2) + ' km.';
+      'Tienes una actividad sin terminar: ' + fmtD(pending.totalDist||0) + '.';
     box.style.display = 'block';
     document.getElementById('btnResume').addEventListener('click', ()=>beginRun(pending));
     document.getElementById('btnResumeSave').addEventListener('click', ()=>{
@@ -1256,9 +1312,9 @@
     document.getElementById('btnPause').textContent='Pausar';
     paused = false;
 
-    document.getElementById('sumDist').textContent = totalDist.toFixed(2)+' km';
+    document.getElementById('sumDist').textContent = fmtD(totalDist);
     document.getElementById('sumTime').textContent = fmtTime(sec);
-    document.getElementById('sumPace').textContent = paceStr;
+    document.getElementById('sumPace').textContent = paceTxt(sec, totalDist) + ' ' + paceU(); // paceStr (min/km) es lo que se guarda
     document.getElementById('sumCal').textContent = cal;
 
     const sumMapWrap = document.getElementById('sumMapWrap');
@@ -1302,7 +1358,7 @@
       recCard.style.display = 'block';
       document.getElementById('sumRecList').innerHTML = news.map(r=>{
         const old = recBefore[REC_CATS.indexOf(r.k)].best;
-        return `<div class="newRec">${r.k} km en ${fmtTime(r.best.sec)}
+        return `<div class="newRec">${raceTxt(r.k)} en ${fmtTime(r.best.sec)}
           <small>${old ? 'Antes: ' + fmtTime(old.sec) + ' · mejoraste ' + fmtTime(old.sec - r.best.sec) : 'Primera vez que corres esta distancia'}</small></div>`;
       }).join('');
       say('Nuevo récord en ' + news.map(r=>r.k + ' kilómetros').join(' y ') + '.');
@@ -1423,7 +1479,7 @@
     document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
       const a = actInfo(h.type);
       return `<div class="actRow"><div class="ic">${a.e}</div><div class="an">${a.n}
-        <small>${Math.round(h.seconds/60)} min${h.dist > 0 ? ' · ' + h.dist.toFixed(2) + ' km' : ''}${h.intensity ? ' · intensidad ' + h.intensity : ''}</small></div>
+        <small>${Math.round(h.seconds/60)} min${h.dist > 0 ? ' · ' + fmtD(h.dist) : ''}${h.intensity ? ' · intensidad ' + h.intensity : ''}</small></div>
         <div class="num">${h.cal} kcal</div></div>`;
     }).join('') : '<div class="hint">Todavía no registras actividad hoy.</div>';
   }
@@ -1490,11 +1546,11 @@
     {id:'week',    c:2, e:'🎯', n:'Objetivo cumplido',   d:'Alcanza tu meta semanal',       g:1,   v:s=>s.bestWeek >= weekMin() ? 1 : 0},
     {id:'h10',     c:3, e:'⏳', n:'Tiempo inicial',      d:'10 horas acumuladas',           g:600, v:s=>s.totalMin},
     {id:'h50',     c:3, e:'⌛', n:'Maestro del tiempo',  d:'50 horas acumuladas',           g:3000,v:s=>s.totalMin, leg:true},
-    {id:'km50',    c:4, e:'🛤️', n:'Primer recorrido',    d:'50 km acumulados',              g:50,  v:s=>s.totalKm},
-    {id:'km250',   c:4, e:'🌍', n:'Conquistador',        d:'250 km acumulados',             g:250, v:s=>s.totalKm, leg:true},
-    {id:'run5',    c:5, e:'🏃', n:'Primeros kilómetros', d:'Corre 5 km de una vez',         g:5,   v:s=>s.longRun},
-    {id:'run10',   c:5, e:'🏅', n:'Corredor de 10K',     d:'Corre 10 km de una vez',        g:10,  v:s=>s.longRun},
-    {id:'run21',   c:5, e:'🏆', n:'Media maratón',       d:'Corre 21,1 km de una vez',      g:21.1,v:s=>s.longRun, leg:true},
+    {id:'km50',    c:4, e:'🛤️', n:'Primer recorrido',    get d(){ return fmtD(50, 0) + ' acumulados'; }, g:50,  v:s=>s.totalKm},
+    {id:'km250',   c:4, e:'🌍', n:'Conquistador',        get d(){ return fmtD(250, 0) + ' acumulados'; }, g:250, v:s=>s.totalKm, leg:true},
+    {id:'run5',    c:5, e:'🏃', n:'Primeros kilómetros', get d(){ return 'Corre ' + raceTxt(5) + ' de una vez'; }, g:5,   v:s=>s.longRun},
+    {id:'run10',   c:5, e:'🏅', n:'Corredor de 10K',     get d(){ return 'Corre ' + raceTxt(10) + ' de una vez'; }, g:10,  v:s=>s.longRun},
+    {id:'run21',   c:5, e:'🏆', n:'Media maratón',       get d(){ return 'Corre ' + raceTxt(21.1) + ' de una vez'; }, g:21.1,v:s=>s.longRun, leg:true},
     {id:'variety', c:6, e:'🚙', n:'Todoterreno',         d:'Prueba 4 tipos de actividad',   g:4,   v:s=>s.types}
   ];
 
@@ -1645,6 +1701,7 @@
           if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
           if(typeof p.voice === 'boolean') ok.voice = p.voice;
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
+          if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)
           take(profile, ok); LS.set('mirun_profile', profile);
         }
         if(data.goal && typeof data.goal === 'object'){
