@@ -758,10 +758,12 @@
     if(rows) setTimeout(drawBodyChart, 30);
   }
 
-  function drawBodyChart(){
-    const canvas = document.getElementById('bodyChart');
-    const m = MEASURES.find(x=>x.k === chartSel.value) || MEASURES[0];
-    const s = seriesOf(m.k);
+  // Gráfico compartido (canvas, sin librerías), lo usan Cuerpo y Evolución.
+  // o.type: 'line' (medidas, ritmo) o 'bar' (minutos, distancia).
+  // o.pts: [{x, v}] (x = posición en el eje: fecha en ms o número de barra), o.color,
+  // o.fmtY (texto de las guías; por defecto fmt1), o.firstLbl / o.lastLbl (debajo, a los lados),
+  // o.empty (texto en vez de gráfico), o.goal (línea de meta en barras), o.single (texto grande si hay 1 punto).
+  function drawChart(canvas, o){
     const dpr = window.devicePixelRatio || 1;
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if(!w) return;
@@ -770,36 +772,68 @@
     ctx.scale(dpr, dpr);
     ctx.clearRect(0,0,w,h);
     ctx.font = '11px Inter, sans-serif';
-    if(s.length < 2){
+    if(o.empty){
       ctx.fillStyle = '#8fa0c2';
-      ctx.fillText(s.length ? 'Con la próxima medición verás la línea de tu avance.' : 'Sin datos de ' + m.n.toLowerCase() + ' todavía.', 4, h/2);
+      ctx.fillText(o.empty, 4, h/2);
       return;
     }
+    if(o.single){ // un solo dato: se muestra el valor en grande
+      ctx.fillStyle = '#eef3ff'; ctx.font = '800 28px Inter, sans-serif';
+      ctx.fillText(o.single, (w - ctx.measureText(o.single).width) / 2, h/2 + 6);
+      ctx.fillStyle = '#8fa0c2'; ctx.font = '11px Inter, sans-serif';
+      if(o.lastLbl) ctx.fillText(o.lastLbl, (w - ctx.measureText(o.lastLbl).width) / 2, h/2 + 26);
+      return;
+    }
+    const fmtY = o.fmtY || fmt1, bar = o.type === 'bar';
     const padL = 40, padR = 10, padT = 12, padB = 24;
-    const vals = s.map(e=>mV(m, e[m.k])); // peso en kg o lb
+    const vals = o.pts.map(p=>p.v);
     let min = Math.min(...vals), max = Math.max(...vals);
-    if(max - min < 1){ min -= 0.5; max += 0.5; }
-    const t0 = new Date(s[0].date+'T12:00:00').getTime(), t1 = new Date(s[s.length-1].date+'T12:00:00').getTime();
-    const X = d => padL + (t1===t0 ? 0 : (new Date(d+'T12:00:00').getTime()-t0)/(t1-t0)) * (w-padL-padR);
+    if(bar){ min = 0; max = Math.max(max, o.goal || 0); if(max <= 0) max = 1; }
+    else if(max - min < 1){ min -= 0.5; max += 0.5; }
+    const t0 = o.pts[0].x, t1 = o.pts[o.pts.length-1].x, n = o.pts.length;
+    const slot = (w-padL-padR) / n; // ancho de cada barra (con su espacio)
+    const X = t => bar ? padL + (t + 0.5) * slot : padL + (t1===t0 ? 0 : (t-t0)/(t1-t0)) * (w-padL-padR);
     const Y = v => padT + (1 - (v-min)/(max-min)) * (h-padT-padB);
     // lineas guia
     ctx.strokeStyle = '#1e2c4d'; ctx.lineWidth = 1; ctx.fillStyle = '#5d6d8f';
     [max, (max+min)/2, min].forEach(v=>{
       ctx.beginPath(); ctx.moveTo(padL, Y(v)); ctx.lineTo(w-padR, Y(v)); ctx.stroke();
-      ctx.fillText(fmt1(v), 2, Y(v)+4);
+      ctx.fillText(fmtY(v), 2, Y(v)+4);
     });
-    ctx.fillText(fmtShortDate(s[0].date), padL, h-6);
-    const lastLbl = fmtShortDate(s[s.length-1].date);
+    ctx.fillText(o.firstLbl, padL, h-6);
+    const lastLbl = o.lastLbl;
     ctx.fillText(lastLbl, w - padR - ctx.measureText(lastLbl).width, h-6);
+    if(bar){
+      ctx.fillStyle = o.color;
+      o.pts.forEach(p=>{ if(p.v > 0) ctx.fillRect(X(p.x) - slot*0.3, Y(p.v), slot*0.6, Y(0) - Y(p.v)); });
+      if(o.goal){ // meta semanal: línea punteada dorada
+        ctx.strokeStyle = '#f5b82e'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(padL, Y(o.goal)); ctx.lineTo(w-padR, Y(o.goal)); ctx.stroke(); ctx.setLineDash([]);
+      }
+      return;
+    }
     // linea del avance
-    const diff = vals[vals.length-1] - vals[0];
-    const color = Math.abs(diff) < 0.05 || goodOf(m) === 0 ? '#8fa0c2' : (diff * goodOf(m) > 0 ? '#4d9bff' : '#ff8a3d');
-    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    ctx.strokeStyle = o.color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
     ctx.beginPath();
-    s.forEach((e,i)=>{ const x = X(e.date), y = Y(mV(m, e[m.k])); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+    o.pts.forEach((p,i)=>{ const x = X(p.x), y = Y(p.v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
     ctx.stroke();
-    ctx.fillStyle = color;
-    s.forEach(e=>{ ctx.beginPath(); ctx.arc(X(e.date), Y(mV(m, e[m.k])), 3.5, 0, Math.PI*2); ctx.fill(); });
+    ctx.fillStyle = o.color;
+    o.pts.forEach(p=>{ ctx.beginPath(); ctx.arc(X(p.x), Y(p.v), 3.5, 0, Math.PI*2); ctx.fill(); });
+  }
+
+  function drawBodyChart(){
+    const m = MEASURES.find(x=>x.k === chartSel.value) || MEASURES[0];
+    const s = seriesOf(m.k);
+    const vals = s.map(e=>mV(m, e[m.k])); // peso en kg o lb
+    const diff = vals[vals.length-1] - vals[0];
+    drawChart(document.getElementById('bodyChart'), {
+      type: 'line',
+      empty: s.length < 2 ? (s.length ? 'Con la próxima medición verás la línea de tu avance.' : 'Sin datos de ' + m.n.toLowerCase() + ' todavía.') : null,
+      pts: s.map((e,i)=>({x: new Date(e.date+'T12:00:00').getTime(), v: vals[i]})),
+      firstLbl: s.length ? fmtShortDate(s[0].date) : '',
+      lastLbl: s.length ? fmtShortDate(s[s.length-1].date) : '',
+      color: Math.abs(diff) < 0.05 || goodOf(m) === 0 ? '#8fa0c2' : (diff * goodOf(m) > 0 ? '#4d9bff' : '#ff8a3d')
+    });
   }
 
   document.getElementById('btnSaveBody').addEventListener('click', ()=>{
