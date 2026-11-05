@@ -34,7 +34,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
 | 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
-| 16 | Pantalla de bienvenida solo la primera vez, con la imagen de la mascota (trabajo pequeño) | ⬜ |
+| 16 | Pantalla de bienvenida solo la primera vez y sin datos guardados (`#welcome`, `mirun_welcomed`): nombre, unidades, sexo, estatura y peso opcionales; Empezar / Saltar | ✅ 2026-11-05 (rama `prueba/bienvenida`) |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial

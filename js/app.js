@@ -2011,6 +2011,58 @@
     r.readAsText(f);
   });
 
+  // ---------- BIENVENIDA ----------
+  // Pantalla #welcome SOLO la primera vez y SOLO si el teléfono no tiene datos de MiRun.
+  // mirun_welcomed = true cuando ya se vio (o se saltó) o si al abrir ya había datos: nunca vuelve a salir.
+  // Datos que cuentan: perfil, metas, foto, carrera en curso, historial o medidas (mirun_schema y
+  // mirun_achSeen no cuentan: la app los crea sola al abrir).
+  (function(){
+    if(LS.get('mirun_welcomed', false)) return;
+    const hasData = ['mirun_profile','mirun_goal','mirun_photo','mirun_current'].some(k=>localStorage.getItem(k) !== null) ||
+                    history.length > 0 || body.length > 0;
+    if(hasData){ LS.set('mirun_welcomed', true); return; }
+    const wel = document.getElementById('welcome'), wUnits = document.getElementById('welUnits'), wSex = document.getElementById('welSex');
+    wUnits.addEventListener('click', ev=>{
+      pickOne(wUnits, ev);
+      document.getElementById('welWU').textContent = wUnits.querySelector('.chip.on').dataset.u === 'imperial' ? 'lb' : 'kg';
+    });
+    wSex.addEventListener('click', ev=>{ // opcional: se puede dejar sin elegir o desmarcar
+      const c = ev.target.closest('.chip'); if(!c) return;
+      const was = c.classList.contains('on');
+      wSex.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+      if(!was) c.classList.add('on');
+    });
+    function close(){ LS.set('mirun_welcomed', true); wel.classList.remove('show'); }
+    document.getElementById('btnWelSkip').addEventListener('click', close); // Saltar: no guarda nada del perfil
+    document.getElementById('btnWelGo').addEventListener('click', ()=>{
+      const msg = document.getElementById('welMsg'), bad = t=>mascotMsg(msg, 'error', t, 'var(--danger)');
+      const units = wUnits.querySelector('.chip.on').dataset.u;
+      const name = document.getElementById('welName').value.trim().slice(0,30);
+      const sexC = wSex.querySelector('.chip.on');
+      const hTxt = document.getElementById('welHeight').value.trim(), wTxt = document.getElementById('welWeight').value.trim();
+      const h = parseInt(hTxt), wIn = parseFloat(wTxt);
+      if(hTxt && !(h >= 100 && h <= 250)) return bad('La estatura debe estar entre 100 y 250 cm.');
+      const kg = units === 'imperial' ? wIn / KG_LB : wIn; // el peso se guarda en kg
+      if(wTxt && !(kg >= 20 && kg <= 400)) return bad('Revisa el peso.');
+      // solo se agrega lo que la persona escribió; lo demás queda como estaba
+      const add = {units};
+      if(name) add.name = name;
+      if(sexC) add.sex = sexC.dataset.sex;
+      if(hTxt) add.height = h;
+      if(wTxt) add.weight = Math.round(kg * 100) / 100;
+      // sin nada escrito y con las unidades por defecto no se guarda el perfil (no se fija un sexo que no se eligió)
+      if(Object.keys(add).length === 1 && units === 'metric'){ close(); return; }
+      profile = Object.assign(profile, add);
+      LS.set('mirun_profile', profile);
+      close();
+      // lo mismo que al guardar el Perfil: las unidades cambian lo que se ve en varias pantallas
+      fillProfileForm(); profUnits.dataset.prev = profUnits.value;
+      loadGoalForm(); refreshGoalLabels(); buildBodyForm();
+      renderHome(); renderHistory();
+    });
+    wel.classList.add('show');
+  })();
+
 })();
 
 // Registrar Service Worker para que la app funcione sin internet

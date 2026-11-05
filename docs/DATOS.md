@@ -14,6 +14,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_lastBackup` | Texto ISO | Fecha de la última copia exportada (para el recordatorio) |
 | `mirun_photo` | Texto (data URL JPEG 256 px, ~30 KB) | Foto de perfil (v5). Va en la copia de seguridad |
 | `mirun_achSeen` | Array de ids | Logros ya anunciados (los logros en sí se calculan desde el historial) |
+| `mirun_welcomed` | `true` | Ya se mostró (o se saltó) la bienvenida, o al abrir ya había datos. No va en la copia (solo controla esa pantalla) |
 
 ## mirun_history — actividad
 ```js
