@@ -33,7 +33,8 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de la mascota MIRUN Monster (PNG 256 px transparentes) |
 | `img/siluetas/` | Siluetas del cuerpo: masculina, femenina, neutra (PNG 640 px de alto, transparentes) |
-| `img/icono-original.png`, `img/siluetas-original.png` | Imágenes originales del usuario (no van al caché) |
+| `img/bienvenida.jpg` | Imagen de la pantalla de bienvenida (600 px, 80 KB, sí va al caché) |
+| `img/icono-original.png`, `img/siluetas-original.png`, `img/bienvenida-original.jpg` | Imágenes originales del usuario (no van al caché) |
 | `.gitignore` | Excluye `respaldo/` de GitHub |
 | `.claude/herramientas/` | Scripts Node sin dependencias: `png_lib.js` (leer/escribir PNG), `recortar.js` (cortar hoja de poses) |
 | `respaldo/` | Copias de versiones anteriores de `mirun.html` antes de cambios grandes |
@@ -79,6 +80,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Racha, minutos por día, Inicio, registrar actividad | `// ---------- RACHA Y REGISTRO` |
 | Logros (`ACH`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
+| Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |
 
 ## Publicar (GitHub Pages)
 - Esta carpeta es el repositorio Git (`origin` = github.com/elbracho1503/mirun, rama `main`).

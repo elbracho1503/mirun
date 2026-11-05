@@ -1,7 +1,7 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
 // IMPORTANTE: si se cambia mirun.html, css/app.css o js/app.js, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v19';
+const CACHE_NAME = 'mirun-cache-v20';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const FILES_TO_CACHE = [
   './img/iconos/icon-512.png',
   './img/iconos/icon-512-maskable.png',
   './img/iconos/icon-180.png',
+  './img/bienvenida.jpg', // pantalla de bienvenida (el original bienvenida-original.jpg NO va al caché)
   // siluetas del cuerpo (la que se muestra depende del sexo del perfil)
   './img/siluetas/masculina.png',
   './img/siluetas/femenina.png',

@@ -5,6 +5,8 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-05 | Unidas a main y publicadas `prueba/silueta` y `prueba/bienvenida` (conflicto resuelto: caché v20 y ambas líneas aquí). Plan: pendiente 16b (sexo neutro por defecto) | `sw.js`, `docs/*` | ~8k tokens |
+| 2026-11-05 | Rama `prueba/bienvenida`: pantalla de bienvenida solo la primera vez y solo sin datos (perfil, metas, foto, carrera en curso, historial o medidas), imagen `img/bienvenida.jpg` (80 KB; original `bienvenida-original.jpg` fuera del caché), campos opcionales, Empezar / Saltar, clave `mirun_welcomed`. Caché v20 (v19 es de `prueba/silueta`) | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `img/*`, `docs/*`, `CLAUDE.md` | ~55k tokens |
 | 2026-11-05 | Rama `prueba/silueta`: líneas finas (SVG) de cada etiqueta de medida al punto del cuerpo en las 3 figuras (`BODY_PTS` medido por figura, `drawBodyLines`), revisado a 390 y 360 px sin superposiciones. Caché v19 | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~45k tokens |
 | 2026-11-04 | Ícono nuevo (M con cuernos): original en `img/icono-original.png`, 192, 512, 180 y maskable propio `icon-512-maskable.png` (imagen al 80 % sobre #061a4a con borde difuminado; no se corta en el círculo). Caché v18 | `img/*`, `manifest.json`, `sw.js`, `docs/*`, `CLAUDE.md` | ~25k tokens |
 | 2026-11-04 | Rama `prueba/actividades`: pasos en Historial (+ aviso sin estatura), editar actividades (hoja `#editSheet`, `origDate`/`edited`, Deshacer 8 s), importación sin duplicar editadas. Caché v17 | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~110k tokens (pasos ~30k + edición ~80k) |

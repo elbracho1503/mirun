@@ -442,3 +442,15 @@
     background:var(--track2);border:1px solid var(--lane-line);border-radius:14px;}
   #undoBar.show{display:flex;}
   #undoBar button{background:none;border:none;color:var(--signal);font-weight:800;font-size:14px;font-family:'Inter',sans-serif;}
+  /* ==== BIENVENIDA: solo la primera vez (#welcome, BIENVENIDA en js/app.js) ==== */
+  #welcome{position:fixed;inset:0;z-index:120;display:none;overflow-y:auto;background:var(--bg, #070d1f);
+    padding:20px 16px calc(24px + env(safe-area-inset-bottom));}
+  #welcome.show{display:block;}
+  .welBox{max-width:440px;margin:0 auto;}
+  .welImg{display:block;width:min(64vw,260px);aspect-ratio:1;margin:4px auto 10px;border-radius:28px;
+    box-shadow:0 10px 40px rgba(77,155,255,.35);}
+  .welBox h2{text-align:center;font-size:22px;font-weight:800;margin:4px 0 2px;}
+  .welSub{text-align:center;color:var(--signal);font-weight:700;font-size:13px;margin-bottom:6px;}
+  .welBox .hint{text-align:center;margin:6px 0;}
+  .welBox .btnRow{display:flex;gap:10px;margin-top:16px;}
+  .welBox .btnRow .btn{flex:1;}
