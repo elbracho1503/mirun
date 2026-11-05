@@ -94,6 +94,18 @@
   let history = LS.get('mirun_history', []);
   let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
 
+  // ---------- PASOS ----------
+  // Pasos ESTIMADOS (no se guardan): distancia ÷ largo de paso. Paso = estatura × factor
+  // (caminar: m 0.415, f 0.413, otro 0.414; correr: 0.65). Sin estatura en el perfil = null.
+  function stepsOf(h){
+    if(!(h.dist > 0) || !(profile.height > 0)) return null;
+    const t = h.type || 'correr';
+    if(t !== 'caminar' && t !== 'correr') return null;
+    const f = t === 'correr' ? 0.65 : (profile.sex === 'f' ? 0.413 : profile.sex === 'm' ? 0.415 : 0.414);
+    return Math.round(h.dist * 100000 / (profile.height * f)); // km -> cm ÷ paso en cm
+  }
+  function stepsTxt(h){ const s = stepsOf(h); return s ? '≈ ' + s.toLocaleString('es-ES') + ' pasos' : ''; }
+
   // ---------- TABS ----------
   // showTab('history') muestra una pantalla; también sirve para pantallas sin botón en el menú (goal)
   function showTab(tab){
@@ -1358,6 +1370,7 @@
     document.getElementById('sumTime').textContent = fmtTime(sec);
     document.getElementById('sumPace').textContent = paceTxt(sec, totalDist) + ' ' + paceU(); // paceStr (min/km) es lo que se guarda
     document.getElementById('sumCal').textContent = cal;
+    document.getElementById('sumSteps').textContent = stepsTxt({type: runType, dist: totalDist}); // pasos aproximados
 
     const sumMapWrap = document.getElementById('sumMapWrap');
     refreshLiveMap(); // ya no esta corriendo: oculta el mapa en vivo
@@ -1521,7 +1534,7 @@
     document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
       const a = actInfo(h.type);
       return `<div class="actRow"><div class="ic">${a.e}</div><div class="an">${a.n}
-        <small>${Math.round(h.seconds/60)} min${h.dist > 0 ? ' · ' + fmtD(h.dist) : ''}${h.intensity ? ' · intensidad ' + h.intensity : ''}</small></div>
+        <small>${Math.round(h.seconds/60)} min${h.dist > 0 ? ' · ' + fmtD(h.dist) : ''}${stepsOf(h) ? ' · ' + stepsTxt(h) : ''}${h.intensity ? ' · intensidad ' + h.intensity : ''}</small></div>
         <div class="num">${h.cal} kcal</div></div>`;
     }).join('') : '<div class="hint">Todavía no registras actividad hoy.</div>';
   }
