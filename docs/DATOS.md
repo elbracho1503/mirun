@@ -38,7 +38,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 - Borrar y Editar buscan por `date`.
 - **Editar** (`// ---------- EDITAR ACTIVIDAD`): cambia solo esa actividad. Si cambia la hora/fecha (o la
   duración de una GPS, porque su `date` es el fin) cambia `date` y se guarda `origDate` la primera vez.
-  Si cambia la distancia: `splits = []` (la ruta se conserva). Ritmo y calorías se recalculan solo si
+  Si cambia la distancia o la duración: `splits = []` (la ruta se conserva). Ritmo y calorías se recalculan solo si
   cambió tipo, duración, distancia o intensidad (con el peso actual del perfil).
 - **Importar copias:** una actividad es repetida si su `date` u `origDate` coincide con algún `date` u
   `origDate` existente. Límite: una copia hecha ENTRE dos ediciones de fecha sí se duplicaría

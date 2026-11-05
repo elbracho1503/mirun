@@ -628,7 +628,8 @@
                     (!gps && intensity !== h.intensity);
     if(type !== oldType) n.type = type;          // sin cambio de tipo no se agrega el campo
     n.seconds = seconds;
-    if(dist !== h.dist){ n.dist = dist; n.splits = []; } // splits viejos ya no valen; la ruta se conserva
+    if(dist !== h.dist) n.dist = dist;
+    if(dist !== h.dist || seconds !== h.seconds) n.splits = []; // splits viejos ya no valen; la ruta se conserva
     if(gps) delete n.intensity; else n.intensity = intensity;
     if(changed){
       if(dist > 0){ n.pace = fmtPace(seconds/dist); n.cal = calcCalories(dist, seconds, type); }
