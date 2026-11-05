@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-04 | Ícono nuevo (M con cuernos): original en `img/icono-original.png`, 192, 512, 180 y maskable propio `icon-512-maskable.png` (imagen al 80 % sobre #061a4a con borde difuminado; no se corta en el círculo). Caché v18 | `img/*`, `manifest.json`, `sw.js`, `docs/*`, `CLAUDE.md` | ~25k tokens |
 | 2026-11-04 | Rama `prueba/actividades`: pasos en Historial (+ aviso sin estatura), editar actividades (hoja `#editSheet`, `origDate`/`edited`, Deshacer 8 s), importación sin duplicar editadas. Caché v17 | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~110k tokens (pasos ~30k + edición ~80k) |
 | 2026-11-04 | Rama `prueba/evolucion` (unida a main y publicada): gráfico de medidas convertido en `drawChart` (idéntico pixel por pixel), pestaña Evolución con minutos, distancia y ritmo por semana o mes y comparación. Caché v16. Plan: pasos estimados, prioridad app nativa (F4) y 2 pendientes | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~75k tokens |
 | 2026-11-04 | Rama `prueba/unidades` (unida a main y publicada): unidades km/mi y kg/lb en Perfil (convierte al mostrar y al leer; conserva el valor exacto si solo cambió la unidad). Caché v15 | `js/app.js`, `mirun.html`, `sw.js`, `docs/*` | ~110k tokens |

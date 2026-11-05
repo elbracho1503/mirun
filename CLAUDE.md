@@ -29,7 +29,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `js/app.js` | Toda la lógica (secciones con marcadores `// ---------- NOMBRE`) |
 | `index.html` | Solo redirige a `mirun.html` |
 | `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché |
-| `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", 512 "maskable", 180 para iPhone) |
+| `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", `icon-512-maskable.png` (imagen al 80 % para el círculo de Android), 180 para iPhone) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de la mascota MIRUN Monster (PNG 256 px transparentes) |
 | `img/siluetas/` | Siluetas del cuerpo: masculina, femenina, neutra (PNG 640 px de alto, transparentes) |

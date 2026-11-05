@@ -23,7 +23,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 6c | Aviso de voz en millas | ⬜ |
 | 6d | Limpieza: redondear segundos de metas y peso de medidas guardados en unidades imperiales | ⬜ |
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
-| 7b | Ícono maskable para Android (la M del fondo se corta en el círculo) | ⬜ |
+| 7b | Ícono maskable para Android: ícono nuevo (M con cuernos) al 80 % sobre fondo #061a4a, no se corta en el círculo | ✅ 2026-11-04 |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
 | 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
 | 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %) | ⬜ |
@@ -32,8 +32,9 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 12b | Líneas en la silueta que señalen cada parte del cuerpo (trabajo pequeño) | ⬜ |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
-| 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 (rama) |
+| 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
+| 16 | Pantalla de bienvenida solo la primera vez, con la imagen de la mascota (trabajo pequeño) | ⬜ |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial
