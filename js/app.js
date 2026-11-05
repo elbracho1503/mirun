@@ -845,14 +845,45 @@
     hombros:{y:15, s:'L'}, biceps:{y:27, s:'L'}, antebrazo:{y:39, s:'L'}, cadera:{y:51, s:'L'}, muslo:{y:63, s:'L'},
     pecho:{y:22, s:'R'}, cintura:{y:34, s:'R'}, barriga:{y:46, s:'R'}, pantorrilla:{y:79, s:'R'}
   };
+  // Punto exacto del cuerpo al que apunta la línea de cada etiqueta: [x, y] en % del ancho y alto de la imagen.
+  // Medidos sobre cada figura (lado izquierdo para etiquetas L, derecho para R).
+  const BODY_PTS = {
+    masculina:{hombros:[23.6,21], biceps:[20,29.7], antebrazo:[12.7,40], cadera:[34.5,48], muslo:[39,59],
+               pecho:[62,26], cintura:[63.6,36.7], barriga:[58,41.4], pantorrilla:[72,73.4]},
+    femenina: {hombros:[28.6,21.9], biceps:[21.6,30.5], antebrazo:[14.3,39.8], cadera:[31.8,46.9], muslo:[39.6,58.6],
+               pecho:[63.3,26.6], cintura:[63.3,35.2], barriga:[57,41], pantorrilla:[72.5,74.2]},
+    neutra:   {hombros:[25.5,21], biceps:[18.9,30.5], antebrazo:[11.6,40.6], cadera:[30.9,47], muslo:[38.2,59.4],
+               pecho:[61.8,25.8], cintura:[66.2,36], barriga:[60,41], pantorrilla:[71,73.4]}
+  };
+  function bodyFigName(){ return BODY_FIG[profile.sex] || 'neutra'; }
+  // líneas finas (SVG) de cada etiqueta al punto del cuerpo; se redibujan al cargar la imagen o cambiar el tamaño
+  function drawBodyLines(){
+    const fig = document.querySelector('.bodyFig'), svg = document.getElementById('bodyFigLines');
+    const img = document.getElementById('bodyFigImg'), fr = fig.getBoundingClientRect();
+    if(!fr.width || !img.complete || !img.naturalWidth){ svg.innerHTML = ''; return; }
+    const ir = img.getBoundingClientRect(), pts = BODY_PTS[bodyFigName()];
+    svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
+    svg.innerHTML = [...document.querySelectorAll('#bodyFigLbls .mLbl')].map(l=>{
+      const p = pts[l.dataset.k]; if(!p) return '';
+      const r = l.getBoundingClientRect(), left = l.classList.contains('L');
+      const x1 = (left ? r.right : r.left) - fr.left, y1 = r.top + r.height/2 - fr.top;
+      const x2 = ir.left - fr.left + p[0]/100*ir.width, y2 = ir.top - fr.top + p[1]/100*ir.height;
+      const f = n=>n.toFixed(1);
+      return `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/><circle cx="${f(x2)}" cy="${f(y2)}" r="2.6"/>`;
+    }).join('');
+  }
+  document.getElementById('bodyFigImg').addEventListener('load', drawBodyLines);
+  if('ResizeObserver' in window) new ResizeObserver(drawBodyLines).observe(document.querySelector('.bodyFig'));
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(drawBodyLines);
   function renderBodyFig(){
-    document.getElementById('bodyFigImg').src = 'img/siluetas/' + (BODY_FIG[profile.sex] || 'neutra') + '.png';
+    document.getElementById('bodyFigImg').src = 'img/siluetas/' + bodyFigName() + '.png';
     const shown = MEASURES.filter(m=>BODY_POS[m.k] && tracked().includes(m.k));
     document.getElementById('bodyFigLbls').innerHTML = shown.map(m=>{
       const s = seriesOf(m.k), p = BODY_POS[m.k];
       const val = s.length ? fmt1(mV(m, s[s.length-1][m.k])) + ' ' + mU(m) : '—';
-      return `<div class="mLbl ${p.s}" style="top:${p.y}%"><small>${m.n}</small><b>${val}</b></div>`;
+      return `<div class="mLbl ${p.s}" data-k="${m.k}" style="top:${p.y}%"><small>${m.n}</small><b>${val}</b></div>`;
     }).join('');
+    drawBodyLines();
     const ps = seriesOf('peso');
     document.getElementById('bodyFigHint').textContent = ps.length
       ? 'Peso ' + fmt1(toW(ps[ps.length-1].peso)) + ' ' + wU() + ' · última medición ' + fmtShortDate(body.map(e=>e.date).sort().pop())
