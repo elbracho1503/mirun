@@ -440,6 +440,35 @@
   </div>
 </div>
 
+<!-- Editar una actividad del Historial (ver EDITAR ACTIVIDAD en js/app.js) -->
+<div id="editSheet">
+  <div class="sheet">
+    <div class="sheetTitle">Editar actividad</div>
+    <div class="chips actChips" id="edChips"></div>
+    <div class="row2">
+      <div><label>Fecha</label><input type="date" id="edDate"></div>
+      <div><label>Hora de inicio</label><input type="time" id="edTime"></div>
+    </div>
+    <div class="row2">
+      <div><label>Minutos</label><input type="number" id="edMin" step="1" min="0"></div>
+      <div><label>Segundos</label><input type="number" id="edSec" step="1" min="0" max="59"></div>
+    </div>
+    <div id="edDistBox"><label>Distancia (<span class="uD">km</span>)</label><input type="number" id="edDist" step="0.01" min="0"></div>
+    <div id="edIntBox"><label>Intensidad</label>
+      <div class="chips" id="edInt">
+        <button class="chip" data-int="baja">Baja</button>
+        <button class="chip" data-int="media">Media</button>
+        <button class="chip" data-int="alta">Alta</button>
+      </div>
+    </div>
+    <div class="btnRow" style="margin-top:14px;"><button class="btn btn-ghost" id="btnEdCancel">Cancelar</button><button class="btn btn-start" id="btnEdSave">Guardar cambios</button></div>
+    <div class="hint" id="edMsg" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- Barra "Deshacer" después de editar (~8 s) -->
+<div id="undoBar"><span>Actividad editada</span><button id="btnUndo">Deshacer</button></div>
+
 <!-- Aviso de logro nuevo (se llena en showAchievement) -->
 <div id="achOverlay">
   <div class="box">

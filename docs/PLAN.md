@@ -27,41 +27,23 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
 | 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
 | 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %) | ⬜ |
-| 10 | Editar actividades (hoy solo se borran) | ⬜ |
+| 10 | Editar actividades, con Deshacer | ✅ 2026-11-04 (rama) |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 12b | Líneas en la silueta que señalen cada parte del cuerpo (trabajo pequeño) | ⬜ |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
-| 14 | **Próximo:** Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈). Trabajo pequeño | ⬜ |
+| 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 (rama) |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
 
-## EN CURSO — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
-Plan aprobado por el usuario. Al terminar: PAQUETE PARA EL AUDITOR + en un solo bloque de código el diff
-completo de la función que guarda la edición y de "Deshacer".
-- **Hecho (commit en la rama):** sección `// ---------- PASOS` (`stepsOf`, `stepsTxt`): pasos estimados
-  = distancia ÷ (estatura × factor; caminar m 0.415 / f 0.413 / otro 0.414, correr 0.65). No se guardan.
-  Ya se muestran en el resumen al terminar el GPS (`#sumSteps`) y en "Tu actividad de hoy".
-- **Falta — pasos:** en Historial, una línea "≈ N pasos" bajo los números de caminar/correr con distancia;
-  si no hay estatura, un solo aviso arriba de la lista: "Agrega tu estatura en Perfil para ver tus pasos".
-- **Falta — editar:** botón "Editar" junto a "Borrar" en cada actividad del Historial → hoja `#editSheet`
-  (como `#plusSheet`) con tipo, fecha y hora de INICIO (`actRange(h)[0]`), minutos y segundos, distancia
-  (solo tipos con GPS: correr/caminar/bici, en km o mi) e intensidad (solo tipos sin GPS). Validar igual que
-  al crear (no futuro; distancia > 0 y ≤ 300 km; correr ≥ 2 min/km).
-  Guardar: modifica SOLO esa actividad (copia profunda). Recalcula ritmo y calorías solo si cambió tipo,
-  duración, distancia o intensidad (`calcCalories` con distancia / `metCalories` sin ella). Si cambia la
-  distancia o el tipo pasa a sin distancia: `splits = []` (la ruta se conserva). `date` = inicio si `manual`,
-  fin si es GPS. Si `date` cambia: guardar `origDate` (identificador original, nunca se sobrescribe) y
-  evitar choques sumando 1 s. Campo `edited` = fecha ISO de la edición. Luego `renderHistory()` y
-  `checkAchievements()`. Barra "Deshacer" ~8 s que restaura la versión anterior exacta.
-- **Verificación hecha:** récords, logros, racha y Evolución se calculan desde el historial (no guardan
-  referencias). El ÚNICO enlace por fecha es la importación de copias (dedup por `date`): ajustar para que
-  una actividad cuente como repetida si su `date` u `origDate` coincide con `date`/`origDate` existentes, y
-  aceptar `origDate` y `edited` en la importación (texto, máx. 40 caracteres).
-- **Pruebas:** editar cada campo, GPS y a mano, km y mi, Deshacer, racha/récords se actualizan, el resto
-  del historial idéntico (comparar localStorage), copia vieja e importar una copia anterior a la edición
-  (no debe duplicar). **Prueba obligatoria:** editar la FECHA de una actividad 2 veces seguidas → `origDate` debe
-  seguir siendo la fecha de la PRIMERA versión (no la de la segunda); luego importar una copia hecha antes de
-  las ediciones → no debe duplicarse. Caché v17. Costo estimado restante: ~60k tokens.
+## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
+- Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial
+  ("≈ N pasos" en caminar/correr con distancia; un solo aviso si falta la estatura).
+- Editar actividades (`// ---------- EDITAR ACTIVIDAD`, hoja `#editSheet`, barra `#undoBar` "Deshacer" 8 s).
+  Campos nuevos `origDate` y `edited` (ver `docs/DATOS.md`); importación acepta ambos y no duplica.
+- Pruebas hechas (navegador 390x844, localStorage restaurado): cada campo, GPS y a mano, km y mi,
+  validaciones, Deshacer idéntico byte a byte, resto del historial idéntico, racha/Inicio, récords y logros
+  se recalculan, copia vieja, y prueba obligatoria: 2 ediciones de fecha → `origDate` = la primera; importar
+  la copia previa no duplica. Caché v17.
 
 ## Plan de la etapa 6b — Unidades (rama `prueba/unidades`, 2026-11-03)
 - **Regla:** los datos se guardan SIEMPRE en kg y km (y ritmo en min/km). Solo se convierte al mostrar

@@ -64,7 +64,9 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
-| Historial | `// ---------- HISTORY` |
+| Historial (incluye "≈ N pasos") | `// ---------- HISTORY` |
+| Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
+| Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
 | Récords | `// ---------- RECORDS` |
 | Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`) y gráfico compartido `drawChart` | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |

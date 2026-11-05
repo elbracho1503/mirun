@@ -489,8 +489,8 @@
                       d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
         const hasRoute = h.path && h.path.length > 1;
         const a = actInfo(h.type);
-        const head = `<div class="top"><span>${a.e} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}</span>
-            <button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></div>`;
+        const head = `<div class="top"><span>${a.e} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}${h.edited ? '<span class="tag">editada</span>' : ''}</span>
+            <span class="histBtns"><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
         if(!(h.dist > 0)){ // actividad sin distancia (gimnasio, natación, etc.)
           return `<div class="histItem">${head}<div class="stats">
             <div><div class="num">${Math.round(h.seconds/60)}</div><small>min</small></div>
@@ -505,9 +505,13 @@
             <div><div class="num">${paceTxt(h.seconds, h.dist)}</div><small>${paceU()}</small></div>
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
+          ${stepsOf(h) ? `<div class="histSteps">${stepsTxt(h)}</div>` : ''}
           ${hasRoute ? `<div class="mini-route"><canvas id="hist-route-${ri}"></canvas></div>` : ''}
         </div>`;
       }).join('');
+      // pasos: un solo aviso si falta la estatura y hay caminatas o carreras con distancia
+      if(!(profile.height > 0) && history.some(h=>h.dist > 0 && (!h.type || h.type === 'correr' || h.type === 'caminar')))
+        list.insertAdjacentHTML('afterbegin', '<div class="hint histStepsHint">Agrega tu estatura en Perfil para ver tus pasos</div>');
 
       history.slice().reverse().forEach((h,ri)=>{
         if(h.path && h.path.length > 1){
@@ -543,6 +547,130 @@
     history = history.filter(x=>x.date !== date);
     LS.set('mirun_history', history);
     renderHistory();
+  });
+
+  // ---------- EDITAR ACTIVIDAD ----------
+  // Hoja #editSheet. Cambia SOLO esa actividad (copia profunda). 'date' es el identificador: si cambia,
+  // origDate guarda el ORIGINAL (de la primera edición, nunca se sobrescribe) para que la importación
+  // de copias viejas no la duplique. edited = fecha ISO de la última edición. "Deshacer" ~8 s.
+  const editSheet = document.getElementById('editSheet');
+  const edChips = document.getElementById('edChips'), edInt = document.getElementById('edInt');
+  edChips.innerHTML = ACTIVITIES.map(a=>`<button class="chip" data-act="${a.k}"><span>${a.e}</span>${a.n}</button>`).join('');
+  let edTarget = null, edInit = null, undoPrev = null, undoObj = null, undoTimer = null;
+  function edType(){ return edChips.querySelector('.chip.on').dataset.act; }
+  function edShowFields(){ // distancia solo en tipos con GPS; intensidad solo en tipos sin GPS
+    const g = !!actInfo(edType()).gps;
+    document.getElementById('edDistBox').style.display = g ? '' : 'none';
+    document.getElementById('edIntBox').style.display = g ? 'none' : '';
+  }
+  edChips.addEventListener('click', ev=>{ pickOne(edChips, ev); edShowFields(); });
+  edInt.addEventListener('click', ev=>pickOne(edInt, ev));
+  function edVals(){
+    return {date: document.getElementById('edDate').value, time: document.getElementById('edTime').value,
+            min: document.getElementById('edMin').value, sec: document.getElementById('edSec').value,
+            dist: document.getElementById('edDist').value};
+  }
+  function openEdit(h){
+    edTarget = h;
+    const st = new Date(actRange(h)[0]), t = h.type || 'correr', s = Math.round(h.seconds);
+    edChips.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.act === t));
+    const it = INTENSITY.includes(h.intensity) ? h.intensity : 'media';
+    edInt.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.int === it));
+    document.getElementById('edDate').value = dayKey(st);
+    document.getElementById('edTime').value = pad(st.getHours()) + ':' + pad(st.getMinutes());
+    document.getElementById('edMin').value = Math.floor(s/60);
+    document.getElementById('edSec').value = s % 60;
+    document.getElementById('edDist').value = h.dist > 0 ? toD(h.dist).toFixed(2) : '';
+    edInit = edVals(); // si un campo no se toca se conserva el valor guardado exacto (sin redondeos)
+    document.getElementById('edMsg').textContent = '';
+    edShowFields();
+    editSheet.classList.add('show');
+  }
+  function closeEdit(){ editSheet.classList.remove('show'); edTarget = null; }
+  editSheet.addEventListener('click', ev=>{ if(ev.target === editSheet) closeEdit(); });
+  document.getElementById('btnEdCancel').addEventListener('click', closeEdit);
+  document.getElementById('histList').addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-edit]');
+    if(!b) return;
+    const h = history.find(x=>x.date === decodeURIComponent(b.dataset.edit));
+    if(h) openEdit(h);
+  });
+
+  document.getElementById('btnEdSave').addEventListener('click', ()=>{
+    const h = edTarget, idx = history.indexOf(h);
+    if(!h || idx < 0){ closeEdit(); return; }
+    const bad = t=>mascotMsg(document.getElementById('edMsg'), 'error', t, 'var(--danger)');
+    const v = edVals(), type = edType(), gps = !!actInfo(type).gps;
+    const intensity = edInt.querySelector('.chip.on').dataset.int;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(v.date) || !/^\d{2}:\d{2}$/.test(v.time)) return bad('Falta la fecha o la hora de inicio.');
+    const mi = Number(v.min || 0), se = Number(v.sec || 0);
+    if(!(Number.isInteger(mi) && Number.isInteger(se) && mi >= 0 && se >= 0 && se <= 59)) return bad('Revisa los minutos y segundos.');
+    const seconds = (v.min === edInit.min && v.sec === edInit.sec) ? h.seconds : mi*60 + se;
+    if(!gps && !(seconds >= 60 && seconds <= 600*60)) return bad('La duración debe estar entre 1 y 600 minutos.');
+    if(gps && !(seconds > 0 && seconds <= 24*3600)) return bad('Revisa la duración.');
+    let dist = 0;
+    if(gps){
+      dist = (v.dist === edInit.dist && h.dist > 0) ? h.dist : fromD(parseFloat(v.dist));
+      if(!(dist > 0)) return bad('Escribe la distancia.');
+      if(dist > 300) return bad('La distancia no puede pasar de ' + fmtD(300, 0) + '.');
+      if(type === 'correr' && seconds/dist < 120) return bad('Revisa los datos: ese ritmo no parece real.');
+    }
+    const start = (v.date === edInit.date && v.time === edInit.time) ? actRange(h)[0]
+                  : new Date(v.date + 'T' + v.time + ':00').getTime();
+    if(!isFinite(start)) return bad('Falta la fecha o la hora de inicio.');
+    if(start > Date.now()) return bad('La hora de inicio no puede ser en el futuro.');
+    if(!h.manual && start + seconds*1000 > Date.now() + 60000) return bad('La actividad no puede terminar en el futuro.');
+
+    const prev = JSON.parse(JSON.stringify(h)); // versión anterior exacta (para "Deshacer")
+    const n = JSON.parse(JSON.stringify(h));    // copia profunda: no se toca el original
+    const oldType = h.type || 'correr';
+    const changed = type !== oldType || seconds !== h.seconds || dist !== h.dist ||
+                    (!gps && intensity !== h.intensity);
+    if(type !== oldType) n.type = type;          // sin cambio de tipo no se agrega el campo
+    n.seconds = seconds;
+    if(dist !== h.dist){ n.dist = dist; n.splits = []; } // splits viejos ya no valen; la ruta se conserva
+    if(gps) delete n.intensity; else n.intensity = intensity;
+    if(changed){
+      if(dist > 0){ n.pace = fmtPace(seconds/dist); n.cal = calcCalories(dist, seconds, type); }
+      else { n.pace = '--:--'; n.cal = metCalories(actInfo(type).met[INTENSITY.indexOf(intensity)], seconds); }
+    }
+    // date = inicio si se registró a mano, fin si fue con GPS
+    let iso = new Date(h.manual ? start : start + seconds*1000).toISOString();
+    if(iso !== h.date){
+      const taken = x=>x !== h && (x.date === iso || x.origDate === iso);
+      while(history.some(taken)) iso = new Date(new Date(iso).getTime() + 1000).toISOString();
+      if(h.origDate === undefined) n.origDate = h.date; // solo la primera vez: nunca se sobrescribe
+      n.date = iso;
+    }
+    if(JSON.stringify(n) === JSON.stringify(h)){ closeEdit(); return; } // sin cambios: no se guarda nada
+    n.edited = new Date().toISOString();
+    history[idx] = n;
+    history.sort((a,b)=>a.date < b.date ? -1 : 1);
+    LS.set('mirun_history', history);
+    closeEdit();
+    renderHistory(); checkAchievements();
+    showUndo(prev, n);
+  });
+
+  // barra "Deshacer": vuelve a poner la versión anterior exacta de la actividad editada
+  function showUndo(prev, obj){
+    undoPrev = prev; undoObj = obj;
+    const bar = document.getElementById('undoBar');
+    bar.classList.add('show');
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(()=>{ bar.classList.remove('show'); undoPrev = undoObj = null; }, 8000);
+  }
+  document.getElementById('btnUndo').addEventListener('click', ()=>{
+    clearTimeout(undoTimer);
+    document.getElementById('undoBar').classList.remove('show');
+    const idx = history.indexOf(undoObj);
+    if(idx >= 0 && undoPrev){
+      history[idx] = undoPrev;
+      history.sort((a,b)=>a.date < b.date ? -1 : 1);
+      LS.set('mirun_history', history);
+      renderHistory(); checkAchievements();
+    }
+    undoPrev = undoObj = null;
   });
 
   // ---------- CARRERA A MANO ----------
@@ -1814,13 +1942,18 @@
             manual: !!h.manual,
             // campos de v5 (actividades): solo valores conocidos
             ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
-            ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {})
+            ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {}),
+            // campos de edición: identificador original y fecha de la edición (texto corto)
+            ...(typeof h.origDate === 'string' ? {origDate: h.origDate.slice(0,40)} : {}),
+            ...(typeof h.edited === 'string' ? {edited: h.edited.slice(0,40)} : {})
           }));
         // teléfono "nuevo" (sin datos): la copia restaura perfil, metas y foto completos;
         // si ya hay datos, solo completa lo que falta y nunca reemplaza lo que existe
         const fresh = history.length === 0 && body.length === 0;
-        const have = new Set(history.map(h=>h.date));
-        const nuevas = clean.filter(h=>!have.has(h.date));
+        // repetida = su date u origDate coincide con un date u origDate que ya está (actividades editadas)
+        const have = new Set();
+        history.forEach(h=>{ have.add(h.date); if(h.origDate) have.add(h.origDate); });
+        const nuevas = clean.filter(h=>!have.has(h.date) && !(h.origDate && have.has(h.origDate)));
         history = history.concat(nuevas).sort((a,b)=>a.date < b.date ? -1 : 1);
         LS.set('mirun_history', history);
         // medidas del cuerpo (copias nuevas): solo fechas validas y numeros

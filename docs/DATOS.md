@@ -26,14 +26,23 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   path: [{lat, lon}],  // vacío si es a mano
   splits: [{km, seconds, partial?}],
   manual: true,        // opcional: registrada a mano
-  intensity: 'media' } // v5, solo actividades sin GPS: baja | media | alta
+  intensity: 'media',  // v5, solo actividades sin GPS: baja | media | alta
+  origDate: '...',     // opcional (al editar): el date ORIGINAL, de la primera edición; nunca se sobrescribe
+  edited: '...' }      // opcional: fecha ISO de la última edición
 ```
 - **Significado de `date`:** con GPS es la hora en que **terminó**; si `manual` es la hora de
   **inicio** (las carreras a mano viejas: 12:00 del día). Ver `actRange()`.
 - Tipos válidos (`ACTIVITIES`): correr, caminar, bici (con GPS) · gimnasio, ejercicios, natacion,
   deportes, baile, yoga, otros (registro a mano con intensidad).
 - Los récords (`computeRecords`) solo usan carreras (`isRun`).
-- Borrar busca por `date`.
+- Borrar y Editar buscan por `date`.
+- **Editar** (`// ---------- EDITAR ACTIVIDAD`): cambia solo esa actividad. Si cambia la hora/fecha (o la
+  duración de una GPS, porque su `date` es el fin) cambia `date` y se guarda `origDate` la primera vez.
+  Si cambia la distancia: `splits = []` (la ruta se conserva). Ritmo y calorías se recalculan solo si
+  cambió tipo, duración, distancia o intensidad (con el peso actual del perfil).
+- **Importar copias:** una actividad es repetida si su `date` u `origDate` coincide con algún `date` u
+  `origDate` existente. Límite: una copia hecha ENTRE dos ediciones de fecha sí se duplicaría
+  (ese `date` intermedio no queda guardado).
 
 ## mirun_body — medición
 ```js
