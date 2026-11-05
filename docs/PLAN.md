@@ -21,7 +21,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 6 | **Perfil y objetivos**: foto de perfil, objetivo físico, nivel de actividad; la copia de seguridad incluye perfil, metas y foto | ✅ 2026-11-02 |
 | 6b | Unidades kg/lb y km/millas (solo al mostrar; se guarda en km y kg) | ✅ 2026-11-04 |
 | 6c | Aviso de voz en millas: con unidades imperiales avisa (voz y vibración) cada milla y dice "Milla N"; los splits siguen por km | ✅ 2026-11-05 (rama `prueba/pendientes`) |
-| 6d | Limpieza: redondear segundos de metas y peso de medidas guardados en unidades imperiales | ⬜ |
+| 6d | Limpieza: redondear segundos de metas y peso de medidas guardados en unidades imperiales. Solo valores nuevos: ritmo a 0,1 s/km (a segundo entero el 38 % de los ritmos en min/mi se verían 1 s distintos), distancia de meta al metro, peso a 0,01 kg | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
 | 7b | Ícono maskable para Android: ícono nuevo (M con cuernos) al 80 % sobre fondo #061a4a, no se corta en el círculo | ✅ 2026-11-04 |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |

@@ -341,7 +341,8 @@
     // ritmo objetivo escrito en min/km o min/mi -> segundos por km
     const pmIn = document.getElementById('paceMin').value, psIn = document.getElementById('paceSec').value;
     const paceShown = pmIn !== '' ? (parseInt(pmIn) || 0) * 60 + (parseInt(psIn) || 0) : 0;
-    const paceKm = paceShown > 0 ? (imp() ? paceShown / KM_MI : paceShown) : 0;
+    // en min/mi se redondea a 0,1 s por km: así vuelve a mostrarse exacto lo escrito (a segundo entero no siempre)
+    const paceKm = paceShown > 0 ? (imp() ? Math.round(paceShown / KM_MI * 10) / 10 : paceShown) : 0;
     // si lo que se ve no cambió, se conserva el valor guardado exacto (evita redondeos al convertir)
     const gp = goalPaceShown(), distIn = document.getElementById('goalDist').value;
     const keepDist = goal.dist && parseFloat(distIn) === Math.round(toD(goal.dist) * 100) / 100;
@@ -353,10 +354,11 @@
     }
     // Object.assign conserva cualquier otro campo de la meta
     goal = Object.assign(goal, {
-      dist: keepDist ? goal.dist : (fromD(parseFloat(document.getElementById('goalDist').value))||null), // se guarda en km
+      // se guarda en km; escrita en millas se redondea al metro (3 decimales)
+      dist: keepDist ? goal.dist : ((d=>imp() ? Math.round(d * 1000) / 1000 : d)(fromD(parseFloat(document.getElementById('goalDist').value)))||null),
       time: parseFloat(document.getElementById('goalTime').value)||null,
       paceMin: keepPace ? goal.paceMin : (paceKm ? Math.floor(paceKm / 60) : null), // se guarda en min/km
-      paceSec: keepPace ? goal.paceSec : (paceKm ? Math.round((paceKm % 60) * 100) / 100 : null),
+      paceSec: keepPace ? goal.paceSec : (paceKm ? Math.round((paceKm - Math.floor(paceKm / 60) * 60) * 10) / 10 : null), // nunca 60
       dailyMin: dm > 0 ? Math.min(60, Math.max(10, dm)) : null, // racha: entre 10 y 60 min
       weekMin: wm > 0 ? Math.min(3000, wm) : null
     });
@@ -1017,7 +1019,8 @@
     let any = false;
     MEASURES.forEach(m=>{
       const el = document.getElementById(m.id); if(!el) return; // medida que no se sigue
-      const v = m.k === 'peso' ? fromW(parseFloat(el.value)) : parseFloat(el.value); // peso escrito en kg o lb -> kg
+      // peso escrito en kg o lb -> kg; escrito en lb se redondea a 2 decimales (como en Perfil)
+      const v = m.k === 'peso' ? (w=>imp() ? Math.round(w * 100) / 100 : w)(fromW(parseFloat(el.value))) : parseFloat(el.value);
       if(v > 0 && v < 400){ entry[m.k] = v; any = true; }
     });
     if(!any){ alert('Escribe al menos una medida.'); return; }

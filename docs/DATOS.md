@@ -55,6 +55,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 - Las medidas se definen en `MEASURES` (sección CUERPO): `{k, n, u, id, good}`.
   `good` = 1 si subir es bueno, -1 si bajar es bueno. La importación usa esta misma lista.
 - Guardar un `peso` también actualiza `profile.weight`.
+- Escrito en lb, el `peso` nuevo se guarda en kg redondeado a 2 decimales (desde 2026-11-05; lo ya guardado no cambia).
 
 ## mirun_profile
 ```js
