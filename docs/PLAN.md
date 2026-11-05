@@ -59,7 +59,9 @@ completo de la función que guarda la edición y de "Deshacer".
   aceptar `origDate` y `edited` en la importación (texto, máx. 40 caracteres).
 - **Pruebas:** editar cada campo, GPS y a mano, km y mi, Deshacer, racha/récords se actualizan, el resto
   del historial idéntico (comparar localStorage), copia vieja e importar una copia anterior a la edición
-  (no debe duplicar). Caché v17. Costo estimado restante: ~60k tokens.
+  (no debe duplicar). **Prueba obligatoria:** editar la FECHA de una actividad 2 veces seguidas → `origDate` debe
+  seguir siendo la fecha de la PRIMERA versión (no la de la segunda); luego importar una copia hecha antes de
+  las ediciones → no debe duplicarse. Caché v17. Costo estimado restante: ~60k tokens.
 
 ## Plan de la etapa 6b — Unidades (rama `prueba/unidades`, 2026-11-03)
 - **Regla:** los datos se guardan SIEMPRE en kg y km (y ritmo en min/km). Solo se convierte al mostrar
