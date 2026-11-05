@@ -30,6 +30,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 10 | Editar actividades (hoy solo se borran) | ⬜ |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
+| 12b | Líneas en la silueta que señalen cada parte del cuerpo (trabajo pequeño) | ⬜ |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
 | 14 | **Próximo:** Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈). Trabajo pequeño | ⬜ |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
