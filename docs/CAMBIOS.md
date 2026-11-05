@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-05 | Rama `prueba/pendientes`, 6c: en millas el aviso de voz es por milla ("Milla 1. Esa milla en…"); splits guardados sin cambio (por km); `mirun_current` agrega `lastVoiceMi`/`lastVoiceTime` | `js/app.js`, `docs/*` | ~10k tokens |
 | 2026-11-05 | Rama `prueba/pendientes`, 9c: Evolución, si el cambio pasa de +200 % se muestra el valor anterior ("antes 12 min") en vez del porcentaje | `js/app.js`, `docs/*` | ~8k tokens |
 | 2026-11-05 | Rama `prueba/pendientes`, 16b: perfil nuevo con sexo `'x'` (neutro) por defecto en vez de `'m'`; perfiles guardados sin cambio | `js/app.js`, `docs/*` | ~6k tokens |
 | 2026-11-05 | Unidas a main y publicadas `prueba/silueta` y `prueba/bienvenida` (conflicto resuelto: caché v20 y ambas líneas aquí). Plan: pendiente 16b (sexo neutro por defecto) | `sw.js`, `docs/*` | ~8k tokens |

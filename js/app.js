@@ -1057,6 +1057,8 @@
   let splits = []; // {km: 1, seconds: 320}
   let lastSplitDist = 0;
   let lastSplitTime = 0;
+  // aviso por voz en millas (profile.units 'imperial'): los splits se siguen guardando por km
+  let lastVoiceMi = 0, lastVoiceTime = 0;
   let lastFixTime = 0;   // ultima vez que llego una posicion buena
   let badJumps = 0;      // saltos imposibles seguidos
   let wakeLock = null;
@@ -1153,11 +1155,21 @@
       splits.push({km: currentKm, seconds: splitTime});
       lastSplitDist = currentKm;
       lastSplitTime = sec;
-      try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
-      const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
-      say('Kilómetro ' + currentKm + '. Ese kilómetro en ' + pm + ' minutos ' +
-          (ps ? 'y ' + ps + ' segundos' : '') + '. Tiempo total ' + spokenTime(sec) + '.');
+      if(!imp()) announceSplit('Kilómetro', 'Ese kilómetro', currentKm, splitTime, sec);
     }
+    // en millas el aviso (voz y vibración) es por cada milla completa
+    const currentMi = Math.floor(totalDist / KM_MI);
+    if(currentMi > lastVoiceMi){
+      const t = sec - lastVoiceTime;
+      lastVoiceMi = currentMi; lastVoiceTime = sec;
+      if(imp()) announceSplit('Milla', 'Esa milla', currentMi, t, sec);
+    }
+  }
+  function announceSplit(name, that, n, splitTime, sec){
+    try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+    const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
+    say(name + ' ' + n + '. ' + that + ' en ' + pm + ' minutos ' +
+        (ps ? 'y ' + ps + ' segundos' : '') + '. Tiempo total ' + spokenTime(sec) + '.');
   }
 
   // ---------- AVISO POR VOZ (funciona sin internet) ----------
@@ -1182,7 +1194,7 @@
     lastSaveAt = Date.now();
     LS.set('mirun_current', {
       type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
-      lastSplitDist, lastSplitTime, savedAt: Date.now()
+      lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime, savedAt: Date.now()
     });
   }
   function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
@@ -1431,6 +1443,11 @@
     splits = state ? (state.splits || []) : [];
     lastSplitDist = state ? state.lastSplitDist : 0;
     lastSplitTime = state ? state.lastSplitTime : 0;
+    // carrera guardada por una versión anterior (sin estos campos): se sigue desde la milla actual
+    lastVoiceMi = state ? (state.lastVoiceMi != null ? state.lastVoiceMi : Math.floor(totalDist / KM_MI)) : 0;
+    // (el tiempo de esa milla no se guardó: se estima con el ritmo promedio hasta ahora)
+    lastVoiceTime = state ? (state.lastVoiceTime != null ? state.lastVoiceTime
+      : (totalDist > 0 ? currentElapsedSec() * Math.min(1, lastVoiceMi * KM_MI / totalDist) : 0)) : 0;
     lastPos = null; badJumps = 0; lastFixTime = Date.now();
     runNote.style.display = 'none';
     resetStreetMap('live');

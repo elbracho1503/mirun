@@ -9,7 +9,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_body` | Array de mediciones | `date` (`AAAA-MM-DD`, una por día) |
 | `mirun_profile` | Objeto | — |
 | `mirun_goal` | Objeto | — |
-| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar |
+| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar. Desde 2026-11-05 agrega `lastVoiceMi` y `lastVoiceTime` (aviso por voz en millas; si faltan se calculan) |
 | `mirun_schema` | Número | Versión del formato de datos (hoy 5) |
 | `mirun_lastBackup` | Texto ISO | Fecha de la última copia exportada (para el recordatorio) |
 | `mirun_photo` | Texto (data URL JPEG 256 px, ~30 KB) | Foto de perfil (v5). Va en la copia de seguridad |
