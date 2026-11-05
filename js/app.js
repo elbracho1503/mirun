@@ -1878,9 +1878,13 @@
     });
     return {min, km, pace: runKm > 0 ? runSec / runKm : null}; // pace en seg/km
   }
-  function pct(a, b){ // texto del cambio porcentual de b a a
+  // texto del cambio porcentual de b a a. Si el período anterior tuvo muy poco (el cambio pasa de +200 %),
+  // un porcentaje enorme (+555 %) no ayuda: se muestra el valor anterior ("antes 12 min"), como en Ritmo.
+  const EVO_MAX_PCT = 200;
+  function pct(a, b, prevTxt){
     if(!(b > 0)) return a > 0 ? 'nuevo' : '—';
     const p = Math.round((a - b) / b * 100);
+    if(p > EVO_MAX_PCT) return 'antes ' + prevTxt;
     return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p) + ' %';
   }
 
@@ -1922,8 +1926,8 @@
     const s = B[0].s, e = B[B.length-1].e, ps = new Date(s.getTime() - (e - s)), prev = evoTotals(mins, ps, s), cur = evoTotals(mins, s, e);
     const paceCur = cur.pace ? fmtPace(toPace(cur.pace)) : '--:--', pacePrev = prev.pace ? fmtPace(toPace(prev.pace)) : '--:--';
     box.innerHTML = `<div class="evoCmp">
-      <div><small>Minutos</small><b>${Math.round(cur.min)}</b><i>${pct(cur.min, prev.min)}</i></div>
-      <div><small>Distancia</small><b>${toD(cur.km).toFixed(1)} ${dU()}</b><i>${pct(cur.km, prev.km)}</i></div>
+      <div><small>Minutos</small><b>${Math.round(cur.min)}</b><i>${pct(cur.min, prev.min, Math.round(prev.min) + ' min')}</i></div>
+      <div><small>Distancia</small><b>${toD(cur.km).toFixed(1)} ${dU()}</b><i>${pct(cur.km, prev.km, toD(prev.km).toFixed(toD(prev.km) < 1 ? 2 : 1) + ' ' + dU())}</i></div>
       <div><small>Ritmo</small><b>${paceCur}</b><i>antes ${pacePrev}</i></div></div>`;
   }
   document.getElementById('evoTabs').addEventListener('click', ev=>{

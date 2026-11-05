@@ -26,7 +26,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 7b | Ícono maskable para Android: ícono nuevo (M con cuernos) al 80 % sobre fondo #061a4a, no se corta en el círculo | ✅ 2026-11-04 |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
 | 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
-| 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %) | ⬜ |
+| 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %). Si el cambio pasa de +200 % se muestra "antes N min / N km" (`EVO_MAX_PCT`) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 10 | Editar actividades, con Deshacer | ✅ 2026-11-04 (rama) |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
