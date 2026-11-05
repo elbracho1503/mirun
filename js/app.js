@@ -89,7 +89,9 @@
   function isRun(h){ return !h.type || h.type === 'correr'; }
   function selectedGpsType(){ const c = document.querySelector('#gpsTypeRow .chip.on'); return c ? c.dataset.gtype : 'correr'; }
 
-  let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'m'});
+  // perfil NUEVO (sin nada guardado): sexo 'x' (neutro) hasta que la persona elija otro.
+  // Un perfil ya guardado se lee tal cual: su sexo no cambia.
+  let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'x'});
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
   let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]

@@ -68,7 +68,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   sex: 'm'|'f'|'x',          // 'x' = prefiero no decir (v5)
   voice: true/false, mapMode: 'calles'|'linea' }
 ```
-`sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965).
+`sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965), los pasos estimados y la silueta.
+Perfil nuevo (sin `mirun_profile` guardado): `sex: 'x'` por defecto (antes `'m'`; los perfiles ya guardados no cambian).
 
 ## mirun_goal
 ```js

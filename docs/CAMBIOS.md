@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-05 | Rama `prueba/pendientes`, 16b: perfil nuevo con sexo `'x'` (neutro) por defecto en vez de `'m'`; perfiles guardados sin cambio | `js/app.js`, `docs/*` | ~6k tokens |
 | 2026-11-05 | Unidas a main y publicadas `prueba/silueta` y `prueba/bienvenida` (conflicto resuelto: caché v20 y ambas líneas aquí). Plan: pendiente 16b (sexo neutro por defecto) | `sw.js`, `docs/*` | ~8k tokens |
 | 2026-11-05 | Rama `prueba/bienvenida`: pantalla de bienvenida solo la primera vez y solo sin datos (perfil, metas, foto, carrera en curso, historial o medidas), imagen `img/bienvenida.jpg` (80 KB; original `bienvenida-original.jpg` fuera del caché), campos opcionales, Empezar / Saltar, clave `mirun_welcomed`. Caché v20 (v19 es de `prueba/silueta`) | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `img/*`, `docs/*`, `CLAUDE.md` | ~55k tokens |
 | 2026-11-05 | Rama `prueba/silueta`: líneas finas (SVG) de cada etiqueta de medida al punto del cuerpo en las 3 figuras (`BODY_PTS` medido por figura, `drawBodyLines`), revisado a 390 y 360 px sin superposiciones. Caché v19 | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~45k tokens |
