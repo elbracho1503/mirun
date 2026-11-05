@@ -5,7 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
-| 2026-11-04 | Rama `prueba/evolucion`: gráfico de medidas convertido en `drawChart` (idéntico pixel por pixel), pestaña Evolución con minutos, distancia y ritmo por semana o mes y comparación. Caché v16. Sin publicar | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~75k tokens |
+| 2026-11-04 | Rama `prueba/evolucion` (unida a main y publicada): gráfico de medidas convertido en `drawChart` (idéntico pixel por pixel), pestaña Evolución con minutos, distancia y ritmo por semana o mes y comparación. Caché v16. Plan: pasos estimados, prioridad app nativa (F4) y 2 pendientes | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~75k tokens |
 | 2026-11-04 | Rama `prueba/unidades` (unida a main y publicada): unidades km/mi y kg/lb en Perfil (convierte al mostrar y al leer; conserva el valor exacto si solo cambió la unidad). Caché v15 | `js/app.js`, `mirun.html`, `sw.js`, `docs/*` | ~110k tokens |
 | 2026-11-03 | Ícono nuevo de la app (192, 512, maskable, 180 iPhone), siluetas del cuerpo con medidas en Cuerpo, originales en `img/`, `png_lib.js` lee PNG RGB y reduce tamaño, F4 sin paréntesis repetido. Caché v14 | `img/*`, `manifest.json`, `mirun.html`, `css/app.css`, `js/app.js`, `sw.js`, `.claude/herramientas/png_lib.js`, `docs/*`, `CLAUDE.md` | ~60k tokens |
 | 2026-11-02 | Modo bolsillo (bloqueo de toques, mantener presionado para salir), avatar negro sin foto, correo de commits → noreply de GitHub y corrección del historial publicado. Caché v13 | `mirun.html`, `css/app.css`, `js/app.js`, `sw.js`, `docs/*`, `CLAUDE.md` | ~35k tokens |

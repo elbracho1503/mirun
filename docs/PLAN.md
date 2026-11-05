@@ -25,11 +25,14 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
 | 7b | Ícono maskable para Android (la M del fondo se corta en el círculo) | ⬜ |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
-| 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | 🟨 rama `prueba/evolucion` |
+| 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
+| 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %) | ⬜ |
 | 10 | Editar actividades (hoy solo se borran) | ⬜ |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
+| 14 | **Próximo:** Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈). Trabajo pequeño | ⬜ |
+| 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
 
 ## Plan de la etapa 6b — Unidades (rama `prueba/unidades`, 2026-11-03)
 - **Regla:** los datos se guardan SIEMPRE en kg y km (y ritmo en min/km). Solo se convierte al mostrar
@@ -44,12 +47,16 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
   los splits por kilómetro y el aviso por voz en cada km. Medidas del cuerpo y estatura siguen en cm.
 - Caché `sw.js` → v15. Pruebas en tamaño celular con km/kg y con mi/lb.
 
+## Prioridad alta futura (2026-11-04)
+| # | Proyecto | Estado |
+|---|---|---|
+| F4 | App nativa con Capacitor: pasos reales todo el día (Health Connect) + GPS con pantalla apagada (F4) | ⬜ |
+
 ## Futuro grande (cada uno es un proyecto; se planea aparte antes de empezar)
 | # | Proyecto | Qué implica |
 |---|---|---|
 | F1 | **Cuentas y respaldo en la nube** | Servidor (ej. Firebase o Supabase), inicio de sesión. Base para todo lo siguiente. La copia manual deja de ser necesaria. |
 | F2 | **Comunidad de amigos** | Elegir amigos y ver entre ustedes logros, rachas y metas. Requiere F1 y reglas de privacidad. |
-| F4 | **GPS con pantalla apagada / app en segundo plano** | Una web no puede seguir el GPS con la pantalla apagada. Requiere app nativa. Mientras tanto: modo bolsillo (etapa 8). |
 | F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. |
 
 Ver docs/privado/NEGOCIO.md (local)
