@@ -63,7 +63,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 ## Prioridad alta futura (2026-11-04)
 | # | Proyecto | Estado |
 |---|---|---|
-| F4 | App nativa con Capacitor: pasos reales todo el día (Health Connect) + GPS con pantalla apagada (F4) | ⬜ |
+| F4 | App nativa con Capacitor: pasos reales todo el día (Health Connect) + GPS con pantalla apagada (F4). Plan por etapas N0–N4 en `docs/NATIVA.md` | ⬜ (plan escrito 2026-11-05) |
 
 ## Futuro grande (cada uno es un proyecto; se planea aparte antes de empezar)
 | # | Proyecto | Qué implica |

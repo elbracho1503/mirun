@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-05 | Rama `prueba/pendientes`: `docs/NATIVA.md`, plan de app nativa con Capacitor (instalación, qué cambia, migración por copia, Health Connect, GPS con pantalla apagada, riesgos, etapas N0–N4). Sin instalar nada | `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-05 | Rama `prueba/pendientes`, 6d: en unidades imperiales, valores NUEVOS redondeados: ritmo de meta a 0,1 s/km (`paceSec` nunca 60), distancia de meta al metro, peso de medidas a 0,01 kg. Datos guardados sin cambio | `js/app.js`, `docs/*` | ~10k tokens |
 | 2026-11-05 | Rama `prueba/pendientes`, 6c: en millas el aviso de voz es por milla ("Milla 1. Esa milla en…"); splits guardados sin cambio (por km); `mirun_current` agrega `lastVoiceMi`/`lastVoiceTime` | `js/app.js`, `docs/*` | ~10k tokens |
 | 2026-11-05 | Rama `prueba/pendientes`, 9c: Evolución, si el cambio pasa de +200 % se muestra el valor anterior ("antes 12 min") en vez del porcentaje | `js/app.js`, `docs/*` | ~8k tokens |

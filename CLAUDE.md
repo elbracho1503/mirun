@@ -44,6 +44,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `docs/PLAN.md` | Plan por etapas y estado |
 | `docs/CAMBIOS.md` | Registro de cambios con costo en tokens |
 | `docs/PROMPTS.md` | Prompts para generar imágenes (siluetas, ícono) y lecciones aprendidas |
+| `docs/NATIVA.md` | Plan para la app nativa con Capacitor (F4): instalación, migración de datos, Health Connect, GPS con pantalla apagada |
 
 ## Mapa de mirun.html
 Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML → `mirun.html`, `//` → `js/app.js`.
