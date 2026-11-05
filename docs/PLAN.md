@@ -30,7 +30,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 10 | Editar actividades, con Deshacer | ✅ 2026-11-04 (rama) |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
-| 12b | Líneas en la silueta que señalen cada parte del cuerpo (trabajo pequeño) | ⬜ |
+| 12b | Líneas finas de cada etiqueta al punto del cuerpo en las 3 figuras (`BODY_PTS`, `drawBodyLines`) | ✅ 2026-11-05 (rama `prueba/silueta`) |
 | 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
 | 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |

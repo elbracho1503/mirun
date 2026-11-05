@@ -69,7 +69,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
 | Récords | `// ---------- RECORDS` |
-| Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`) y gráfico compartido `drawChart` | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |
+| Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`, puntos del cuerpo `BODY_PTS` y líneas `drawBodyLines`) y gráfico compartido `drawChart` | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |
 | Evolución: vistas Actividad / Cuerpo, períodos, gráficos y comparación (`renderEvo`) | `// ---------- EVOLUCIÓN` (HTML: `id="evoTabs"`, CSS: `EVOLUCIÓN`) |
 | GPS, tiempo, calorías, splits | `// ---------- RUN LOGIC` |
 | Voz | `// ---------- AVISO POR VOZ` |
