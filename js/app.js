@@ -547,6 +547,8 @@
   // Calles: el mismo mapa Leaflet (pellizco y arrastre con los dedos ya vienen incluidos).
   // Línea: canvas propio con zoom (pellizco, rueda, doble toque o botones + −) y arrastre; no necesita internet.
   // El botón "Ver: ..." cambia la vista solo aquí (no cambia lo elegido en Perfil).
+  // Botón Atrás del teléfono: al abrir se agrega un paso al historial del navegador (window.history; ojo,
+  // "history" en este archivo es la lista de actividades) y Atrás lo cierra sin salir de la app.
   const bigMap = {el: document.getElementById('bigMap'), canvas: document.getElementById('bigMapLine'),
                   div: document.getElementById('bigMapStreet'), pts: [], mode: 'linea', shown: 'linea',
                   s: 1, tx: 0, ty: 0, ptrs: new Map(), raf: 0};
@@ -557,13 +559,20 @@
     document.getElementById('bigMapTitle').textContent = title || 'Tu ruta';
     bigMap.el.classList.add('show');
     document.body.classList.add('noScroll');
+    try{ if(!(window.history.state && window.history.state.bigMap)) window.history.pushState({bigMap:true}, ''); }catch(e){}
     showBigMap();
   }
-  function closeBigMap(){
+  function hideBigMap(){
     bigMap.el.classList.remove('show');
     document.body.classList.remove('noScroll');
     bigMap.ptrs.clear();
   }
+  // ✕ o Escape: deshace el paso agregado (eso dispara popstate, que oculta el mapa)
+  function closeBigMap(){
+    if(window.history.state && window.history.state.bigMap){ try{ window.history.back(); return; }catch(e){} }
+    hideBigMap();
+  }
+  window.addEventListener('popstate', ()=>{ if(bigMap.el.classList.contains('show')) hideBigMap(); });
   function showBigMap(){
     bigMap.s = 1; bigMap.tx = 0; bigMap.ty = 0;
     resetStreetMap('big');

@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 1: el botón Atrás del teléfono cierra el mapa grande (`window.history.pushState` + `popstate`), sin salir de la app | `js/app.js`, `docs/*` | ~4k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`: caché v22 → v23 (una sola vez, por mapa grande y celebración) | `sw.js` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, T2: celebración al cumplir la meta del día (una vez por día, `mirun_celebrated`): sonido Web Audio, vibración, confeti CSS y mascota; `profile.sounds` ("Sonidos" en Perfil, copia e importación); reducir movimiento sin confeti | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~35k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, T1: mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; calles con Leaflet; línea en canvas propio con pellizco, arrastre, rueda, doble toque, + − y escala; sin internet pasa a línea). Solo lee la ruta | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~35k tokens |
