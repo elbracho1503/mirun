@@ -89,7 +89,9 @@
   function isRun(h){ return !h.type || h.type === 'correr'; }
   function selectedGpsType(){ const c = document.querySelector('#gpsTypeRow .chip.on'); return c ? c.dataset.gtype : 'correr'; }
 
-  let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'m'});
+  // perfil NUEVO (sin nada guardado): sexo 'x' (neutro) hasta que la persona elija otro.
+  // Un perfil ya guardado se lee tal cual: su sexo no cambia.
+  let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'x'});
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
   let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
@@ -339,7 +341,8 @@
     // ritmo objetivo escrito en min/km o min/mi -> segundos por km
     const pmIn = document.getElementById('paceMin').value, psIn = document.getElementById('paceSec').value;
     const paceShown = pmIn !== '' ? (parseInt(pmIn) || 0) * 60 + (parseInt(psIn) || 0) : 0;
-    const paceKm = paceShown > 0 ? (imp() ? paceShown / KM_MI : paceShown) : 0;
+    // en min/mi se redondea a 0,1 s por km: así vuelve a mostrarse exacto lo escrito (a segundo entero no siempre)
+    const paceKm = paceShown > 0 ? (imp() ? Math.round(paceShown / KM_MI * 10) / 10 : paceShown) : 0;
     // si lo que se ve no cambió, se conserva el valor guardado exacto (evita redondeos al convertir)
     const gp = goalPaceShown(), distIn = document.getElementById('goalDist').value;
     const keepDist = goal.dist && parseFloat(distIn) === Math.round(toD(goal.dist) * 100) / 100;
@@ -351,10 +354,11 @@
     }
     // Object.assign conserva cualquier otro campo de la meta
     goal = Object.assign(goal, {
-      dist: keepDist ? goal.dist : (fromD(parseFloat(document.getElementById('goalDist').value))||null), // se guarda en km
+      // se guarda en km; escrita en millas se redondea al metro (3 decimales)
+      dist: keepDist ? goal.dist : ((d=>imp() ? Math.round(d * 1000) / 1000 : d)(fromD(parseFloat(document.getElementById('goalDist').value)))||null),
       time: parseFloat(document.getElementById('goalTime').value)||null,
       paceMin: keepPace ? goal.paceMin : (paceKm ? Math.floor(paceKm / 60) : null), // se guarda en min/km
-      paceSec: keepPace ? goal.paceSec : (paceKm ? Math.round((paceKm % 60) * 100) / 100 : null),
+      paceSec: keepPace ? goal.paceSec : (paceKm ? Math.round((paceKm - Math.floor(paceKm / 60) * 60) * 10) / 10 : null), // nunca 60
       dailyMin: dm > 0 ? Math.min(60, Math.max(10, dm)) : null, // racha: entre 10 y 60 min
       weekMin: wm > 0 ? Math.min(3000, wm) : null
     });
@@ -1015,7 +1019,8 @@
     let any = false;
     MEASURES.forEach(m=>{
       const el = document.getElementById(m.id); if(!el) return; // medida que no se sigue
-      const v = m.k === 'peso' ? fromW(parseFloat(el.value)) : parseFloat(el.value); // peso escrito en kg o lb -> kg
+      // peso escrito en kg o lb -> kg; escrito en lb se redondea a 2 decimales (como en Perfil)
+      const v = m.k === 'peso' ? (w=>imp() ? Math.round(w * 100) / 100 : w)(fromW(parseFloat(el.value))) : parseFloat(el.value);
       if(v > 0 && v < 400){ entry[m.k] = v; any = true; }
     });
     if(!any){ alert('Escribe al menos una medida.'); return; }
@@ -1055,6 +1060,8 @@
   let splits = []; // {km: 1, seconds: 320}
   let lastSplitDist = 0;
   let lastSplitTime = 0;
+  // aviso por voz en millas (profile.units 'imperial'): los splits se siguen guardando por km
+  let lastVoiceMi = 0, lastVoiceTime = 0;
   let lastFixTime = 0;   // ultima vez que llego una posicion buena
   let badJumps = 0;      // saltos imposibles seguidos
   let wakeLock = null;
@@ -1151,11 +1158,21 @@
       splits.push({km: currentKm, seconds: splitTime});
       lastSplitDist = currentKm;
       lastSplitTime = sec;
-      try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
-      const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
-      say('Kilómetro ' + currentKm + '. Ese kilómetro en ' + pm + ' minutos ' +
-          (ps ? 'y ' + ps + ' segundos' : '') + '. Tiempo total ' + spokenTime(sec) + '.');
+      if(!imp()) announceSplit('Kilómetro', 'Ese kilómetro', currentKm, splitTime, sec);
     }
+    // en millas el aviso (voz y vibración) es por cada milla completa
+    const currentMi = Math.floor(totalDist / KM_MI);
+    if(currentMi > lastVoiceMi){
+      const t = sec - lastVoiceTime;
+      lastVoiceMi = currentMi; lastVoiceTime = sec;
+      if(imp()) announceSplit('Milla', 'Esa milla', currentMi, t, sec);
+    }
+  }
+  function announceSplit(name, that, n, splitTime, sec){
+    try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+    const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
+    say(name + ' ' + n + '. ' + that + ' en ' + pm + ' minutos ' +
+        (ps ? 'y ' + ps + ' segundos' : '') + '. Tiempo total ' + spokenTime(sec) + '.');
   }
 
   // ---------- AVISO POR VOZ (funciona sin internet) ----------
@@ -1180,7 +1197,7 @@
     lastSaveAt = Date.now();
     LS.set('mirun_current', {
       type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
-      lastSplitDist, lastSplitTime, savedAt: Date.now()
+      lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime, savedAt: Date.now()
     });
   }
   function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
@@ -1429,6 +1446,11 @@
     splits = state ? (state.splits || []) : [];
     lastSplitDist = state ? state.lastSplitDist : 0;
     lastSplitTime = state ? state.lastSplitTime : 0;
+    // carrera guardada por una versión anterior (sin estos campos): se sigue desde la milla actual
+    lastVoiceMi = state ? (state.lastVoiceMi != null ? state.lastVoiceMi : Math.floor(totalDist / KM_MI)) : 0;
+    // (el tiempo de esa milla no se guardó: se estima con el ritmo promedio hasta ahora)
+    lastVoiceTime = state ? (state.lastVoiceTime != null ? state.lastVoiceTime
+      : (totalDist > 0 ? currentElapsedSec() * Math.min(1, lastVoiceMi * KM_MI / totalDist) : 0)) : 0;
     lastPos = null; badJumps = 0; lastFixTime = Date.now();
     runNote.style.display = 'none';
     resetStreetMap('live');
@@ -1876,9 +1898,13 @@
     });
     return {min, km, pace: runKm > 0 ? runSec / runKm : null}; // pace en seg/km
   }
-  function pct(a, b){ // texto del cambio porcentual de b a a
+  // texto del cambio porcentual de b a a. Si el período anterior tuvo muy poco (el cambio pasa de +200 %),
+  // un porcentaje enorme (+555 %) no ayuda: se muestra el valor anterior ("antes 12 min"), como en Ritmo.
+  const EVO_MAX_PCT = 200;
+  function pct(a, b, prevTxt){
     if(!(b > 0)) return a > 0 ? 'nuevo' : '—';
     const p = Math.round((a - b) / b * 100);
+    if(p > EVO_MAX_PCT) return 'antes ' + prevTxt;
     return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p) + ' %';
   }
 
@@ -1920,8 +1946,8 @@
     const s = B[0].s, e = B[B.length-1].e, ps = new Date(s.getTime() - (e - s)), prev = evoTotals(mins, ps, s), cur = evoTotals(mins, s, e);
     const paceCur = cur.pace ? fmtPace(toPace(cur.pace)) : '--:--', pacePrev = prev.pace ? fmtPace(toPace(prev.pace)) : '--:--';
     box.innerHTML = `<div class="evoCmp">
-      <div><small>Minutos</small><b>${Math.round(cur.min)}</b><i>${pct(cur.min, prev.min)}</i></div>
-      <div><small>Distancia</small><b>${toD(cur.km).toFixed(1)} ${dU()}</b><i>${pct(cur.km, prev.km)}</i></div>
+      <div><small>Minutos</small><b>${Math.round(cur.min)}</b><i>${pct(cur.min, prev.min, Math.round(prev.min) + ' min')}</i></div>
+      <div><small>Distancia</small><b>${toD(cur.km).toFixed(1)} ${dU()}</b><i>${pct(cur.km, prev.km, toD(prev.km).toFixed(toD(prev.km) < 1 ? 2 : 1) + ' ' + dU())}</i></div>
       <div><small>Ritmo</small><b>${paceCur}</b><i>antes ${pacePrev}</i></div></div>`;
   }
   document.getElementById('evoTabs').addEventListener('click', ev=>{

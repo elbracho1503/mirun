@@ -20,13 +20,13 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 |---|---|---|
 | 6 | **Perfil y objetivos**: foto de perfil, objetivo físico, nivel de actividad; la copia de seguridad incluye perfil, metas y foto | ✅ 2026-11-02 |
 | 6b | Unidades kg/lb y km/millas (solo al mostrar; se guarda en km y kg) | ✅ 2026-11-04 |
-| 6c | Aviso de voz en millas | ⬜ |
-| 6d | Limpieza: redondear segundos de metas y peso de medidas guardados en unidades imperiales | ⬜ |
+| 6c | Aviso de voz en millas: con unidades imperiales avisa (voz y vibración) cada milla y dice "Milla N"; los splits siguen por km | ✅ 2026-11-05 (rama `prueba/pendientes`) |
+| 6d | Limpieza: redondear segundos de metas y peso de medidas guardados en unidades imperiales. Solo valores nuevos: ritmo a 0,1 s/km (a segundo entero el 38 % de los ritmos en min/mi se verían 1 s distintos), distancia de meta al metro, peso a 0,01 kg | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
 | 7b | Ícono maskable para Android: ícono nuevo (M con cuernos) al 80 % sobre fondo #061a4a, no se corta en el círculo | ✅ 2026-11-04 |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
 | 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
-| 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %) | ⬜ |
+| 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %). Si el cambio pasa de +200 % se muestra "antes N min / N km" (`EVO_MAX_PCT`) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 10 | Editar actividades, con Deshacer | ✅ 2026-11-04 (rama) |
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
@@ -35,7 +35,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
 | 16 | Pantalla de bienvenida solo la primera vez y sin datos guardados (`#welcome`, `mirun_welcomed`): nombre, unidades, sexo, estatura y peso opcionales; Empezar / Saltar | ✅ 2026-11-05 |
-| 16b | Si el usuario no elige sexo, usar neutro (x) en vez de masculino por defecto | ⬜ |
+| 16b | Si el usuario no elige sexo, usar neutro (x) en vez de masculino por defecto (solo perfiles nuevos) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial
@@ -63,7 +63,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 ## Prioridad alta futura (2026-11-04)
 | # | Proyecto | Estado |
 |---|---|---|
-| F4 | App nativa con Capacitor: pasos reales todo el día (Health Connect) + GPS con pantalla apagada (F4) | ⬜ |
+| F4 | App nativa con Capacitor: pasos reales todo el día (Health Connect) + GPS con pantalla apagada (F4). Plan por etapas N0–N4 en `docs/NATIVA.md` | ⬜ (plan escrito 2026-11-05) |
 
 ## Futuro grande (cada uno es un proyecto; se planea aparte antes de empezar)
 | # | Proyecto | Qué implica |

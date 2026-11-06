@@ -44,6 +44,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `docs/PLAN.md` | Plan por etapas y estado |
 | `docs/CAMBIOS.md` | Registro de cambios con costo en tokens |
 | `docs/PROMPTS.md` | Prompts para generar imágenes (siluetas, ícono) y lecciones aprendidas |
+| `docs/NATIVA.md` | Plan para la app nativa con Capacitor (F4): instalación, migración de datos, Health Connect, GPS con pantalla apagada |
 
 ## Mapa de mirun.html
 Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML → `mirun.html`, `//` → `js/app.js`.
@@ -103,3 +104,4 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 6. App inclusiva: el sexo es opcional y nunca bloquea funciones ni mediciones.
 7. El nombre de la app es **MiRun** (decisión del usuario; no cambiarlo).
 8. Planes comerciales, precios, venta o estrategia de negocio NUNCA van en archivos que se suban a GitHub. Van solo en docs/privado/ (ignorado por git).
+9. Nunca reescribir historial (rebase, reset, amend, push --force) sin aprobación previa del usuario, ni siquiera en ramas de prueba.

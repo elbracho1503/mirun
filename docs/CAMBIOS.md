@@ -5,6 +5,13 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-05 | CLAUDE.md: regla 9 (no reescribir historial sin aprobación). NATIVA.md: sección "Relojes inteligentes" (etapa N3b por Health Connect; app de reloj solo si la piden). Unida a main y publicada `prueba/pendientes` (caché v21) | `CLAUDE.md`, `docs/*` | ~8k tokens |
+| 2026-11-05 | Rama `prueba/pendientes`: caché v20 → v21 (una sola vez, por 16b, 9c, 6c y 6d) | `sw.js` | ~1k tokens |
+| 2026-11-05 | Rama `prueba/pendientes`: `docs/NATIVA.md`, plan de app nativa con Capacitor (instalación, qué cambia, migración por copia, Health Connect, GPS con pantalla apagada, riesgos, etapas N0–N4). Sin instalar nada | `docs/*`, `CLAUDE.md` | ~15k tokens |
+| 2026-11-05 | Rama `prueba/pendientes`, 6d: en unidades imperiales, valores NUEVOS redondeados: ritmo de meta a 0,1 s/km (`paceSec` nunca 60), distancia de meta al metro, peso de medidas a 0,01 kg. Datos guardados sin cambio | `js/app.js`, `docs/*` | ~10k tokens |
+| 2026-11-05 | Rama `prueba/pendientes`, 6c: en millas el aviso de voz es por milla ("Milla 1. Esa milla en…"); splits guardados sin cambio (por km); `mirun_current` agrega `lastVoiceMi`/`lastVoiceTime` | `js/app.js`, `docs/*` | ~10k tokens |
+| 2026-11-05 | Rama `prueba/pendientes`, 9c: Evolución, si el cambio pasa de +200 % se muestra el valor anterior ("antes 12 min") en vez del porcentaje | `js/app.js`, `docs/*` | ~8k tokens |
+| 2026-11-05 | Rama `prueba/pendientes`, 16b: perfil nuevo con sexo `'x'` (neutro) por defecto en vez de `'m'`; perfiles guardados sin cambio | `js/app.js`, `docs/*` | ~6k tokens |
 | 2026-11-05 | Unidas a main y publicadas `prueba/silueta` y `prueba/bienvenida` (conflicto resuelto: caché v20 y ambas líneas aquí). Plan: pendiente 16b (sexo neutro por defecto) | `sw.js`, `docs/*` | ~8k tokens |
 | 2026-11-05 | Rama `prueba/bienvenida`: pantalla de bienvenida solo la primera vez y solo sin datos (perfil, metas, foto, carrera en curso, historial o medidas), imagen `img/bienvenida.jpg` (80 KB; original `bienvenida-original.jpg` fuera del caché), campos opcionales, Empezar / Saltar, clave `mirun_welcomed`. Caché v20 (v19 es de `prueba/silueta`) | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `img/*`, `docs/*`, `CLAUDE.md` | ~55k tokens |
 | 2026-11-05 | Rama `prueba/silueta`: líneas finas (SVG) de cada etiqueta de medida al punto del cuerpo en las 3 figuras (`BODY_PTS` medido por figura, `drawBodyLines`), revisado a 390 y 360 px sin superposiciones. Caché v19 | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~45k tokens |

@@ -9,7 +9,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_body` | Array de mediciones | `date` (`AAAA-MM-DD`, una por día) |
 | `mirun_profile` | Objeto | — |
 | `mirun_goal` | Objeto | — |
-| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar |
+| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar. Desde 2026-11-05 agrega `lastVoiceMi` y `lastVoiceTime` (aviso por voz en millas; si faltan se calculan) |
 | `mirun_schema` | Número | Versión del formato de datos (hoy 5) |
 | `mirun_lastBackup` | Texto ISO | Fecha de la última copia exportada (para el recordatorio) |
 | `mirun_photo` | Texto (data URL JPEG 256 px, ~30 KB) | Foto de perfil (v5). Va en la copia de seguridad |
@@ -55,6 +55,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 - Las medidas se definen en `MEASURES` (sección CUERPO): `{k, n, u, id, good}`.
   `good` = 1 si subir es bueno, -1 si bajar es bueno. La importación usa esta misma lista.
 - Guardar un `peso` también actualiza `profile.weight`.
+- Escrito en lb, el `peso` nuevo se guarda en kg redondeado a 2 decimales (desde 2026-11-05; lo ya guardado no cambia).
 
 ## mirun_profile
 ```js
@@ -68,7 +69,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   sex: 'm'|'f'|'x',          // 'x' = prefiero no decir (v5)
   voice: true/false, mapMode: 'calles'|'linea' }
 ```
-`sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965).
+`sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965), los pasos estimados y la silueta.
+Perfil nuevo (sin `mirun_profile` guardado): `sex: 'x'` por defecto (antes `'m'`; los perfiles ya guardados no cambian).
 
 ## mirun_goal
 ```js
