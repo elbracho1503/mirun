@@ -70,7 +70,7 @@
     enCamino:   'decidido',    // Inicio, ya hay minutos hoy pero falta para la meta
     cumplido:   'emocionado',  // Inicio, meta del día cumplida (celebra)
     descanso:   'durmiendo',   // Inicio, día de descanso
-    rota:       'frustrado',   // Inicio, se rompió la racha (triste)
+    rota:       'cansado',     // Inicio, se rompió la racha (triste)
     logro:      'celebrando',  // aviso de logro nuevo (salta)
     legendario: 'aprobacion',  // aviso de logro legendario (salta)
     guardado:   'carino',      // al guardar una actividad
@@ -79,7 +79,7 @@
     cuerpo:     'estudiando',  // IMC y medidas
     error:      'pensando',    // error en un formulario
     toque:      'carino',      // al tocar la mascota
-    mareado:    'cansado'      // al tocarla muchas veces seguidas
+    mareado:    'frustrado'    // al tocarla muchas veces seguidas
   };
   function mascot(k){ return poseSrc(MASCOT[k]); }
   // cambia la pose de una imagen de mascota (si está en medio de una reacción al toque, la deja para después)

@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/mascota`: poses intercambiadas en MASCOT (racha rota = Cansado, 5 toques = Frustrado). Unida a main y publicada (caché v22) | `js/app.js`, `docs/*` | ~5k tokens |
 | 2026-11-06 | Rama `prueba/mascota`: caché v21 → v22 (una sola vez, por la mascota y el calendario) | `sw.js` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/mascota`, T3: PLAN, pendiente 17 (selector de personaje; versiones morada y naranja esperando imágenes) | `docs/*` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/mascota`, T2: calendario de Inicio con meses anteriores (‹ ›, hasta el mes de la primera actividad; resumen de días cumplidos y minutos). Solo lee datos | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |

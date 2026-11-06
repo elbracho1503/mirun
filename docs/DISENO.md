@@ -32,8 +32,9 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - Movimiento solo con CSS `transform` (bloque `MASCOTA: movimiento` en `css/app.css`):
   - Reposo: respira suave (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).
   - Reacciones de una vez (`mascotReact`): `mCheer` (logro nuevo y meta del día cumplida), `mSad` (racha
-    rota), `mWave` (saluda en la bienvenida), `mHop` (al tocarla). 5 toques en 3 s: pose "cansado".
+    rota), `mWave` (saluda en la bienvenida), `mHop` (al tocarla). 5 toques en 3 s: pose "frustrado".
   - Con "reducir movimiento" del teléfono (`prefers-reduced-motion`) no se mueve; solo cambia la pose.
 - Poses nuevas en uso: Decidido (Inicio, ya hay minutos hoy pero falta), Agotado (al guardar una actividad
-  de 60 min o más), Frustrado (racha rota; antes era Cansado, que ahora es la reacción a muchos toques).
+  de 60 min o más), Frustrado (reacción a 5 toques seguidos). La racha rota sigue con Cansado
+  (decisión del usuario, 2026-11-06: Frustrado se ve enojado, no triste).
 
