@@ -2131,7 +2131,8 @@
   // (primera vez con esta versión o al recuperar una copia, para no llenar de avisos).
   let achQueue = [];
   function checkAchievements(silent){
-    maybeCelebrate(silent); // meta del día recién cumplida (ver CELEBRACIÓN)
+    // meta del día recién cumplida (ver CELEBRACIÓN); un error ahí nunca debe frenar los logros
+    try{ maybeCelebrate(silent); }catch(e){}
     const s = achStats();
     const seen = LS.get('mirun_achSeen', null);
     const unlocked = ACH.filter(a=>a.v(s) >= a.g).map(a=>a.id);

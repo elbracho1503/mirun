@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 4: `maybeCelebrate` dentro de try/catch en `checkAchievements` (un error en la celebración no frena los logros) | `js/app.js`, `docs/*` | ~3k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 3: interruptor "Sonidos y vibración" (apagado = sin sonido ni vibración en la celebración; el campo sigue siendo `profile.sounds`) | `js/app.js`, `mirun.html`, `docs/*` | ~3k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 2: si al cumplir la meta sale un logro, el aviso espera a que termine la celebración (`celebUntil`) | `js/app.js`, `docs/*` | ~5k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 1: el botón Atrás del teléfono cierra el mapa grande (`window.history.pushState` + `popstate`), sin salir de la app | `js/app.js`, `docs/*` | ~4k tokens |
