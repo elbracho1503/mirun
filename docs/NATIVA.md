@@ -141,6 +141,29 @@ Apoyos (etapa N1):
   ayuda en la app: "Quita a MiRun del ahorro de batería".
 - El formato de datos **no cambia**: la carrera se sigue guardando en `mirun_current` y en `history` como hoy.
 
+## 5b. Relojes inteligentes
+
+**Etapa 1: datos de relojes a través de Health Connect.** No hace falta una app para el reloj. Los relojes
+con Wear OS, Samsung, Garmin, Fitbit y otros guardan sus datos en Health Connect, directamente o con su propia
+app del teléfono. MiRun los **lee** desde ahí, con el mismo camino que los pasos (sección 4):
+| Dato | Permiso de lectura | Uso en MiRun |
+|---|---|---|
+| Pasos | `android.permission.health.READ_STEPS` | Pasos reales del día (Inicio, Evolución) |
+| Frecuencia cardíaca | `android.permission.health.READ_HEART_RATE` | Pulsaciones promedio y máximas de una actividad, en el resumen y el Historial |
+| Entrenamientos | `android.permission.health.READ_EXERCISE` | Mostrar entrenamientos hechos con el reloj y ofrecer agregarlos al historial |
+
+- Cada permiso se pide por separado y solo cuando se usa la función. Si el usuario dice que no, todo sigue igual.
+- Los datos van en **claves nuevas** (por ejemplo `mirun_hr`, frecuencia por actividad). Un entrenamiento del
+  reloj solo entra a `history` si el usuario lo acepta. Así no se duplica con una actividad registrada en
+  MiRun a la misma hora.
+- Se actualizan la copia de seguridad y la importación (regla 2 de `CLAUDE.md`). En Play Console se declaran
+  los mismos datos de salud.
+- Va después de N3 (pasos), como etapa **N3b** (unos 60–90k tokens).
+
+**Futuro: app propia para el reloj (Wear OS)**, solo si los usuarios la piden. Sería un proyecto aparte, en
+Kotlin y no en Capacitor. Por ejemplo, para iniciar o pausar una carrera y ver tiempo y ritmo en la muñeca.
+No se planea mientras no haya pedidos reales.
+
 ## 6. Riesgos
 
 | Riesgo | Cómo se evita |
@@ -165,7 +188,8 @@ Cada etapa en su rama, con aprobación del usuario antes de empezar. Ninguna rom
 | N1 | Migración: botón "Tengo una copia" en la bienvenida, logros importados marcados como vistos, aviso en la PWA | Pasar los datos de prueba de la PWA a la app sin diferencias | 30–50k |
 | N2 | GPS con pantalla apagada + voz nativa + notificación fija + ayuda de batería | Salir a caminar 1–2 km con la pantalla apagada y ver la ruta completa | 80–120k |
 | N3 | Pasos reales con Health Connect (`mirun_steps`, Inicio, Evolución, copia) | Ver los pasos del día iguales a los del contador del teléfono | 60–100k |
+| N3b | Datos de relojes por Health Connect: frecuencia cardíaca y entrenamientos (sección 5b) | Ver las pulsaciones de una salida registrada con el reloj | 60–90k |
 | N4 | Ícono y pantalla de inicio nativos, llave de firma, archivo para Play Store (prueba interna) | Instalar desde la prueba interna de Play Store | 40–60k |
 
-**Total aproximado: 250–390k tokens**, sin contar las correcciones que salgan al probar en el teléfono.
+**Total aproximado: 310–480k tokens**, sin contar las correcciones que salgan al probar en el teléfono.
 Este documento costó unos 15k tokens.
