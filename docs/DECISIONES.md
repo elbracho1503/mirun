@@ -23,6 +23,8 @@
 - Pasos diarios: **no se puede** en una app web.
 - Racha, récord de racha y logros se **calculan** desde el historial.
 - Un solo historial (`mirun_history`) con campo `type`; sin `type` = "correr".
+- **appId de la app nativa (Android): `mirun.app.desafio`.** Decidido por el usuario (2026-11-05). No se puede
+  cambiar después de publicar en Play Store. Se usa en `npx cap init` y `capacitor.config.json` (ver `docs/NATIVA.md`).
 
 ## Pendientes (el usuario decide)
 1. ~~Mascota~~ → integrada (ver "Tomadas"). Poses sin usar aún: 05 Decidido, 08 Agotado, 11 Frustrado.

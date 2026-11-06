@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-05 | appId de la app nativa decidido: `mirun.app.desafio` (NATIVA.md sección 1 paso 5, DECISIONES.md) | `docs/*` | ~2k tokens |
 | 2026-11-05 | NATIVA.md: 5b, marcas de relojes a verificar una por una (Garmin no envía todo a Health Connect); N3 con requisito previo de política de privacidad (Ley 1581 de 2012) y su riesgo | `docs/*` | ~3k tokens |
 | 2026-11-05 | CLAUDE.md: regla 9 (no reescribir historial sin aprobación). NATIVA.md: sección "Relojes inteligentes" (etapa N3b por Health Connect; app de reloj solo si la piden). Unida a main y publicada `prueba/pendientes` (caché v21) | `CLAUDE.md`, `docs/*` | ~8k tokens |
 | 2026-11-05 | Rama `prueba/pendientes`: caché v20 → v21 (una sola vez, por 16b, 9c, 6c y 6d) | `sw.js` | ~1k tokens |

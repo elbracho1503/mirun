@@ -36,8 +36,9 @@ Pasos:
    Opciones de desarrollador, activar **Depuración USB**. Conectar por cable y aceptar el aviso.
 5. En la carpeta del proyecto (lo hace la IA cuando se apruebe la etapa N0):
    - `npm init -y`, luego `npm install @capacitor/core @capacitor/cli @capacitor/android`
-   - `npx cap init MiRun <appId> --web-dir www`. El `appId` es el nombre interno de la app, por ejemplo
-     `io.github.elbracho1503.mirun`. **No se puede cambiar después de publicar.** Lo elige el usuario.
+   - `npx cap init MiRun mirun.app.desafio --web-dir www`. El `appId` es el nombre interno de la app:
+     **`mirun.app.desafio`** (decidido por el usuario el 2026-11-05, ver `docs/DECISIONES.md`).
+     **No se puede cambiar después de publicar.**
    - `npx cap add android`, luego `npx cap sync` y `npx cap open android` (se abre Android Studio y se toca ▶ Run).
 
 ## 2. Qué cambia en el proyecto y qué se mantiene igual
