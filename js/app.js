@@ -485,11 +485,11 @@
   // Si se eligio "calles", hay internet y la libreria cargo: mapa real.
   // Si no: la linea dibujada de siempre (drawRoute), que no necesita internet.
   const streetMaps = {};
-  function streetsAvailable(){
-    return profile.mapMode !== 'linea' && navigator.onLine && typeof window.L !== 'undefined';
+  function streetsAvailable(mode){ // mode: vista pedida ('calles' o 'linea'); sin mode = la del Perfil
+    return (mode || profile.mapMode) !== 'linea' && navigator.onLine && typeof window.L !== 'undefined';
   }
-  function renderRoute(key, canvas, div, points, color, follow){
-    if(!streetsAvailable()){
+  function renderRoute(key, canvas, div, points, color, follow, mode){
+    if(!streetsAvailable(mode)){
       div.style.display = 'none';
       canvas.style.display = 'block';
       drawRoute(canvas, points, color);
@@ -538,7 +538,129 @@
     if(m){ m.n = -1; m.centered = false; m.touchedAt = 0; m.line.setLatLngs([]); m.start.remove(); m.dot.remove(); }
   }
 
+  // ---------- MAPA GRANDE (pantalla completa) ----------
+  // Botón "Ver mapa" en el Historial y en el resumen. Solo lee la ruta guardada.
+  // Calles: el mismo mapa Leaflet (pellizco y arrastre con los dedos ya vienen incluidos).
+  // Línea: canvas propio con zoom (pellizco, rueda, doble toque o botones + −) y arrastre; no necesita internet.
+  // El botón "Ver: ..." cambia la vista solo aquí (no cambia lo elegido en Perfil).
+  const bigMap = {el: document.getElementById('bigMap'), canvas: document.getElementById('bigMapLine'),
+                  div: document.getElementById('bigMapStreet'), pts: [], mode: 'linea', shown: 'linea',
+                  s: 1, tx: 0, ty: 0, ptrs: new Map(), raf: 0};
+  function openBigMap(points, title){
+    if(!points || points.length < 2) return;
+    bigMap.pts = points;
+    bigMap.mode = profile.mapMode === 'linea' ? 'linea' : 'calles';
+    document.getElementById('bigMapTitle').textContent = title || 'Tu ruta';
+    bigMap.el.classList.add('show');
+    document.body.classList.add('noScroll');
+    showBigMap();
+  }
+  function closeBigMap(){
+    bigMap.el.classList.remove('show');
+    document.body.classList.remove('noScroll');
+    bigMap.ptrs.clear();
+  }
+  function showBigMap(){
+    bigMap.s = 1; bigMap.tx = 0; bigMap.ty = 0;
+    resetStreetMap('big');
+    try{ bigMap.shown = renderRoute('big', bigMap.canvas, bigMap.div, bigMap.pts, '#4d9bff', false, bigMap.mode); }
+    catch(e){ bigMap.shown = 'linea'; bigMap.div.style.display = 'none'; bigMap.canvas.style.display = 'block'; }
+    if(bigMap.shown === 'linea') drawBigLine();
+    document.getElementById('bigMapMode').textContent = bigMap.mode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
+    document.getElementById('bigMapNote').textContent =
+      bigMap.mode !== 'linea' && bigMap.shown === 'linea' ? 'Sin internet: mostrando solo la línea' : '';
+  }
+  // posición en pantalla de un punto: ajuste a la pantalla × zoom (s) + desplazamiento (tx, ty)
+  function bigLineGeo(){
+    const c = bigMap.canvas, w = c.clientWidth, h = c.clientHeight, pts = bigMap.pts;
+    const lats = pts.map(p=>p.lat), lons = pts.map(p=>p.lon);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+    const cy = (minLat + maxLat) / 2, cx = (minLon + maxLon) / 2;
+    const kx = Math.cos(cy * Math.PI / 180); // un grado de longitud mide menos lejos del ecuador
+    const pad = 36, fit = Math.min((w - pad*2) / (((maxLon - minLon) * kx) || 1e-4), (h - pad*2) / ((maxLat - minLat) || 1e-4));
+    const k = fit * bigMap.s; // píxeles por grado de latitud
+    return {w, h, k, xy: p=>[w/2 + bigMap.tx + (p.lon - cx) * kx * k, h/2 + bigMap.ty - (p.lat - cy) * k]};
+  }
+  function drawBigLine(){
+    const c = bigMap.canvas, dpr = window.devicePixelRatio || 1;
+    if(!c.clientWidth || !c.clientHeight || bigMap.pts.length < 2) return;
+    const g = bigLineGeo(), ctx = c.getContext('2d');
+    c.width = g.w * dpr; c.height = g.h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, g.w, g.h);
+    ctx.beginPath();
+    bigMap.pts.forEach((p, i)=>{ const [x, y] = g.xy(p); if(i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+    ctx.strokeStyle = '#4d9bff'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+    const dot = (p, r, fill)=>{ const [x, y] = g.xy(p); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+      ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#070d1f'; ctx.stroke(); };
+    dot(bigMap.pts[0], 6, '#eef3ff'); dot(bigMap.pts[bigMap.pts.length-1], 7, '#4d9bff');
+    // escala: una distancia redonda que mida al menos 60 px
+    const mPerPx = 111320 / g.k;
+    const nice = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000].find(m=>m / mPerPx >= 60) || 50000;
+    const len = nice / mPerPx, x0 = 14, y0 = g.h - 18;
+    ctx.strokeStyle = '#9fb0d0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x0, y0 - 5); ctx.lineTo(x0, y0); ctx.lineTo(x0 + len, y0); ctx.lineTo(x0 + len, y0 - 5); ctx.stroke();
+    ctx.fillStyle = '#9fb0d0'; ctx.font = '600 11px Inter, sans-serif';
+    const dTxt = imp() ? (nice >= 1609 ? (nice / 1609.344).toFixed(1) + ' mi' : Math.round(nice * 3.28084) + ' ft')
+                       : (nice >= 1000 ? nice / 1000 + ' km' : nice + ' m');
+    ctx.fillText(dTxt, x0 + 4, y0 - 8);
+  }
+  function redrawBigLine(){ if(!bigMap.raf) bigMap.raf = requestAnimationFrame(()=>{ bigMap.raf = 0; drawBigLine(); }); }
+  // zoom manteniendo fijo el punto (px, py) de la pantalla; entre 1× (ruta completa) y 60×
+  function bigZoomAt(px, py, f){
+    const s2 = Math.min(60, Math.max(1, bigMap.s * f)); f = s2 / bigMap.s;
+    const c = bigMap.canvas, ox = px - c.clientWidth/2 - bigMap.tx, oy = py - c.clientHeight/2 - bigMap.ty;
+    bigMap.tx += ox - ox * f; bigMap.ty += oy - oy * f; bigMap.s = s2;
+    if(bigMap.s === 1){ bigMap.tx = 0; bigMap.ty = 0; } // al alejar del todo vuelve a centrar la ruta
+    redrawBigLine();
+  }
+  {
+    const bc = bigMap.canvas, P = bigMap.ptrs;
+    const pos = e=>{ const r = bc.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+    bc.addEventListener('pointerdown', e=>{ try{ bc.setPointerCapture(e.pointerId); }catch(x){} P.set(e.pointerId, pos(e)); });
+    bc.addEventListener('pointermove', e=>{
+      if(!P.has(e.pointerId)) return;
+      const now = pos(e);
+      if(P.size === 1){ const o = P.get(e.pointerId); bigMap.tx += now.x - o.x; bigMap.ty += now.y - o.y; P.set(e.pointerId, now); redrawBigLine(); return; }
+      // dos dedos: pellizco (zoom en el punto medio) y arrastre a la vez
+      const ids = [...P.keys()].slice(0, 2); if(!ids.includes(e.pointerId)) return;
+      const a0 = P.get(ids[0]), b0 = P.get(ids[1]);
+      P.set(e.pointerId, now);
+      const a1 = P.get(ids[0]), b1 = P.get(ids[1]);
+      const d0 = Math.hypot(a0.x - b0.x, a0.y - b0.y), d1 = Math.hypot(a1.x - b1.x, a1.y - b1.y);
+      bigMap.tx += (a1.x + b1.x)/2 - (a0.x + b0.x)/2; bigMap.ty += (a1.y + b1.y)/2 - (a0.y + b0.y)/2;
+      if(d0 > 0) bigZoomAt((a1.x + b1.x)/2, (a1.y + b1.y)/2, d1 / d0); else redrawBigLine();
+    });
+    const up = e=>{ P.delete(e.pointerId); };
+    bc.addEventListener('pointerup', up); bc.addEventListener('pointercancel', up);
+    bc.addEventListener('wheel', e=>{ e.preventDefault(); const p = pos(e); bigZoomAt(p.x, p.y, e.deltaY < 0 ? 1.25 : 0.8); }, {passive:false});
+    bc.addEventListener('dblclick', e=>{ const p = pos(e); bigZoomAt(p.x, p.y, 2); });
+    const zoomBtn = f=>{
+      const m = streetMaps.big;
+      if(bigMap.shown === 'calles' && m){ if(f > 1) m.map.zoomIn(); else m.map.zoomOut(); }
+      else bigZoomAt(bc.clientWidth/2, bc.clientHeight/2, f);
+    };
+    document.getElementById('bigZoomIn').addEventListener('click', ()=>zoomBtn(1.6));
+    document.getElementById('bigZoomOut').addEventListener('click', ()=>zoomBtn(1/1.6));
+    document.getElementById('bigMapMode').addEventListener('click', ()=>{
+      bigMap.mode = bigMap.mode === 'linea' ? 'calles' : 'linea'; showBigMap();
+    });
+    document.getElementById('btnBigMapClose').addEventListener('click', closeBigMap);
+    document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && bigMap.el.classList.contains('show')) closeBigMap(); });
+    window.addEventListener('resize', ()=>{
+      if(!bigMap.el.classList.contains('show')) return;
+      if(bigMap.shown === 'linea') redrawBigLine(); else if(streetMaps.big) streetMaps.big.map.invalidateSize();
+    });
+  }
+
   // ---------- HISTORY ----------
+  // "Ver mapa" (o tocar la ruta pequeña) abre el mapa grande de esa actividad
+  document.getElementById('histList').addEventListener('click', ev=>{
+    const w = ev.target.closest('[data-map]'); if(!w) return;
+    const h = history.find(x=>x.date === decodeURIComponent(w.dataset.map)); if(!h) return;
+    const d = new Date(h.date);
+    openBigMap(h.path, actInfo(h.type).n + ' · ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}));
+  });
   function renderHistory(){
     const list = document.getElementById('histList');
     if(history.length===0){
@@ -567,7 +689,8 @@
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
           ${stepsOf(h) ? `<div class="histSteps">${stepsTxt(h)}</div>` : ''}
-          ${hasRoute ? `<div class="mini-route"><canvas id="hist-route-${ri}"></canvas></div>` : ''}
+          ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}"></canvas>
+            <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
       }).join('');
       // pasos: un solo aviso si falta la estatura y hay caminatas o carreras con distancia
@@ -1566,6 +1689,8 @@
     finishRun();
   });
 
+  let sumPath = []; // ruta del último resumen, para el mapa grande
+  document.getElementById('btnSumBigMap').addEventListener('click', ()=>openBigMap(sumPath, 'Tu ruta'));
   function finishRun(){
     if(!running) return;
     const sec = currentElapsedSec();
@@ -1612,11 +1737,13 @@
     document.getElementById('sumSteps').textContent = stepsTxt({type: runType, dist: totalDist}); // pasos aproximados
 
     const sumMapWrap = document.getElementById('sumMapWrap');
+    sumPath = [];
     refreshLiveMap(); // ya no esta corriendo: oculta el mapa en vivo
     if(path.length > 1){
       sumMapWrap.style.display = 'block';
       resetStreetMap('sum');
       const finalPath = path.slice();
+      sumPath = finalPath; // para "Ver mapa" del resumen
       setTimeout(()=>{
         const c = document.getElementById('sumMap'), dv = document.getElementById('sumStreet');
         try{ renderRoute('sum', c, dv, finalPath, '#4d9bff', false); }

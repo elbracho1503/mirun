@@ -415,6 +415,7 @@
       <span class="mapLbl">Tu ruta</span>
       <div class="street" id="sumStreet"></div>
       <canvas id="sumMap"></canvas>
+      <button class="mapMode" id="btnSumBigMap">Ver mapa</button>
     </div>
 
     <div class="panel" id="sumRecCard" style="display:none;">
@@ -428,6 +429,19 @@
     </div>
 
     <div class="btnRow"><button class="btn btn-start" id="btnCloseSummary">Listo</button></div>
+  </div>
+</div>
+
+<!-- Mapa grande a pantalla completa (ver MAPA GRANDE en js/app.js) -->
+<div id="bigMap" role="dialog" aria-modal="true" aria-labelledby="bigMapTitle">
+  <div class="bigMapBar"><b id="bigMapTitle">Tu ruta</b>
+    <button class="bigMapClose" id="btnBigMapClose" aria-label="Cerrar mapa"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="bigMapArea">
+    <div class="street" id="bigMapStreet"></div>
+    <canvas id="bigMapLine"></canvas>
+    <button class="mapMode" id="bigMapMode">Ver: solo línea</button>
+    <div class="bigZoom"><button id="bigZoomIn" aria-label="Acercar">+</button><button id="bigZoomOut" aria-label="Alejar">−</button></div>
+    <span class="mapNote" id="bigMapNote"></span>
   </div>
 </div>
 
