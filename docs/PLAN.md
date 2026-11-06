@@ -31,7 +31,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 12b | Líneas finas de cada etiqueta al punto del cuerpo en las 3 figuras (`BODY_PTS`, `drawBodyLines`) | ✅ 2026-11-05 |
-| 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
+| 13 | Usar poses sin uso: Decidido, Agotado, Frustrado. Más mascota con movimiento (CSS) y lista de personajes (`CHARACTERS`) | ✅ 2026-11-06 (rama `prueba/mascota`) |
 | 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
 | 16 | Pantalla de bienvenida solo la primera vez y sin datos guardados (`#welcome`, `mirun_welcomed`): nombre, unidades, sexo, estatura y peso opcionales; Empezar / Saltar | ✅ 2026-11-05 |

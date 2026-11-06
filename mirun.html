@@ -51,7 +51,7 @@
   <!-- HOME SCREEN: racha, metas del día/semana, calendario (se llena en renderHome) -->
   <div class="screen active" id="tab-home">
     <!-- Mascota con mensaje del día (pose y texto en renderHome) -->
-    <div class="mascotCard"><img id="homeMascot" alt=""><div class="bubble" id="homeMsg"></div></div>
+    <div class="mascotCard"><img id="homeMascot" class="mIdle" alt="La mascota (tócala)"><div class="bubble" id="homeMsg"></div></div>
     <div class="streakCard">
       <div class="flame"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3-1-3 0-6 1-9.5z"/></svg></div>
       <div class="sv num" id="streakVal">0</div>
@@ -129,7 +129,7 @@
     </div>
 
     <div id="gpsTypeRow" style="margin-top:16px;">
-      <img class="mascotInline" src="img/mascota/03_corriendo.png" alt="">
+      <img class="mascotInline" src="img/mascota/03_corriendo.png" data-pose="corriendo" alt="">
       <div class="chips">
       <button class="chip on" data-gtype="correr">🏃 Correr</button>
       <button class="chip" data-gtype="caminar">🚶 Caminar</button>
@@ -267,7 +267,7 @@
         <button class="chip" data-r="all">Todo</button>
       </div>
       <div class="panel" id="evoEmpty" style="display:none;">
-        <div class="empty"><img src="img/mascota/15_asomado.png" alt="">Registra actividad para ver tu evolución.</div>
+        <div class="empty"><img src="img/mascota/15_asomado.png" data-pose="asomado" alt="">Registra actividad para ver tu evolución.</div>
       </div>
       <div id="evoCharts">
         <div class="panel"><h3>Comparado con el período anterior</h3><div id="evoCompare"></div></div>
@@ -432,7 +432,7 @@
 <!-- Menú del botón "+": elegir cómo registrar la actividad -->
 <div id="plusSheet">
   <div class="sheet">
-    <div class="sheetTitle"><img src="img/mascota/02_pesas.png" alt="">¿Qué vas a hacer?</div>
+    <div class="sheetTitle"><img src="img/mascota/02_pesas.png" data-pose="pesas" alt="">¿Qué vas a hacer?</div>
     <button class="sheetOpt" data-plus="correr"><span>🏃</span>Correr con GPS</button>
     <button class="sheetOpt" data-plus="caminar"><span>🚶</span>Caminar con GPS</button>
     <button class="sheetOpt" data-plus="bici"><span>🚴</span>Bicicleta con GPS</button>
@@ -472,7 +472,7 @@
 <!-- Aviso de logro nuevo (se llena en showAchievement) -->
 <div id="achOverlay">
   <div class="box">
-    <img class="achMascot" id="achMascot" alt="">
+    <img class="achMascot mIdle" id="achMascot" alt="">
     <div class="achTitle">¡Nuevo logro!</div>
     <div class="medal big" id="achMedal"></div>
     <div class="achName" id="achName"></div>

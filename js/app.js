@@ -46,27 +46,84 @@
   }
 
   // ---------- MASCOTA ----------
-  // MIRUN Monster: qué pose se muestra en cada momento (archivos en img/mascota/, también en sw.js).
+  // PERSONAJES: cada uno con su carpeta y sus poses (nombre de la pose -> archivo sin .png). Monster es el
+  // principal y el que se usa por defecto. Agregar un personaje = sumar aquí su carpeta y sus poses
+  // (y sus archivos a FILES_TO_CACHE en sw.js). Si a un personaje le falta una pose, se usa la de Monster.
+  // Todavía no hay selector: siempre se usa DEFAULT_CHAR.
+  const CHARACTERS = {
+    monster: {name:'MIRUN Monster', dir:'img/mascota/', poses:{
+      aprobacion:'01_aprobacion', pesas:'02_pesas', corriendo:'03_corriendo', carino:'04_carino',
+      decidido:'05_decidido', pensando:'06_pensando', emocionado:'07_emocionado', agotado:'08_agotado',
+      celebrando:'09_celebrando', cansado:'10_cansado', frustrado:'11_frustrado', estudiando:'12_estudiando',
+      tu_puedes:'13_tu_puedes', durmiendo:'14_durmiendo', asomado:'15_asomado'}}
+  };
+  const DEFAULT_CHAR = 'monster';
+  function character(){ return CHARACTERS[DEFAULT_CHAR]; } // con el selector: el personaje elegido
+  function poseSrc(pose){
+    const c = character(), f = c.poses[pose] ? c : CHARACTERS[DEFAULT_CHAR];
+    return f.dir + f.poses[pose] + '.png';
+  }
+  // Qué pose se muestra en cada momento (nombre de pose, vale para cualquier personaje).
   // Para cambiar una pose: editar solo esta lista.
   const MASCOT = {
-    hoy:        '13_tu_puedes',   // Inicio, todavía sin cumplir hoy
-    cumplido:   '07_emocionado',  // Inicio, meta del día cumplida
-    descanso:   '14_durmiendo',   // Inicio, día de descanso
-    rota:       '10_cansado',     // Inicio, se rompió la racha
-    logro:      '09_celebrando',  // aviso de logro nuevo
-    legendario: '01_aprobacion',  // aviso de logro legendario
-    guardado:   '04_carino',      // al guardar una actividad
-    vacio:      '15_asomado',     // listas vacías
-    cuerpo:     '12_estudiando',  // IMC y medidas
-    error:      '06_pensando'     // error en un formulario
+    hoy:        'tu_puedes',   // Inicio, todavía sin actividad hoy
+    enCamino:   'decidido',    // Inicio, ya hay minutos hoy pero falta para la meta
+    cumplido:   'emocionado',  // Inicio, meta del día cumplida (celebra)
+    descanso:   'durmiendo',   // Inicio, día de descanso
+    rota:       'frustrado',   // Inicio, se rompió la racha (triste)
+    logro:      'celebrando',  // aviso de logro nuevo (salta)
+    legendario: 'aprobacion',  // aviso de logro legendario (salta)
+    guardado:   'carino',      // al guardar una actividad
+    guardadoLargo: 'agotado',  // al guardar una actividad de 60 min o más
+    vacio:      'asomado',     // listas vacías
+    cuerpo:     'estudiando',  // IMC y medidas
+    error:      'pensando',    // error en un formulario
+    toque:      'carino',      // al tocar la mascota
+    mareado:    'cansado'      // al tocarla muchas veces seguidas
   };
-  function mascot(k){ return 'img/mascota/' + MASCOT[k] + '.png'; }
+  function mascot(k){ return poseSrc(MASCOT[k]); }
+  // cambia la pose de una imagen de mascota (si está en medio de una reacción al toque, la deja para después)
+  function setMascot(img, k){ const s = mascot(k); if(img.dataset.base) img.dataset.base = s; else img.src = s; }
+  // imágenes fijas del HTML con data-pose="..." (siguen al personaje)
+  document.querySelectorAll('img[data-pose]').forEach(i=>{ i.src = poseSrc(i.dataset.pose); });
   // mensaje con la mascota pequeña al lado (formularios)
   function mascotMsg(el, k, text, color){
     el.innerHTML = `<span class="msgM"><img src="${mascot(k)}" alt=""><span></span></span>`;
     el.querySelector('span span').textContent = text;
     el.style.color = color;
   }
+  // Movimiento (solo CSS, ver "MASCOTA: movimiento" en app.css): reposo = clase mIdle (respira);
+  // reacción de una vez = mHop (salta), mCheer (celebra), mSad (se pone triste), mWave (saluda).
+  // Con "reducir movimiento" del teléfono el CSS las apaga y solo cambia la pose.
+  function mascotReact(img, cls){
+    if(!img) return;
+    img.classList.remove('mHop','mCheer','mSad','mWave');
+    void img.offsetWidth; // reinicia la animación aunque sea la misma
+    img.classList.add(cls);
+  }
+  document.addEventListener('animationend', ev=>{
+    if(/^m(Hop|Cheer|Sad|Wave)$/.test(ev.animationName)) ev.target.classList.remove(ev.animationName);
+  });
+  let lastHomeMk = null; // último estado de la mascota de Inicio (para reaccionar solo al cambiar)
+  // tocar la mascota: salta y pone cara de cariño; 5 toques seguidos (en 3 s) = mareada
+  let tapTimes = [];
+  function mascotTap(img){
+    const now = Date.now();
+    if(img._dizzyUntil > now) return; // mareada: los toques de más no cambian nada hasta que se le pase
+    tapTimes = tapTimes.filter(t=>now - t < 3000).concat(now);
+    if(!img.dataset.base) img.dataset.base = img.getAttribute('src');
+    const dizzy = tapTimes.length >= 5;
+    if(dizzy) img._dizzyUntil = now + 1600;
+    img.src = mascot(dizzy ? 'mareado' : 'toque');
+    mascotReact(img, dizzy ? 'mSad' : 'mHop');
+    if(dizzy) tapTimes = [];
+    clearTimeout(img._back);
+    img._back = setTimeout(()=>{ img.src = img.dataset.base; delete img.dataset.base; }, 1600);
+  }
+  ['homeMascot','achMascot'].forEach(id=>{
+    const i = document.getElementById(id);
+    i.addEventListener('click', ()=>mascotTap(i));
+  });
 
   // ---------- TIPOS DE ACTIVIDAD ----------
   // k = valor guardado en history[].type (sin type = 'correr'). met = gasto [baja, media, alta].
@@ -1700,8 +1757,16 @@
     if(tStat === 'done'){ mk = 'cumplido'; msg = '¡Meta de hoy cumplida! Llevas ' + st.cur + (st.cur === 1 ? ' día' : ' días') + ' de racha.'; }
     else if(tStat === 'rest'){ mk = 'descanso'; msg = 'Hoy es tu día de descanso. Recupera energía, tu racha sigue a salvo.'; }
     else if(st.cur === 0 && st.best > 0 && recent){ mk = 'rota'; msg = 'Tu racha se reinició, pero hoy empieza otra. ¡Vamos!'; }
+    else if((mins.get(tk) || 0) > 0){ mk = 'enCamino'; msg = '¡Vas bien! Te faltan ' + left + ' min para cumplir hoy.'; }
     else { mk = 'hoy'; msg = 'Te faltan ' + left + ' min para cumplir hoy. ¡Tú puedes!'; }
-    document.getElementById('homeMascot').src = mascot(mk);
+    const hm = document.getElementById('homeMascot');
+    setMascot(hm, mk);
+    hm.classList.toggle('mSadIdle', mk === 'rota'); // triste: respira más lento y cabizbaja
+    if(mk !== lastHomeMk){ // reacciona solo cuando cambia el estado (no en cada repintado)
+      if(mk === 'cumplido') mascotReact(hm, 'mCheer');      // racha del día mantenida: celebra
+      else if(mk === 'rota') mascotReact(hm, 'mSad');
+      lastHomeMk = mk;
+    }
     document.getElementById('homeMsg').textContent = msg;
     // calendario: las últimas 4 semanas (lunes a domingo)
     const start = new Date(monday); start.setDate(monday.getDate() - 21);
@@ -1758,7 +1823,7 @@
     LS.set('mirun_history', history);
     document.getElementById('actMin').value = '';
     const st = streakInfo(minutesByDay());
-    mascotMsg(msg, 'guardado', typeName(type) + ' guardado. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
+    mascotMsg(msg, mins >= 60 ? 'guardadoLargo' : 'guardado', typeName(type) + ' guardado. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
     renderHistory(); checkAchievements();
   });
 
@@ -1847,8 +1912,10 @@
     document.querySelector('#achOverlay .achTitle').textContent = a.leg ? '¡Logro legendario!' : '¡Nuevo logro!';
     document.getElementById('achName').textContent = a.n;
     document.getElementById('achDesc').textContent = a.d + '. ¡Sigue así!';
-    document.getElementById('achMascot').src = mascot(a.leg ? 'legendario' : 'logro');
+    const am = document.getElementById('achMascot');
+    setMascot(am, a.leg ? 'legendario' : 'logro');
     document.getElementById('achOverlay').classList.add('show');
+    mascotReact(am, 'mCheer'); // salta y celebra
     say('Nuevo logro: ' + a.n);
   }
   document.getElementById('btnAchOk').addEventListener('click', ()=>{
@@ -2118,6 +2185,7 @@
       renderHome(); renderHistory();
     });
     wel.classList.add('show');
+    mascotReact(wel.querySelector('.welImg'), 'mWave'); // la mascota saluda
   })();
 
 })();

@@ -59,7 +59,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Formulario de actividad (HTML) | `id="actForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
-| Mascota: qué pose va en cada momento (`MASCOT`, `mascotMsg`) | `// ---------- MASCOTA` (CSS: `MASCOTA MIRUN Monster`) |
+| Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`) | `// ---------- MASCOTA` (CSS: `MASCOTA MIRUN Monster` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
 | Perfil: saludo, foto (`mirun_photo`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |

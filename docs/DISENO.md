@@ -23,3 +23,17 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - Menú fijo abajo con íconos SVG en línea (sin librerías).
 - Ancho máximo 480px; pensado para celular en vertical.
 - Colores dentro del JS (canvas/mapas) usan los mismos valores en hex.
+
+## Mascota: personajes y movimiento (2026-11-06)
+- Personajes en `CHARACTERS` (`js/app.js`, sección MASCOTA). Hoy solo **MIRUN Monster** (`img/mascota/`), el
+  principal y el que se usa por defecto (`DEFAULT_CHAR`). Agregar uno = sumar su carpeta y sus poses a la lista
+  (y sus archivos a `FILES_TO_CACHE`). Si le falta una pose, se usa la de Monster. Aún no hay selector.
+- `MASCOT` dice qué **pose** va en cada momento (por nombre, vale para cualquier personaje).
+- Movimiento solo con CSS `transform` (bloque `MASCOTA: movimiento` en `css/app.css`):
+  - Reposo: respira suave (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).
+  - Reacciones de una vez (`mascotReact`): `mCheer` (logro nuevo y meta del día cumplida), `mSad` (racha
+    rota), `mWave` (saluda en la bienvenida), `mHop` (al tocarla). 5 toques en 3 s: pose "cansado".
+  - Con "reducir movimiento" del teléfono (`prefers-reduced-motion`) no se mueve; solo cambia la pose.
+- Poses nuevas en uso: Decidido (Inicio, ya hay minutos hoy pero falta), Agotado (al guardar una actividad
+  de 60 min o más), Frustrado (racha rota; antes era Cansado, que ahora es la reacción a muchos toques).
+

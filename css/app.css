@@ -379,6 +379,30 @@
   .empty img{display:block;width:120px;height:120px;margin:0 auto 10px;}
   .mascotSide{float:right;width:80px;height:80px;margin:-38px -4px 0 0;}
 
+  /* ==== MASCOTA: movimiento (solo transform: lo hace la tarjeta gráfica, gasta poco; ver mascotReact en app.js) ==== */
+  /* reposo: respira suave (solo la mascota grande de Inicio y la del aviso de logro) */
+  .mIdle{animation:mBreathe 4.5s ease-in-out infinite;transform-origin:50% 100%;}
+  .mIdle.mSadIdle{animation:mBreatheSad 7s ease-in-out infinite;}
+  #homeMascot{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  /* reacciones de una sola vez (al terminar vuelve al reposo) */
+  .mHop,.mIdle.mHop{animation:mHop .55s ease-out 1;transform-origin:50% 100%;}
+  .mCheer,.mIdle.mCheer{animation:mCheer 1.2s ease-in-out 1;transform-origin:50% 100%;}
+  .mSad,.mIdle.mSad{animation:mSad 1.4s ease-out 1;transform-origin:50% 100%;}
+  .mWave{animation:mWave 1.2s ease-in-out .3s 2;transform-origin:50% 100%;}
+  @keyframes mBreathe{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-3px) scale(1.02);}}
+  @keyframes mBreatheSad{0%,100%{transform:translateY(3px) rotate(-3deg) scale(.98);}50%{transform:translateY(2px) rotate(-2deg) scale(.99);}}
+  @keyframes mHop{0%{transform:translateY(0) scale(1);}35%{transform:translateY(-14px) scale(1.03,.97);}
+    65%{transform:translateY(0) scale(1.04,.95);}100%{transform:translateY(0) scale(1);}}
+  @keyframes mCheer{0%,100%{transform:translateY(0) rotate(0);}20%{transform:translateY(-18px) rotate(-6deg);}
+    40%{transform:translateY(0) rotate(0);}60%{transform:translateY(-12px) rotate(6deg);}80%{transform:translateY(0) rotate(0);}}
+  @keyframes mSad{0%{transform:translateY(0) rotate(0) scale(1);}45%{transform:translateY(6px) rotate(-5deg) scale(.95);}
+    100%{transform:translateY(3px) rotate(-3deg) scale(.98);}}
+  @keyframes mWave{0%,100%{transform:rotate(0);}25%{transform:rotate(-4deg);}75%{transform:rotate(4deg);}}
+  /* "reducir movimiento" del teléfono: sin animaciones (la pose sí cambia) */
+  @media (prefers-reduced-motion: reduce){
+    .mIdle,.mIdle.mSadIdle,.mHop,.mCheer,.mSad,.mWave{animation:none !important;}
+  }
+
   /* ==== FOTO DE PERFIL (avatar en la cabecera y en Perfil) ==== */
   .avatar{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;
     background:#000 center/cover no-repeat;overflow:hidden;} /* sin foto: negro liso */
