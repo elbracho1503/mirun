@@ -2011,6 +2011,8 @@
   // Sonido corto con Web Audio (sin archivos; se apaga con "Sonidos" en Perfil), vibración suave,
   // confeti con CSS y la mascota celebrando. Con "reducir movimiento": sin confeti ni animación, con sonido y vibración.
   let celebBase = null; // {day, done}: cómo estaba la meta de hoy la última vez que se revisó
+  let celebUntil = 0;   // hora en que termina la celebración en pantalla (el aviso de logro espera hasta entonces)
+  const CELEB_MS = 3400;
   function todayGoalDone(){ const t = new Date(); t.setHours(12,0,0,0); return dayStatus(minutesByDay(), t) === 'done'; }
   function maybeCelebrate(silent){
     const day = todayStr(), done = todayGoalDone();
@@ -2057,7 +2059,8 @@
     layer.innerHTML = conf + `<div class="celebCard"><img class="mCheer" src="${mascot('meta')}" alt="">` +
       `<b>¡Meta de hoy cumplida!</b><small>Racha: ${st} ${st === 1 ? 'día' : 'días'}</small></div>`;
     document.body.appendChild(layer);
-    setTimeout(()=>layer.remove(), 3400);
+    celebUntil = Date.now() + CELEB_MS;
+    setTimeout(()=>layer.remove(), CELEB_MS);
   }
 
   // ---------- LOGROS ----------
@@ -2136,9 +2139,12 @@
     if(!seen || fresh.length) LS.set('mirun_achSeen', [...new Set([...(seen || []), ...unlocked])]);
     if(silent || !seen || !fresh.length) return;
     achQueue = achQueue.concat(fresh);
-    if(!document.getElementById('achOverlay').classList.contains('show')) showAchievement();
+    // si se está celebrando la meta del día, el aviso espera a que termine
+    if(!document.getElementById('achOverlay').classList.contains('show'))
+      setTimeout(showAchievement, Math.max(0, celebUntil - Date.now()));
   }
   function showAchievement(){
+    if(document.getElementById('achOverlay').classList.contains('show')) return; // ya hay uno: sigue al tocar Continuar
     const id = achQueue.shift(); if(!id) return;
     const a = ACH.find(x=>x.id === id);
     document.getElementById('achMedal').textContent = a.e;

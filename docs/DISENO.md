@@ -46,4 +46,5 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - Capa `.celebrate` encima de todo, sin bloquear toques, que se borra sola a los 3,4 s: 36 papelitos de confeti
   (solo transform) y una tarjeta con la mascota "celebrando", "¡Meta de hoy cumplida!" y la racha.
 - "Reducir movimiento": sin confeti ni animación (la tarjeta aparece quieta), con sonido y vibración.
+- Si a la vez se gana un logro, el aviso "¡Nuevo logro!" espera a que termine la celebración (3,4 s).
 
