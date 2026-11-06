@@ -143,9 +143,10 @@ Apoyos (etapa N1):
 
 ## 5b. Relojes inteligentes
 
-**Etapa 1: datos de relojes a través de Health Connect.** No hace falta una app para el reloj. Los relojes
-con Wear OS, Samsung, Garmin, Fitbit y otros guardan sus datos en Health Connect, directamente o con su propia
-app del teléfono. MiRun los **lee** desde ahí, con el mismo camino que los pasos (sección 4):
+**Etapa 1: datos de relojes a través de Health Connect.** No hace falta una app para el reloj. Relojes de
+Wear OS, Samsung, Fitbit y otras, según la marca: verificar marca por marca antes de N3b, porque no todas envían
+todos sus datos a Health Connect (por ejemplo Garmin). Los que sí lo hacen guardan sus datos ahí, directamente
+o con su propia app del teléfono. MiRun los **lee** desde ahí, con el mismo camino que los pasos (sección 4):
 | Dato | Permiso de lectura | Uso en MiRun |
 |---|---|---|
 | Pasos | `android.permission.health.READ_STEPS` | Pasos reales del día (Inicio, Evolución) |
@@ -177,6 +178,7 @@ No se planea mientras no haya pedidos reales.
 | Diferencias entre el WebView y Chrome (CSP, Leaflet, fuentes) | Probar todas las pantallas en N0 antes de tocar el GPS |
 | Dos versiones (PWA y nativa) se desordenan | Un solo código. `www/` se genera con un script, nunca se edita a mano |
 | Espacio en disco del PC | Revisar que haya 25 GB libres antes de instalar |
+| Usar datos de salud sin política de privacidad publicada: Google rechaza la app y, en Colombia, son datos sensibles (Ley 1581 de 2012) | Publicar la política de privacidad **antes de N3** (requisito previo de la etapa) |
 
 ## 7. Orden de etapas y costo estimado en tokens
 
@@ -187,7 +189,7 @@ Cada etapa en su rama, con aprobación del usuario antes de empezar. Ninguna rom
 | N0 | Instalar (el usuario instala Android Studio siguiendo la sección 1), crear el proyecto Capacitor, script `www/` y abrir la app tal cual en el teléfono | MiRun abre como app, con el mismo funcionamiento que la PWA | 40–60k |
 | N1 | Migración: botón "Tengo una copia" en la bienvenida, logros importados marcados como vistos, aviso en la PWA | Pasar los datos de prueba de la PWA a la app sin diferencias | 30–50k |
 | N2 | GPS con pantalla apagada + voz nativa + notificación fija + ayuda de batería | Salir a caminar 1–2 km con la pantalla apagada y ver la ruta completa | 80–120k |
-| N3 | Pasos reales con Health Connect (`mirun_steps`, Inicio, Evolución, copia) | Ver los pasos del día iguales a los del contador del teléfono | 60–100k |
+| N3 | Pasos reales con Health Connect (`mirun_steps`, Inicio, Evolución, copia). **Requisito previo:** Política de privacidad publicada (exigida por Google para datos de salud; en Colombia son datos sensibles, Ley 1581 de 2012) | Ver los pasos del día iguales a los del contador del teléfono | 60–100k |
 | N3b | Datos de relojes por Health Connect: frecuencia cardíaca y entrenamientos (sección 5b) | Ver las pulsaciones de una salida registrada con el reloj | 60–90k |
 | N4 | Ícono y pantalla de inicio nativos, llave de firma, archivo para Play Store (prueba interna) | Instalar desde la prueba interna de Play Store | 40–60k |
 
