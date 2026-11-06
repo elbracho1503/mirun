@@ -36,6 +36,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
 | 16 | Pantalla de bienvenida solo la primera vez y sin datos guardados (`#welcome`, `mirun_welcomed`): nombre, unidades, sexo, estatura y peso opcionales; Empezar / Saltar | ✅ 2026-11-05 |
 | 16b | Si el usuario no elige sexo, usar neutro (x) en vez de masculino por defecto (solo perfiles nuevos) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
+| 17 | Selector de personaje: el usuario elige su mascota; Monster es el principal. Personajes nuevos listos: versión morada y versión naranja (faltan las imágenes en alta resolución con fondo transparente). Base lista: `CHARACTERS` en la sección MASCOTA | ⬜ |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial
