@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/celebracion`: caché v23 → v24 (una sola vez, por los ajustes 1–5) | `sw.js` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 5: mascota más viva (flota 8 px, gestos espontáneos cada 8–10 s en Inicio con `mTilt` nuevo, salto marcado al tocarla; se pausa con la app oculta y nada con reducir movimiento) | `js/app.js`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 4: `maybeCelebrate` dentro de try/catch en `checkAchievements` (un error en la celebración no frena los logros) | `js/app.js`, `docs/*` | ~3k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 3: interruptor "Sonidos y vibración" (apagado = sin sonido ni vibración en la celebración; el campo sigue siendo `profile.sounds`) | `js/app.js`, `mirun.html`, `docs/*` | ~3k tokens |
