@@ -94,16 +94,16 @@
     el.style.color = color;
   }
   // Movimiento (solo CSS, ver "MASCOTA: movimiento" en app.css): reposo = clase mIdle (respira);
-  // reacción de una vez = mHop (salta), mCheer (celebra), mSad (se pone triste), mWave (saluda).
+  // reacción de una vez = mHop (salta), mCheer (celebra), mSad (se pone triste), mWave (saluda), mTilt (se inclina).
   // Con "reducir movimiento" del teléfono el CSS las apaga y solo cambia la pose.
   function mascotReact(img, cls){
     if(!img) return;
-    img.classList.remove('mHop','mCheer','mSad','mWave');
+    img.classList.remove('mHop','mCheer','mSad','mWave','mTilt');
     void img.offsetWidth; // reinicia la animación aunque sea la misma
     img.classList.add(cls);
   }
   document.addEventListener('animationend', ev=>{
-    if(/^m(Hop|Cheer|Sad|Wave)$/.test(ev.animationName)) ev.target.classList.remove(ev.animationName);
+    if(/^m(Hop|Cheer|Sad|Wave|Tilt)$/.test(ev.animationName)) ev.target.classList.remove(ev.animationName);
   });
   let lastHomeMk = null; // último estado de la mascota de Inicio (para reaccionar solo al cambiar)
   // tocar la mascota: salta y pone cara de cariño; 5 toques seguidos (en 3 s) = mareada
@@ -125,6 +125,35 @@
     const i = document.getElementById(id);
     i.addEventListener('click', ()=>mascotTap(i));
   });
+  // Gestos espontáneos de la mascota de Inicio cada 8 a 10 s: saltito, inclinación o cambio breve de pose.
+  // Solo si Inicio está en pantalla y la app visible (si se oculta, el temporizador se detiene), sin otra capa
+  // encima ni otra reacción en curso, y nunca con "reducir movimiento". Durmiendo no se mueve; triste solo se inclina.
+  const GESTURE_POSES = ['aprobacion', 'emocionado', 'tu_puedes', 'carino'];
+  let gestureTimer = 0;
+  function scheduleGesture(){
+    clearTimeout(gestureTimer);
+    if(document.visibilityState === 'hidden') return;
+    gestureTimer = setTimeout(()=>{ mascotGesture(); scheduleGesture(); }, 8000 + Math.random() * 2000);
+  }
+  function mascotGesture(){
+    const hm = document.getElementById('homeMascot');
+    if(reducedMotion() || document.visibilityState === 'hidden') return;
+    if(!document.getElementById('tab-home').classList.contains('active')) return;
+    if(document.querySelector('#summaryOverlay.show, #achOverlay.show, #welcome.show, #bigMap.show, #editSheet.show, #plusSheet.show, .celebrate')) return;
+    if(hm.dataset.base || /\bm(Hop|Cheer|Sad|Wave|Tilt)\b/.test(hm.className)) return; // ya está reaccionando
+    if(lastHomeMk === 'descanso') return;
+    const g = lastHomeMk === 'rota' ? 1 : Math.floor(Math.random() * 3);
+    if(g === 0){ mascotReact(hm, 'mHop'); return; }
+    if(g === 1){ mascotReact(hm, 'mTilt'); return; }
+    // cambio breve de pose (vuelve a la de siempre en 1,5 s)
+    const now = hm.getAttribute('src'), opts = GESTURE_POSES.map(poseSrc).filter(x=>x !== now);
+    hm.dataset.base = now;
+    hm.src = opts[Math.floor(Math.random() * opts.length)];
+    clearTimeout(hm._back);
+    hm._back = setTimeout(()=>{ hm.src = hm.dataset.base; delete hm.dataset.base; }, 1500);
+  }
+  document.addEventListener('visibilitychange', scheduleGesture);
+  scheduleGesture();
 
   // ---------- TIPOS DE ACTIVIDAD ----------
   // k = valor guardado en history[].type (sin type = 'correr'). met = gasto [baja, media, alta].

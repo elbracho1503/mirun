@@ -30,7 +30,11 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
   (y sus archivos a `FILES_TO_CACHE`). Si le falta una pose, se usa la de Monster. Aún no hay selector.
 - `MASCOT` dice qué **pose** va en cada momento (por nombre, vale para cualquier personaje).
 - Movimiento solo con CSS `transform` (bloque `MASCOTA: movimiento` en `css/app.css`):
-  - Reposo: respira suave (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).
+  - Reposo: flota suave 8 px en 5 s (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).
+  - Gestos espontáneos en Inicio cada 8 a 10 s (`mascotGesture`): saltito (`mHop`), inclinación (`mTilt`) o cambio de
+    pose por 1,5 s (Aprobación, Emocionado, Tú puedes o Cariño). Se pausan con la app oculta (`visibilitychange`), fuera de
+    Inicio, con otra capa encima o con "reducir movimiento". Durmiendo no se mueve; triste solo se inclina.
+  - Al tocarla: salto marcado de 30 px (`mHop`, 0,7 s).
   - Reacciones de una vez (`mascotReact`): `mCheer` (logro nuevo y meta del día cumplida), `mSad` (racha
     rota), `mWave` (saluda en la bienvenida), `mHop` (al tocarla). 5 toques en 3 s: pose "frustrado".
   - Con "reducir movimiento" del teléfono (`prefers-reduced-motion`) no se mueve; solo cambia la pose.

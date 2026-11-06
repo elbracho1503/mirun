@@ -408,19 +408,22 @@
   .mascotSide{float:right;width:80px;height:80px;margin:-38px -4px 0 0;}
 
   /* ==== MASCOTA: movimiento (solo transform: lo hace la tarjeta gráfica, gasta poco; ver mascotReact en app.js) ==== */
-  /* reposo: respira suave (solo la mascota grande de Inicio y la del aviso de logro) */
-  .mIdle{animation:mBreathe 4.5s ease-in-out infinite;transform-origin:50% 100%;}
+  /* reposo: flota suave (solo la mascota grande de Inicio y la del aviso de logro); lento para no marear */
+  .mIdle{animation:mBreathe 5s ease-in-out infinite;transform-origin:50% 100%;}
   .mIdle.mSadIdle{animation:mBreatheSad 7s ease-in-out infinite;}
   #homeMascot{cursor:pointer;-webkit-tap-highlight-color:transparent;}
   /* reacciones de una sola vez (al terminar vuelve al reposo) */
-  .mHop,.mIdle.mHop{animation:mHop .55s ease-out 1;transform-origin:50% 100%;}
+  .mHop,.mIdle.mHop{animation:mHop .7s ease-out 1;transform-origin:50% 100%;}
+  .mTilt,.mIdle.mTilt{animation:mTilt 1.1s ease-in-out 1;transform-origin:50% 100%;}
   .mCheer,.mIdle.mCheer{animation:mCheer 1.2s ease-in-out 1;transform-origin:50% 100%;}
   .mSad,.mIdle.mSad{animation:mSad 1.4s ease-out 1;transform-origin:50% 100%;}
   .mWave{animation:mWave 1.2s ease-in-out .3s 2;transform-origin:50% 100%;}
-  @keyframes mBreathe{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-3px) scale(1.02);}}
+  @keyframes mBreathe{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-8px) scale(1.015);}}
   @keyframes mBreatheSad{0%,100%{transform:translateY(3px) rotate(-3deg) scale(.98);}50%{transform:translateY(2px) rotate(-2deg) scale(.99);}}
-  @keyframes mHop{0%{transform:translateY(0) scale(1);}35%{transform:translateY(-14px) scale(1.03,.97);}
-    65%{transform:translateY(0) scale(1.04,.95);}100%{transform:translateY(0) scale(1);}}
+  @keyframes mHop{0%{transform:translateY(0) scale(1);}12%{transform:translateY(2px) scale(1.06,.92);}
+    40%{transform:translateY(-30px) scale(.96,1.05);}65%{transform:translateY(0) scale(1.08,.9);}
+    82%{transform:translateY(-6px) scale(1);}100%{transform:translateY(0) scale(1);}}
+  @keyframes mTilt{0%,100%{transform:rotate(0);}30%{transform:rotate(-9deg);}65%{transform:rotate(7deg);}}
   @keyframes mCheer{0%,100%{transform:translateY(0) rotate(0);}20%{transform:translateY(-18px) rotate(-6deg);}
     40%{transform:translateY(0) rotate(0);}60%{transform:translateY(-12px) rotate(6deg);}80%{transform:translateY(0) rotate(0);}}
   @keyframes mSad{0%{transform:translateY(0) rotate(0) scale(1);}45%{transform:translateY(6px) rotate(-5deg) scale(.95);}
@@ -440,7 +443,7 @@
     85%{opacity:1;transform:translateX(-50%) scale(1);}100%{opacity:0;transform:translateX(-50%) scale(1);}}
   /* "reducir movimiento" del teléfono: sin animaciones (la pose sí cambia) */
   @media (prefers-reduced-motion: reduce){
-    .mIdle,.mIdle.mSadIdle,.mHop,.mCheer,.mSad,.mWave{animation:none !important;}
+    .mIdle,.mIdle.mSadIdle,.mHop,.mCheer,.mSad,.mWave,.mTilt{animation:none !important;}
     .celebCard,.celebrate i{animation:none !important;}
   }
 
