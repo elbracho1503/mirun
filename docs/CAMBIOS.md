@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/celebracion`, T2: celebración al cumplir la meta del día (una vez por día, `mirun_celebrated`): sonido Web Audio, vibración, confeti CSS y mascota; `profile.sounds` ("Sonidos" en Perfil, copia e importación); reducir movimiento sin confeti | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~35k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, T1: mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; calles con Leaflet; línea en canvas propio con pellizco, arrastre, rueda, doble toque, + − y escala; sin internet pasa a línea). Solo lee la ruta | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~35k tokens |
 | 2026-11-06 | Rama `prueba/mascota`: poses intercambiadas en MASCOT (racha rota = Cansado, 5 toques = Frustrado). Unida a main y publicada (caché v22) | `js/app.js`, `docs/*` | ~5k tokens |
 | 2026-11-06 | Rama `prueba/mascota`: caché v21 → v22 (una sola vez, por la mascota y el calendario) | `sw.js` | ~1k tokens |

@@ -426,9 +426,22 @@
   @keyframes mSad{0%{transform:translateY(0) rotate(0) scale(1);}45%{transform:translateY(6px) rotate(-5deg) scale(.95);}
     100%{transform:translateY(3px) rotate(-3deg) scale(.98);}}
   @keyframes mWave{0%,100%{transform:rotate(0);}25%{transform:rotate(-4deg);}75%{transform:rotate(4deg);}}
+  /* ==== CELEBRACIÓN: meta del día cumplida (confeti y tarjeta; solo transform y opacity, se borra sola) ==== */
+  .celebrate{position:fixed;inset:0;z-index:140;pointer-events:none;overflow:hidden;}
+  .celebrate i{position:absolute;top:-18px;width:8px;height:14px;border-radius:2px;animation:confFall linear 1 both;}
+  @keyframes confFall{from{transform:translate(0,0) rotate(0);}to{transform:translate(var(--dx),105vh) rotate(var(--r));}}
+  .celebCard{position:absolute;left:50%;top:20%;transform:translateX(-50%);min-width:220px;text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 22px 18px;border-radius:22px;
+    background:var(--track);border:1px solid var(--gold);box-shadow:0 18px 40px rgba(0,0,0,.5);animation:celebIn 3.3s ease both;}
+  .celebCard img{width:104px;height:104px;transform-origin:50% 100%;}
+  .celebCard b{font-size:18px;color:var(--gold);}
+  .celebCard small{font-size:13px;color:var(--sub);}
+  @keyframes celebIn{0%{opacity:0;transform:translateX(-50%) scale(.85);}10%{opacity:1;transform:translateX(-50%) scale(1);}
+    85%{opacity:1;transform:translateX(-50%) scale(1);}100%{opacity:0;transform:translateX(-50%) scale(1);}}
   /* "reducir movimiento" del teléfono: sin animaciones (la pose sí cambia) */
   @media (prefers-reduced-motion: reduce){
     .mIdle,.mIdle.mSadIdle,.mHop,.mCheer,.mSad,.mWave{animation:none !important;}
+    .celebCard,.celebrate i{animation:none !important;}
   }
 
   /* ==== FOTO DE PERFIL (avatar en la cabecera y en Perfil) ==== */

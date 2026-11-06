@@ -78,6 +78,7 @@
     vacio:      'asomado',     // listas vacías
     cuerpo:     'estudiando',  // IMC y medidas
     error:      'pensando',    // error en un formulario
+    meta:       'celebrando',  // celebración al cumplir la meta del día
     toque:      'carino',      // al tocar la mascota
     mareado:    'frustrado'    // al tocarla muchas veces seguidas
   };
@@ -234,6 +235,7 @@
   const GOAL_TYPES = ['salud','bajar','musculo','mantener','resistencia'];
   const LEVEL_WEEK = {sedentario:90, ligero:150, moderado:200, activo:250, muy:300};
   if(profile.voice === undefined) profile.voice = true; // voz activada por defecto
+  if(profile.sounds === undefined) profile.sounds = true; // sonidos de celebración encendidos por defecto
   if(profile.mapMode !== 'linea') profile.mapMode = 'calles'; // calles por defecto
 
   // llena el formulario con el perfil guardado (al abrir y después de recuperar una copia)
@@ -248,6 +250,7 @@
     set('profGoalType', profile.goalType || 'salud');
     set('profLevel', profile.level || 'ligero');
     set('profVoice', profile.voice ? '1' : '0');
+    set('profSounds', profile.sounds === false ? '0' : '1');
     set('profMap', profile.mapMode);
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
@@ -324,6 +327,7 @@
       goalType: document.getElementById('profGoalType').value,
       level: document.getElementById('profLevel').value,
       voice: document.getElementById('profVoice').value === '1',
+      sounds: document.getElementById('profSounds').value === '1',
       mapMode: document.getElementById('profMap').value
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
@@ -1991,6 +1995,62 @@
     renderHistory(); checkAchievements();
   });
 
+  // ---------- CELEBRACIÓN (meta del día cumplida) ----------
+  // Se celebra SOLO cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una
+  // actividad (lo llama checkAchievements), y una sola vez por día: mirun_celebrated = 'AAAA-MM-DD' del último
+  // día celebrado. Al abrir la app o importar una copia no se celebra (checkAchievements(true)).
+  // Sonido corto con Web Audio (sin archivos; se apaga con "Sonidos" en Perfil), vibración suave,
+  // confeti con CSS y la mascota celebrando. Con "reducir movimiento": sin confeti ni animación, con sonido y vibración.
+  let celebBase = null; // {day, done}: cómo estaba la meta de hoy la última vez que se revisó
+  function todayGoalDone(){ const t = new Date(); t.setHours(12,0,0,0); return dayStatus(minutesByDay(), t) === 'done'; }
+  function maybeCelebrate(silent){
+    const day = todayStr(), done = todayGoalDone();
+    // primera revisión (al abrir) = lo que ya había; si cambió el día, el día nuevo empezó sin cumplir
+    const was = celebBase ? (celebBase.day === day ? celebBase.done : false) : done;
+    celebBase = {day, done};
+    if(silent || was || !done || LS.get('mirun_celebrated', null) === day) return;
+    LS.set('mirun_celebrated', day);
+    celebrate();
+  }
+  let audioCtx = null;
+  function playCheer(){ // do-mi-sol-do (C5 E5 G5 C6), notas cortas con caída suave, unos 0,7 s
+    if(profile.sounds === false) return;
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+      audioCtx = audioCtx || new AC();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const t0 = audioCtx.currentTime + 0.03;
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i)=>{
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        const t = t0 + i * 0.09, len = i === 3 ? 0.45 : 0.16;
+        o.type = 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t); o.stop(t + len + 0.05);
+      });
+    }catch(e){}
+  }
+  function reducedMotion(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function celebrate(){
+    playCheer();
+    try{ if(navigator.vibrate) navigator.vibrate([40, 60, 40]); }catch(e){}
+    // capa encima de todo que no bloquea los toques y se borra sola
+    const layer = document.createElement('div');
+    layer.className = 'celebrate'; layer.setAttribute('role', 'status');
+    const colors = ['#4d9bff', '#f5b82e', '#34d399', '#ff7a59', '#c084fc', '#eef3ff'];
+    const conf = reducedMotion() ? '' : Array.from({length:36}, (_, i)=>
+      `<i style="left:${(Math.random()*100).toFixed(1)}%;background:${colors[i % colors.length]};` +
+      `animation-delay:${(Math.random()*0.5).toFixed(2)}s;animation-duration:${(1.8 + Math.random()*1.2).toFixed(2)}s;` +
+      `--dx:${Math.round(Math.random()*80 - 40)}px;--r:${Math.round(Math.random()*720 - 360)}deg"></i>`).join('');
+    const st = streakInfo(minutesByDay()).cur;
+    layer.innerHTML = conf + `<div class="celebCard"><img class="mCheer" src="${mascot('meta')}" alt="">` +
+      `<b>¡Meta de hoy cumplida!</b><small>Racha: ${st} ${st === 1 ? 'día' : 'días'}</small></div>`;
+    document.body.appendChild(layer);
+    setTimeout(()=>layer.remove(), 3400);
+  }
+
   // ---------- LOGROS ----------
   // Se calculan desde el historial; solo se guarda cuáles ya se mostraron (mirun_achSeen).
   // v(s) = valor actual, g = meta, c = categoría (ACH_CATS), leg = legendario (insignia dorada especial).
@@ -2059,6 +2119,7 @@
   // (primera vez con esta versión o al recuperar una copia, para no llenar de avisos).
   let achQueue = [];
   function checkAchievements(silent){
+    maybeCelebrate(silent); // meta del día recién cumplida (ver CELEBRACIÓN)
     const s = achStats();
     const seen = LS.get('mirun_achSeen', null);
     const unlocked = ACH.filter(a=>a.v(s) >= a.g).map(a=>a.id);
@@ -2270,6 +2331,7 @@
           if(p.level in LEVEL_WEEK) ok.level = p.level;
           if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
           if(typeof p.voice === 'boolean') ok.voice = p.voice;
+          if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
           if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)
           take(profile, ok); LS.set('mirun_profile', profile);

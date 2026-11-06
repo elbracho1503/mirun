@@ -38,3 +38,12 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
   de 60 min o más), Frustrado (reacción a 5 toques seguidos). La racha rota sigue con Cansado
   (decisión del usuario, 2026-11-06: Frustrado se ve enojado, no triste).
 
+## Celebración de la meta del día (2026-11-06)
+- Solo cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una actividad, y una vez
+  por día (`mirun_celebrated`). Al abrir la app o importar una copia no se celebra.
+- Sonido: arpegio do-mi-sol-do con Web Audio (sin archivos), unos 0,7 s, volumen moderado. Se apaga con
+  "Sonidos" en Perfil (`profile.sounds`). Vibración suave `[40, 60, 40]` siempre.
+- Capa `.celebrate` encima de todo, sin bloquear toques, que se borra sola a los 3,4 s: 36 papelitos de confeti
+  (solo transform) y una tarjeta con la mascota "celebrando", "¡Meta de hoy cumplida!" y la racha.
+- "Reducir movimiento": sin confeti ni animación (la tarjeta aparece quieta), con sonido y vibración.
+
