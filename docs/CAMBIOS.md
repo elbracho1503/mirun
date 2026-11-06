@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/mascota`, T2: calendario de Inicio con meses anteriores (‹ ›, hasta el mes de la primera actividad; resumen de días cumplidos y minutos). Solo lee datos | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-06 | Rama `prueba/mascota`, T1: mascota con movimiento solo CSS (respira, celebra, triste, saluda, reacciona al toque; respeta reducir movimiento), poses Decidido/Agotado/Frustrado en uso, lista de personajes `CHARACTERS` (Monster por defecto). 3 poses nuevas en `FILES_TO_CACHE` | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~30k tokens |
 | 2026-11-05 | appId de la app nativa decidido: `mirun.app.desafio` (NATIVA.md sección 1 paso 5, DECISIONES.md) | `docs/*` | ~2k tokens |
 | 2026-11-05 | NATIVA.md: 5b, marcas de relojes a verificar una por una (Garmin no envía todo a Health Connect); N3 con requisito previo de política de privacidad (Ley 1581 de 2012) y su riesgo | `docs/*` | ~3k tokens |

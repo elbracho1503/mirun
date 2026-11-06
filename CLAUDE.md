@@ -78,7 +78,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Carrera en curso / iniciar / terminar | `// ---------- CARRERA EN CURSO` |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
-| Racha, minutos por día, Inicio, registrar actividad | `// ---------- RACHA Y REGISTRO` |
+| Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
 | Logros (`ACH`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |

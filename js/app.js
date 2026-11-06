@@ -1735,6 +1735,51 @@
     bar.classList.toggle('full', val >= goalVal);
   }
 
+  // Calendario de Inicio (solo lee datos): las últimas 4 semanas, o un mes completo con ‹ y ›.
+  // ‹ desde "Últimas 4 semanas" va al mes actual y sigue hacia atrás hasta el mes de la primera actividad;
+  // › desde el mes actual vuelve a las 4 semanas.
+  let calMonth = null, calMins = null; // calMonth null = últimas 4 semanas; si no, n° de mes (año*12 + mes)
+  function monthIdx(d){ return d.getFullYear() * 12 + d.getMonth(); }
+  function renderCal(mins){
+    if(mins) calMins = mins; else mins = calMins || minutesByDay();
+    const today = new Date(); today.setHours(12,0,0,0);
+    const tk = dayKey(today), nowIdx = monthIdx(today);
+    const firstIdx = history.length ? Math.min(nowIdx, monthIdx(new Date(history.map(h=>h.date).sort()[0]))) : nowIdx;
+    let start, n, lead = 0, title;
+    if(calMonth === null){
+      start = mondayOf(today); start.setDate(start.getDate() - 21); n = 28; title = 'Últimas 4 semanas';
+    } else {
+      start = new Date(Math.floor(calMonth / 12), calMonth % 12, 1, 12);
+      n = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+      lead = (start.getDay() + 6) % 7; // huecos antes del día 1 (la semana empieza el lunes)
+      title = start.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+      title = title.charAt(0).toUpperCase() + title.slice(1);
+    }
+    let html = ['L','M','X','J','V','S','D'].map(x=>`<div class="h">${x}</div>`).join('') + '<div class="d blank"></div>'.repeat(lead);
+    let done = 0, min = 0;
+    for(let i=0; i<n; i++){
+      const d = new Date(start); d.setDate(start.getDate()+i);
+      const s = d > today ? 'future' : dayStatus(mins, d);
+      if(s === 'done') done++;
+      if(d <= today) min += mins.get(dayKey(d)) || 0;
+      html += `<div class="d ${s}${dayKey(d) === tk ? ' today' : ''}">${d.getDate()}</div>`;
+    }
+    document.getElementById('calGrid').innerHTML = html;
+    document.getElementById('calTitle').textContent = title;
+    document.getElementById('calSum').textContent = calMonth === null ? '' :
+      done + (done === 1 ? ' día cumplido' : ' días cumplidos') + ' · ' + Math.round(min) + ' min de actividad';
+    document.getElementById('calPrev').style.visibility = calMonth === null || calMonth > firstIdx ? '' : 'hidden';
+    document.getElementById('calNext').style.visibility = calMonth === null ? 'hidden' : '';
+  }
+  document.getElementById('calPrev').addEventListener('click', ()=>{
+    const nowIdx = monthIdx(new Date());
+    const firstIdx = history.length ? Math.min(nowIdx, monthIdx(new Date(history.map(h=>h.date).sort()[0]))) : nowIdx;
+    calMonth = calMonth === null ? nowIdx : Math.max(firstIdx, calMonth - 1); renderCal();
+  });
+  document.getElementById('calNext').addEventListener('click', ()=>{
+    calMonth = calMonth === null || calMonth >= monthIdx(new Date()) ? null : calMonth + 1;
+    renderCal();
+  });
   function renderHome(){
     const mins = minutesByDay(), st = streakInfo(mins);
     document.getElementById('streakVal').textContent = st.cur;
@@ -1768,15 +1813,7 @@
       lastHomeMk = mk;
     }
     document.getElementById('homeMsg').textContent = msg;
-    // calendario: las últimas 4 semanas (lunes a domingo)
-    const start = new Date(monday); start.setDate(monday.getDate() - 21);
-    let html = ['L','M','X','J','V','S','D'].map(x=>`<div class="h">${x}</div>`).join('');
-    for(let i=0; i<28; i++){
-      const d = new Date(start); d.setDate(start.getDate()+i);
-      const s = d > today ? 'future' : dayStatus(mins, d);
-      html += `<div class="d ${s}${dayKey(d) === tk ? ' today' : ''}">${d.getDate()}</div>`;
-    }
-    document.getElementById('calGrid').innerHTML = html;
+    renderCal(mins);
     const todays = history.filter(h=>dayKey(new Date(actRange(h)[0])) === tk);
     document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
       const a = actInfo(h.type);
