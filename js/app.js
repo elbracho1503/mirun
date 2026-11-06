@@ -235,7 +235,7 @@
   const GOAL_TYPES = ['salud','bajar','musculo','mantener','resistencia'];
   const LEVEL_WEEK = {sedentario:90, ligero:150, moderado:200, activo:250, muy:300};
   if(profile.voice === undefined) profile.voice = true; // voz activada por defecto
-  if(profile.sounds === undefined) profile.sounds = true; // sonidos de celebración encendidos por defecto
+  if(profile.sounds === undefined) profile.sounds = true; // "Sonidos y vibración" de la celebración: encendidos por defecto
   if(profile.mapMode !== 'linea') profile.mapMode = 'calles'; // calles por defecto
 
   // llena el formulario con el perfil guardado (al abrir y después de recuperar una copia)
@@ -2008,7 +2008,7 @@
   // Se celebra SOLO cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una
   // actividad (lo llama checkAchievements), y una sola vez por día: mirun_celebrated = 'AAAA-MM-DD' del último
   // día celebrado. Al abrir la app o importar una copia no se celebra (checkAchievements(true)).
-  // Sonido corto con Web Audio (sin archivos; se apaga con "Sonidos" en Perfil), vibración suave,
+  // Sonido corto con Web Audio (sin archivos) y vibración suave: los dos se apagan con "Sonidos y vibración" en Perfil,
   // confeti con CSS y la mascota celebrando. Con "reducir movimiento": sin confeti ni animación, con sonido y vibración.
   let celebBase = null; // {day, done}: cómo estaba la meta de hoy la última vez que se revisó
   let celebUntil = 0;   // hora en que termina la celebración en pantalla (el aviso de logro espera hasta entonces)
@@ -2046,7 +2046,7 @@
   function reducedMotion(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
   function celebrate(){
     playCheer();
-    try{ if(navigator.vibrate) navigator.vibrate([40, 60, 40]); }catch(e){}
+    if(profile.sounds !== false){ try{ if(navigator.vibrate) navigator.vibrate([40, 60, 40]); }catch(e){} }
     // capa encima de todo que no bloquea los toques y se borra sola
     const layer = document.createElement('div');
     layer.className = 'celebrate'; layer.setAttribute('role', 'status');
