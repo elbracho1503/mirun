@@ -28,14 +28,15 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
 | 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %). Si el cambio pasa de +200 % se muestra "antes N min / N km" (`EVO_MAX_PCT`) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 10 | Editar actividades, con Deshacer | ✅ 2026-11-04 (rama) |
-| 11 | Calendario completo ("Ver todo": meses anteriores) | ⬜ |
+| 11 | Calendario completo: ‹ › entre "Últimas 4 semanas" y cada mes hasta el de la primera actividad, con días cumplidos y minutos del mes (`renderCal`, solo lee datos) | ✅ 2026-11-06 (rama `prueba/mascota`) |
 | 12 | Silueta del cuerpo con medidas encima (masculina, femenina o neutra según el perfil) | ✅ 2026-11-03 |
 | 12b | Líneas finas de cada etiqueta al punto del cuerpo en las 3 figuras (`BODY_PTS`, `drawBodyLines`) | ✅ 2026-11-05 |
-| 13 | Usar poses sin uso: Decidido, Agotado, Frustrado | ⬜ |
+| 13 | Usar poses sin uso: Decidido, Agotado, Frustrado. Más mascota con movimiento (CSS) y lista de personajes (`CHARACTERS`) | ✅ 2026-11-06 (rama `prueba/mascota`) |
 | 14 | Pasos estimados en actividades GPS (distancia ÷ largo de paso según estatura), mostrados como aproximados (≈) | ✅ 2026-11-04 |
 | 15 | Pulido de diseño con Impeccable (modo revisión) antes de Play Store | ⬜ |
 | 16 | Pantalla de bienvenida solo la primera vez y sin datos guardados (`#welcome`, `mirun_welcomed`): nombre, unidades, sexo, estatura y peso opcionales; Empezar / Saltar | ✅ 2026-11-05 |
 | 16b | Si el usuario no elige sexo, usar neutro (x) en vez de masculino por defecto (solo perfiles nuevos) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
+| 17 | Selector de personaje: el usuario elige su mascota; Monster es el principal. Personajes nuevos listos: versión morada y versión naranja (faltan las imágenes en alta resolución con fondo transparente). Base lista: `CHARACTERS` en la sección MASCOTA | ⬜ |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial

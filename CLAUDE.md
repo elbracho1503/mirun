@@ -59,7 +59,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Formulario de actividad (HTML) | `id="actForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
-| Mascota: qué pose va en cada momento (`MASCOT`, `mascotMsg`) | `// ---------- MASCOTA` (CSS: `MASCOTA MIRUN Monster`) |
+| Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`) | `// ---------- MASCOTA` (CSS: `MASCOTA MIRUN Monster` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
 | Perfil: saludo, foto (`mirun_photo`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
@@ -78,7 +78,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Carrera en curso / iniciar / terminar | `// ---------- CARRERA EN CURSO` |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
-| Racha, minutos por día, Inicio, registrar actividad | `// ---------- RACHA Y REGISTRO` |
+| Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
 | Logros (`ACH`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |

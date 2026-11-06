@@ -1,7 +1,7 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
 // IMPORTANTE: si se cambia mirun.html, css/app.css o js/app.js, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v21';
+const CACHE_NAME = 'mirun-cache-v22';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -23,10 +23,13 @@ const FILES_TO_CACHE = [
   './img/mascota/02_pesas.png',
   './img/mascota/03_corriendo.png',
   './img/mascota/04_carino.png',
+  './img/mascota/05_decidido.png',
   './img/mascota/06_pensando.png',
   './img/mascota/07_emocionado.png',
+  './img/mascota/08_agotado.png',
   './img/mascota/09_celebrando.png',
   './img/mascota/10_cansado.png',
+  './img/mascota/11_frustrado.png',
   './img/mascota/12_estudiando.png',
   './img/mascota/13_tu_puedes.png',
   './img/mascota/14_durmiendo.png',
