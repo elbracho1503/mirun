@@ -58,3 +58,4 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
   todo vuelve.
 - **Inicio**: "+ Registrar actividad" y "Salir con GPS" van arriba, después de Hoy/Esta semana y antes del calendario.
 - **Bienvenida**: "Empezar" es el botón principal (a lo ancho); "Saltar por ahora" es un enlace discreto debajo.
+- **Evolución > Cuerpo**: orden "Tu progreso" → "Registrar medición" → IMC → silueta → gráfico → medidas a seguir → guardadas.

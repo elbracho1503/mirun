@@ -282,6 +282,21 @@
       </div>
     </div>
     <div id="evoBody" style="display:none;">
+    <!-- primero lo que la persona sigue y el formulario para registrar; después IMC, silueta y gráfico -->
+    <div class="panel">
+      <h3>Tu progreso</h3>
+      <div id="bodyProg"></div>
+    </div>
+    <div class="panel" id="bodyFormPanel">
+      <h3>Registrar medición</h3>
+      <div class="hint">Llena solo lo que midas. Si ya hay una medición ese día, se actualiza.</div>
+      <label>Fecha</label>
+      <input type="date" id="bodyDate">
+      <!-- campos generados desde MEASURES según las medidas que la persona sigue -->
+      <div id="bodyInputs"></div>
+      <div class="hint" style="margin-top:10px;">Mide relajado, de pie y sin apretar la cinta. Mejor en la mañana, siempre a la misma hora.</div>
+      <div class="btnRow" style="margin-top:14px;"><button class="btn btn-start" id="btnSaveBody">Guardar medición</button></div>
+    </div>
     <div class="panel" id="bmiPanel">
       <h3>Tu IMC</h3>
       <div id="bmiBox"></div>
@@ -292,24 +307,10 @@
       <div class="bodyFig"><img id="bodyFigImg" alt=""><svg id="bodyFigLines" aria-hidden="true"></svg><div id="bodyFigLbls"></div></div>
       <div class="hint" id="bodyFigHint" style="text-align:center;margin-top:8px;"></div>
     </div>
-    <div class="panel">
-      <h3>Tu progreso</h3>
-      <div id="bodyProg"></div>
-    </div>
     <div class="panel" id="bodyChartPanel">
       <h3>Cómo vas con el tiempo</h3>
       <select id="bodyChartSel"></select>
       <canvas id="bodyChart"></canvas>
-    </div>
-    <div class="panel">
-      <h3>Nueva medición</h3>
-      <div class="hint">Llena solo lo que midas. Si ya hay una medición ese día, se actualiza.</div>
-      <label>Fecha</label>
-      <input type="date" id="bodyDate">
-      <!-- campos generados desde MEASURES según las medidas que la persona sigue -->
-      <div id="bodyInputs"></div>
-      <div class="hint" style="margin-top:10px;">Mide relajado, de pie y sin apretar la cinta. Mejor en la mañana, siempre a la misma hora.</div>
-      <div class="btnRow" style="margin-top:14px;"><button class="btn btn-start" id="btnSaveBody">Guardar medición</button></div>
     </div>
     <div class="panel">
       <h3>¿Qué medidas quieres seguir?</h3>
