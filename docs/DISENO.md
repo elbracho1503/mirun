@@ -52,3 +52,8 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - "Reducir movimiento": sin confeti ni animación (la tarjeta aparece quieta), con sonido y vibración.
 - Si a la vez se gana un logro, el aviso "¡Nuevo logro!" espera a que termine la celebración (3,4 s).
 
+## Pantallas: ajustes de diseño (2026-11-08, rama `prueba/diseno`)
+- **GPS en curso** (`body.gpsOn`): sin menú inferior, sin "+", sin saludo ni botón de perfil. Pausar/Reanudar
+  grande y principal, fijo abajo; debajo, más chicos, "Bloquear pantalla" y "Terminar" (contorno rojo). Al terminar
+  todo vuelve.
+

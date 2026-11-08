@@ -1679,6 +1679,7 @@
     document.getElementById('btnStart').style.display='none';
     document.getElementById('resumeBox').style.display='none';
     document.getElementById('activeBtns').style.display='flex';
+    document.body.classList.add('gpsOn'); // registrando con GPS: sin menú ni saludo, botones fijos abajo (CSS GPS EN CURSO)
     document.getElementById('btnPause').textContent = paused ? 'Reanudar' : 'Pausar';
     clearInterval(timerInterval);
     timerInterval = setInterval(updateDisplay, 1000);
@@ -1769,6 +1770,7 @@
     document.getElementById('gpsTypeRow').style.display = 'flex';
     document.getElementById('btnStart').style.display='block';
     document.getElementById('activeBtns').style.display='none';
+    document.body.classList.remove('gpsOn'); // vuelve el menú, el + y el saludo
     document.getElementById('btnPause').textContent='Pausar';
     paused = false;
 

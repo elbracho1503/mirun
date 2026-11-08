@@ -76,7 +76,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Evolución: vistas Actividad / Cuerpo, períodos, gráficos y comparación (`renderEvo`) | `// ---------- EVOLUCIÓN` (HTML: `id="evoTabs"`, CSS: `EVOLUCIÓN`) |
 | GPS, tiempo, calorías, splits | `// ---------- RUN LOGIC` |
 | Voz | `// ---------- AVISO POR VOZ` |
-| Carrera en curso / iniciar / terminar | `// ---------- CARRERA EN CURSO` |
+| Carrera en curso / iniciar / terminar (`body.gpsOn` mientras se registra) | `// ---------- CARRERA EN CURSO` (CSS: `GPS EN CURSO`) |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
 | Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |

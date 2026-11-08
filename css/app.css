@@ -458,6 +458,22 @@
   /* ==== MODO BOLSILLO (bloqueo de toques durante el GPS) ==== */
   #activeBtns{flex-wrap:wrap;}
   .lockBtn{flex-basis:100%;padding:14px;font-size:14px;}
+
+  /* ==== GPS EN CURSO (body.gpsOn, lo ponen beginRun y finishRun) ====
+     Sin menú inferior, sin "+", sin saludo ni botón de perfil (sin menú no habría cómo volver).
+     Pausar grande y principal; Bloquear y Terminar más chicos debajo; todo fijo abajo respetando el borde. */
+  body.gpsOn nav, body.gpsOn header .brand, body.gpsOn .hdrBtn{display:none;}
+  body.gpsOn header{justify-content:flex-end;}
+  body.gpsOn #tab-run{padding-bottom:calc(170px + env(safe-area-inset-bottom));}
+  body.gpsOn #activeBtns{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;z-index:45;
+    display:grid !important;grid-template-columns:1fr 1fr;gap:10px;
+    padding:18px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,var(--bg) 78%,rgba(5,9,22,0));}
+  body.gpsOn #btnPause{grid-column:1 / -1;order:1;padding:22px;font-size:19px;font-weight:700;
+    background:var(--signal);color:var(--signal-ink);border:none;}
+  body.gpsOn .lockBtn{order:2;padding:12px 8px;font-size:13px;line-height:1.25;}
+  body.gpsOn #btnStop{order:3;padding:12px 8px;font-size:14px;background:transparent;
+    color:var(--danger);border:1px solid rgba(255,107,107,.45);}
   #lockOverlay{position:fixed;inset:0;z-index:120;display:none;align-items:flex-end;justify-content:center;
     background:rgba(3,7,18,.25);touch-action:none;user-select:none;-webkit-user-select:none;}
   #lockOverlay.show{display:flex;}
