@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-08 | Rama `prueba/diseno`, T2: Inicio, "+ Registrar actividad" y "Salir con GPS" arriba, antes del calendario | `mirun.html`, `css/app.css`, `docs/*` | ~3k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, T1 (error): con GPS en curso se ocultan el menú, el "+", el saludo y el perfil; Pausar grande y Terminar discreto fijos abajo (`body.gpsOn`) | `js/app.js`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`: caché v23 → v24 (una sola vez, por los ajustes 1–5) | `sw.js` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 5: mascota más viva (flota 8 px, gestos espontáneos cada 8–10 s en Inicio con `mTilt` nuevo, salto marcado al tocarla; se pausa con la app oculta y nada con reducir movimiento) | `js/app.js`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |

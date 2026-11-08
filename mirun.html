@@ -64,6 +64,13 @@
       <div class="gc"><div class="gt">Esta semana</div><div class="gv num" id="weekMin">0</div>
         <div class="gu" id="weekGoal">de 150 min</div><div class="pbar"><div id="weekBar"></div></div></div>
     </div>
+    <!-- registrar actividad e iniciar GPS: arriba, antes del calendario -->
+    <div class="btnRow homeActions">
+      <button class="btn btn-start" data-goto="actForm">+ Registrar actividad</button>
+    </div>
+    <div class="btnRow" style="margin-top:10px;">
+      <button class="btn btn-ghost" data-goto="run">Salir con GPS (correr, caminar, bici)</button>
+    </div>
     <div class="panel">
       <h3>Calendario de actividad <button class="linkBtn" data-goto="goal" style="float:right;">Metas y descanso</button></h3>
       <div class="calNav"><button class="linkBtn calArrow" id="calPrev" aria-label="Mes anterior">‹</button><b id="calTitle">Últimas 4 semanas</b><button class="linkBtn calArrow" id="calNext" aria-label="Mes siguiente">›</button></div>
@@ -74,12 +81,6 @@
     <div class="panel">
       <h3>Tu actividad de hoy</h3>
       <div id="todayList"></div>
-    </div>
-    <div class="btnRow">
-      <button class="btn btn-start" data-goto="actForm">+ Registrar actividad</button>
-    </div>
-    <div class="btnRow" style="margin-top:10px;">
-      <button class="btn btn-ghost" data-goto="run">Salir con GPS (correr, caminar, bici)</button>
     </div>
   </div>
 

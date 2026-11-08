@@ -56,4 +56,4 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - **GPS en curso** (`body.gpsOn`): sin menú inferior, sin "+", sin saludo ni botón de perfil. Pausar/Reanudar
   grande y principal, fijo abajo; debajo, más chicos, "Bloquear pantalla" y "Terminar" (contorno rojo). Al terminar
   todo vuelve.
-
+- **Inicio**: "+ Registrar actividad" y "Salir con GPS" van arriba, después de Hoy/Esta semana y antes del calendario.

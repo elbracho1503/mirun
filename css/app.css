@@ -295,6 +295,7 @@
   .cal .d.today{outline:2px solid var(--signal);outline-offset:1px;}
   .cal .d.future{opacity:.3;}
   .cal .d.blank{visibility:hidden;}
+  .homeActions{margin-top:16px;} /* botones de Inicio arriba, antes del calendario */
   /* navegación del calendario: Últimas 4 semanas / mes completo */
   .calNav{display:flex;align-items:center;justify-content:space-between;margin:-2px 0 8px;}
   .calNav b{font-size:14px;font-weight:700;}
