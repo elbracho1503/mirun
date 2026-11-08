@@ -37,6 +37,9 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 16 | Pantalla de bienvenida solo la primera vez y sin datos guardados (`#welcome`, `mirun_welcomed`): nombre, unidades, sexo, estatura y peso opcionales; Empezar / Saltar | ✅ 2026-11-05 |
 | 16b | Si el usuario no elige sexo, usar neutro (x) en vez de masculino por defecto (solo perfiles nuevos) | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 17 | Selector de personaje: el usuario elige su mascota; Monster es el principal. Personajes nuevos listos: versión morada y versión naranja (faltan las imágenes en alta resolución con fondo transparente). Base lista: `CHARACTERS` en la sección MASCOTA | ⬜ |
+| 18 | Mapa grande: "Ver mapa" en Historial y resumen, pantalla completa con zoom y arrastre con los dedos, vistas calles y línea (línea sin internet) | ✅ 2026-11-06 (rama `prueba/celebracion`) |
+| 19 | Celebración al cumplir la meta del día (una vez por día): sonido Web Audio, vibración, confeti y mascota; "Sonidos" en Perfil (en la copia); respeta reducir movimiento | ✅ 2026-11-06 (rama `prueba/celebracion`) |
+| 20 | Mascota más viva: flota más, gestos espontáneos cada 8–10 s en Inicio (saltito, inclinación, pose), salto marcado al tocarla; pausa con app oculta y nada con reducir movimiento | ✅ 2026-11-06 (rama `prueba/celebracion`) |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial

@@ -30,11 +30,25 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
   (y sus archivos a `FILES_TO_CACHE`). Si le falta una pose, se usa la de Monster. Aún no hay selector.
 - `MASCOT` dice qué **pose** va en cada momento (por nombre, vale para cualquier personaje).
 - Movimiento solo con CSS `transform` (bloque `MASCOTA: movimiento` en `css/app.css`):
-  - Reposo: respira suave (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).
+  - Reposo: flota suave 8 px en 5 s (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).
+  - Gestos espontáneos en Inicio cada 8 a 10 s (`mascotGesture`): saltito (`mHop`), inclinación (`mTilt`) o cambio de
+    pose por 1,5 s (Aprobación, Emocionado, Tú puedes o Cariño). Se pausan con la app oculta (`visibilitychange`), fuera de
+    Inicio, con otra capa encima o con "reducir movimiento". Durmiendo no se mueve; triste solo se inclina.
+  - Al tocarla: salto marcado de 30 px (`mHop`, 0,7 s).
   - Reacciones de una vez (`mascotReact`): `mCheer` (logro nuevo y meta del día cumplida), `mSad` (racha
     rota), `mWave` (saluda en la bienvenida), `mHop` (al tocarla). 5 toques en 3 s: pose "frustrado".
   - Con "reducir movimiento" del teléfono (`prefers-reduced-motion`) no se mueve; solo cambia la pose.
 - Poses nuevas en uso: Decidido (Inicio, ya hay minutos hoy pero falta), Agotado (al guardar una actividad
   de 60 min o más), Frustrado (reacción a 5 toques seguidos). La racha rota sigue con Cansado
   (decisión del usuario, 2026-11-06: Frustrado se ve enojado, no triste).
+
+## Celebración de la meta del día (2026-11-06)
+- Solo cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una actividad, y una vez
+  por día (`mirun_celebrated`). Al abrir la app o importar una copia no se celebra.
+- Sonido: arpegio do-mi-sol-do con Web Audio (sin archivos), unos 0,7 s, volumen moderado, y vibración suave
+  `[40, 60, 40]`. Los dos se apagan con "Sonidos y vibración" en Perfil (`profile.sounds`).
+- Capa `.celebrate` encima de todo, sin bloquear toques, que se borra sola a los 3,4 s: 36 papelitos de confeti
+  (solo transform) y una tarjeta con la mascota "celebrando", "¡Meta de hoy cumplida!" y la racha.
+- "Reducir movimiento": sin confeti ni animación (la tarjeta aparece quieta), con sonido y vibración.
+- Si a la vez se gana un logro, el aviso "¡Nuevo logro!" espera a que termine la celebración (3,4 s).
 

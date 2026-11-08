@@ -5,6 +5,15 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-06 | Rama `prueba/celebracion`: caché v23 → v24 (una sola vez, por los ajustes 1–5) | `sw.js` | ~1k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 5: mascota más viva (flota 8 px, gestos espontáneos cada 8–10 s en Inicio con `mTilt` nuevo, salto marcado al tocarla; se pausa con la app oculta y nada con reducir movimiento) | `js/app.js`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 4: `maybeCelebrate` dentro de try/catch en `checkAchievements` (un error en la celebración no frena los logros) | `js/app.js`, `docs/*` | ~3k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 3: interruptor "Sonidos y vibración" (apagado = sin sonido ni vibración en la celebración; el campo sigue siendo `profile.sounds`) | `js/app.js`, `mirun.html`, `docs/*` | ~3k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 2: si al cumplir la meta sale un logro, el aviso espera a que termine la celebración (`celebUntil`) | `js/app.js`, `docs/*` | ~5k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, ajuste 1: el botón Atrás del teléfono cierra el mapa grande (`window.history.pushState` + `popstate`), sin salir de la app | `js/app.js`, `docs/*` | ~4k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`: caché v22 → v23 (una sola vez, por mapa grande y celebración) | `sw.js` | ~1k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, T2: celebración al cumplir la meta del día (una vez por día, `mirun_celebrated`): sonido Web Audio, vibración, confeti CSS y mascota; `profile.sounds` ("Sonidos" en Perfil, copia e importación); reducir movimiento sin confeti | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~35k tokens |
+| 2026-11-06 | Rama `prueba/celebracion`, T1: mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; calles con Leaflet; línea en canvas propio con pellizco, arrastre, rueda, doble toque, + − y escala; sin internet pasa a línea). Solo lee la ruta | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~35k tokens |
 | 2026-11-06 | Rama `prueba/mascota`: poses intercambiadas en MASCOT (racha rota = Cansado, 5 toques = Frustrado). Unida a main y publicada (caché v22) | `js/app.js`, `docs/*` | ~5k tokens |
 | 2026-11-06 | Rama `prueba/mascota`: caché v21 → v22 (una sola vez, por la mascota y el calendario) | `sw.js` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/mascota`, T3: PLAN, pendiente 17 (selector de personaje; versiones morada y naranja esperando imágenes) | `docs/*` | ~1k tokens |
