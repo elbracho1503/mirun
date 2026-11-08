@@ -462,6 +462,10 @@
   .photoPanel{text-align:center;}
   .avatar.big{width:112px;height:112px;margin:0 auto;border:3px solid var(--signal);
     box-shadow:0 0 0 6px rgba(77,155,255,.12);}
+  /* sin foto: iniciales del nombre (o ícono de persona) sobre el azul de la app */
+  .avatar.noPhoto{background:var(--grad);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;}
+  .avatar.big.noPhoto{font-size:40px;}
+  .avatar.noPhoto svg{width:55%;height:55%;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
 
   /* ==== MODO BOLSILLO (bloqueo de toques durante el GPS) ==== */
   #activeBtns{flex-wrap:wrap;}

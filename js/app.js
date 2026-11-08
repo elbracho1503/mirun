@@ -297,12 +297,22 @@
 
   // Foto de perfil: se recorta al centro, se reduce a 256 px (JPEG ~30 KB) y se guarda en mirun_photo.
   // Sin foto: círculo negro liso (decisión del usuario).
+  // iniciales del nombre (primera letra de la primera y de la última palabra), para cuando no hay foto
+  function initials(name){
+    const w = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if(!w.length) return '';
+    return ((w[0][0] || '') + (w.length > 1 ? w[w.length-1][0] : '')).toLocaleUpperCase('es-ES');
+  }
+  const AVATAR_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
   function refreshAvatars(){
-    const ph = LS.get('mirun_photo', null);
+    const ph = LS.get('mirun_photo', null), ini = initials(profile.name);
     ['hdrAvatar','profAvatar'].forEach(id=>{
       const el = document.getElementById(id);
       el.style.backgroundImage = ph ? 'url("' + ph + '")' : '';
-      el.textContent = '';
+      el.classList.toggle('noPhoto', !ph); // sin foto: iniciales (o un ícono si no hay nombre)
+      if(ph) el.textContent = '';
+      else if(ini) el.textContent = ini;
+      else el.innerHTML = AVATAR_ICON;
     });
     document.getElementById('btnPhotoDel').style.display = ph ? '' : 'none';
   }
