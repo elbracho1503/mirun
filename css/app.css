@@ -430,6 +430,13 @@
   @keyframes mSad{0%{transform:translateY(0) rotate(0) scale(1);}45%{transform:translateY(6px) rotate(-5deg) scale(.95);}
     100%{transform:translateY(3px) rotate(-3deg) scale(.98);}}
   @keyframes mWave{0%,100%{transform:rotate(0);}25%{transform:rotate(-4deg);}75%{transform:rotate(4deg);}}
+  /* ==== LOGROS: el próximo logro (arriba) ==== */
+  .nextAch{display:flex;align-items:center;gap:14px;border-color:rgba(245,184,46,.35);}
+  .nextAch .medal{width:56px;height:56px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:28px;background:var(--track2);border:2px solid rgba(245,184,46,.55);}
+  .nextAch .nxT{flex:1;min-width:0;}
+  .nextAch small{display:block;font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+  .nextAch b{display:block;font-size:15px;line-height:1.35;margin:3px 0 8px;}
   /* ==== CELEBRACIÓN: meta del día cumplida (confeti y tarjeta; solo transform y opacity, se borra sola) ==== */
   .celebrate{position:fixed;inset:0;z-index:140;pointer-events:none;overflow:hidden;}
   .celebrate i{position:absolute;top:-18px;width:8px;height:14px;border-radius:2px;animation:confFall linear 1 both;}

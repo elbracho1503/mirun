@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-08 | Rama `prueba/diseno`, T5: Logros, arriba "Tu próximo logro" (el bloqueado con más avance y cuánto falta; rachas desde la racha actual) `nextAchievement` | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~10k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, T4: Evolución > Cuerpo empieza con "Tu progreso" (medidas que sigue) y "Registrar medición"; después IMC, silueta y gráfico | `mirun.html`, `docs/*` | ~3k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, T3: Bienvenida, "Empezar" botón principal a lo ancho; "Saltar por ahora" enlace discreto debajo (mismos ids) | `mirun.html`, `css/app.css`, `docs/*` | ~2k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, T2: Inicio, "+ Registrar actividad" y "Salir con GPS" arriba, antes del calendario | `mirun.html`, `css/app.css`, `docs/*` | ~3k tokens |

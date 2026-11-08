@@ -59,3 +59,4 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - **Inicio**: "+ Registrar actividad" y "Salir con GPS" van arriba, después de Hoy/Esta semana y antes del calendario.
 - **Bienvenida**: "Empezar" es el botón principal (a lo ancho); "Saltar por ahora" es un enlace discreto debajo.
 - **Evolución > Cuerpo**: orden "Tu progreso" → "Registrar medición" → IMC → silueta → gráfico → medidas a seguir → guardadas.
+- **Logros**: arriba "Tu próximo logro": el bloqueado con más avance, cuánto falta en palabras ("Te falta 1 día para Semana eléctrica") y barra. Las rachas cuentan desde la racha actual.

@@ -2141,8 +2141,39 @@
     };
   }
 
+  // Logro bloqueado más cercano (el de mayor avance) y cuánto falta, en palabras.
+  // Rachas: se cuenta desde la racha ACTUAL (la mejor ya pasada no ayuda a subirla).
+  function nextAchievement(s){
+    const cur = streakInfo(minutesByDay()).cur;
+    const plural = (n, a, b)=>n + ' ' + (n === 1 ? a : b);
+    let best = null;
+    ACH.forEach(a=>{
+      const v = a.v(s); if(v >= a.g) return; // ya desbloqueado
+      const have = a.c === 1 ? cur : v, ratio = Math.max(0, have) / a.g;
+      if(!best || ratio > best.ratio || (ratio === best.ratio && a.g < best.a.g)) best = {a, ratio, have};
+    });
+    if(!best) return null;
+    const a = best.a, left = a.g - best.have;
+    let txt;
+    if(a.c === 0) txt = 'Te ' + (left === 1 ? 'falta ' : 'faltan ') + plural(left, 'actividad', 'actividades');
+    else if(a.c === 1) txt = 'Te ' + (left === 1 ? 'falta ' : 'faltan ') + plural(left, 'día', 'días') + ' seguidos';
+    else if(a.c === 2) txt = 'Cumple tu meta semanal de ' + weekMin() + ' min';
+    else if(a.c === 3){ const m = Math.ceil(left); txt = 'Te faltan ' + (m >= 60 ? Math.ceil(m / 60) + ' h' : m + ' min') + ' de actividad'; }
+    else if(a.c === 4) txt = 'Te faltan ' + fmtD(left, 1);
+    else if(a.c === 5) txt = 'Corre ' + raceTxt(a.g) + ' de una vez';
+    else txt = 'Te ' + (left === 1 ? 'falta ' : 'faltan ') + plural(left, 'tipo', 'tipos') + ' de actividad más';
+    if(a.c === 1 && left === 1) txt = 'Te falta 1 día'; // "Te falta 1 día para Semana eléctrica"
+    return {a, ratio: best.ratio, txt: txt + ' para ' + a.n};
+  }
   function renderAchievements(){
     const s = achStats();
+    // arriba: el logro más cercano a desbloquear
+    const nx = nextAchievement(s), nb = document.getElementById('nextAch');
+    nb.innerHTML = nx
+      ? `<div class="medal">${nx.a.e}</div><div class="nxT"><small>Tu próximo logro</small><b></b>
+          <div class="pbar"><div style="width:${Math.round(nx.ratio * 100)}%"></div></div></div>`
+      : `<div class="medal">🏆</div><div class="nxT"><small>Tus logros</small><b>¡Tienes todos los logros!</b></div>`;
+    if(nx) nb.querySelector('b').textContent = nx.txt;
     let on = 0;
     // tres estados: bloqueado (gris + candado), desbloqueado (azul), legendario (dorado)
     const card = a=>{
