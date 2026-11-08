@@ -297,7 +297,7 @@
   }
 
   // Foto de perfil: se recorta al centro, se reduce a 256 px (JPEG ~30 KB) y se guarda en mirun_photo.
-  // Sin foto: círculo negro liso (decisión del usuario).
+  // Sin foto: iniciales del nombre sobre azul, o un ícono si no hay nombre (decisión del usuario 2026-11-08; antes, círculo negro).
   // iniciales del nombre (primera letra de la primera y de la última palabra), para cuando no hay foto
   function initials(name){
     const w = String(name || '').trim().split(/\s+/).filter(Boolean);
