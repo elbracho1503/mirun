@@ -1032,8 +1032,17 @@
   function tracked(){ return Array.isArray(profile.measures) && profile.measures.length ? profile.measures : DEF_MEAS; }
   const fmt1 = v => (Math.round(v*10)/10).toLocaleString('es-ES');
 
+  // ayuda visual: dónde se mide la cintura (lo más angosto) y dónde el abdomen (el ombligo); SVG en línea
+  const WAIST_HELP = `<div class="waistHelp" role="img" aria-label="Cintura: la parte más angosta, entre las costillas y la cadera. Abdomen: a la altura del ombligo.">
+    <svg viewBox="0 0 120 140" aria-hidden="true">
+      <path class="wTorso" d="M22 8 C24 38 31 50 33 60 C35 72 29 98 22 132 L98 132 C91 98 85 72 87 60 C89 50 96 38 98 8"/>
+      <line class="wWaist" x1="24" y1="60" x2="96" y2="60"/><line class="wAbd" x1="22" y1="80" x2="98" y2="80"/>
+      <circle class="wNavel" cx="60" cy="80" r="2.6"/></svg>
+    <div><p><i class="wWaistDot"></i><b>Cintura</b>: la parte más angosta, entre las costillas y la cadera.</p>
+      <p><i class="wAbdDot"></i><b>Abdomen</b>: a la altura del ombligo, aunque ahí no sea lo más angosto.</p></div></div>`;
   function buildBodyForm(){
-    document.getElementById('bodyInputs').innerHTML = MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
+    const help = tracked().some(k=>k === 'cintura' || k === 'barriga') ? WAIST_HELP : '';
+    document.getElementById('bodyInputs').innerHTML = help + MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
       `<div class="measIn"><label>${m.n} (${mU(m)})</label>
         <input type="number" id="${m.id}" step="0.1" placeholder="${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
     document.getElementById('measChips').innerHTML = MEASURES.map(m=>

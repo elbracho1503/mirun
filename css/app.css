@@ -430,6 +430,19 @@
   @keyframes mSad{0%{transform:translateY(0) rotate(0) scale(1);}45%{transform:translateY(6px) rotate(-5deg) scale(.95);}
     100%{transform:translateY(3px) rotate(-3deg) scale(.98);}}
   @keyframes mWave{0%,100%{transform:rotate(0);}25%{transform:rotate(-4deg);}75%{transform:rotate(4deg);}}
+  /* ==== CUERPO: ayuda cintura / abdomen (buildBodyForm) ==== */
+  .waistHelp{grid-column:1 / -1;display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:10px 12px;border-radius:14px;
+    background:var(--track2);border:1px solid var(--lane-line);}
+  .waistHelp svg{width:74px;height:86px;flex-shrink:0;}
+  .waistHelp .wTorso{fill:rgba(77,155,255,.10);stroke:var(--sub);stroke-width:2;}
+  .waistHelp .wWaist{stroke:var(--signal);stroke-width:3;stroke-dasharray:5 3;}
+  .waistHelp .wAbd{stroke:var(--gold);stroke-width:3;}
+  .waistHelp .wNavel{fill:var(--text);}
+  .waistHelp p{margin:0 0 6px;font-size:12.5px;line-height:1.4;color:var(--sub);}
+  .waistHelp p:last-child{margin:0;}
+  .waistHelp b{color:var(--text);}
+  .waistHelp i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;}
+  .waistHelp .wWaistDot{background:var(--signal);} .waistHelp .wAbdDot{background:var(--gold);}
   /* ==== LOGROS: el próximo logro (arriba) ==== */
   .nextAch{display:flex;align-items:center;gap:14px;border-color:rgba(245,184,46,.35);}
   .nextAch .medal{width:56px;height:56px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
