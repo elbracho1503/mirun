@@ -79,6 +79,7 @@
     cuerpo:     'estudiando',  // IMC y medidas
     error:      'pensando',    // error en un formulario
     meta:       'celebrando',  // celebración al cumplir la meta del día
+    vuelta:     'carino',      // Inicio, vuelve después de 3 días o más sin actividad
     toque:      'carino',      // al tocar la mascota
     mareado:    'frustrado'    // al tocarla muchas veces seguidas
   };
@@ -1961,6 +1962,21 @@
     calMonth = calMonth === null || calMonth >= monthIdx(new Date()) ? null : calMonth + 1;
     renderCal();
   });
+  // Vuelve después de 3 días o más sin actividad (sin contar si esos días fueron todos de descanso):
+  // saludo especial en Inicio UNA vez por regreso. mirun_welcomeBack = día de la última actividad antes de ese
+  // regreso; en esta sesión se mantiene hasta que haya actividad hoy, y al volver a abrir ya no sale.
+  let welcomeBackFor = null;
+  function welcomeBack(mins, today, tk, recent){
+    if(recent || !history.length || (mins.get(tk) || 0) > 0) return false;
+    const last = [...mins.keys()].filter(k=>k < tk && mins.get(k) > 0).sort().pop();
+    if(!last) return false;
+    const allRest = [1,2,3].every(n=>{ const d = new Date(today); d.setDate(d.getDate()-n); return restDaysOn(d).includes(d.getDay()); });
+    if(allRest) return false;
+    if(welcomeBackFor === last) return true;               // ya se mostró en esta sesión: se mantiene
+    if(LS.get('mirun_welcomeBack', null) === last) return false; // ya se mostró antes para este regreso
+    welcomeBackFor = last; LS.set('mirun_welcomeBack', last);
+    return true;
+  }
   function renderHome(){
     const mins = minutesByDay(), st = streakInfo(mins);
     document.getElementById('streakVal').textContent = st.cur;
@@ -1983,6 +1999,7 @@
     if(tStat === 'done'){ mk = 'cumplido'; msg = '¡Meta de hoy cumplida! Llevas ' + st.cur + (st.cur === 1 ? ' día' : ' días') + ' de racha.'; }
     else if(tStat === 'rest'){ mk = 'descanso'; msg = 'Hoy es tu día de descanso. Recupera energía, tu racha sigue a salvo.'; }
     else if(st.cur === 0 && st.best > 0 && recent){ mk = 'rota'; msg = 'Tu racha se reinició, pero hoy empieza otra. ¡Vamos!'; }
+    else if(welcomeBack(mins, today, tk, recent)){ mk = 'vuelta'; msg = '¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?'; }
     else if((mins.get(tk) || 0) > 0){ mk = 'enCamino'; msg = '¡Vas bien! Te faltan ' + left + ' min para cumplir hoy.'; }
     else { mk = 'hoy'; msg = 'Te faltan ' + left + ' min para cumplir hoy. ¡Tú puedes!'; }
     const hm = document.getElementById('homeMascot');

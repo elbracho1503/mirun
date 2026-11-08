@@ -79,7 +79,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Carrera en curso / iniciar / terminar (`body.gpsOn` mientras se registra) | `// ---------- CARRERA EN CURSO` (CSS: `GPS EN CURSO`) |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
-| Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
+| Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |

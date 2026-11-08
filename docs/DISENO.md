@@ -61,3 +61,4 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - **Evolución > Cuerpo**: orden "Tu progreso" → "Registrar medición" → IMC → silueta → gráfico → medidas a seguir → guardadas.
 - **Logros**: arriba "Tu próximo logro": el bloqueado con más avance, cuánto falta en palabras ("Te falta 1 día para Semana eléctrica") y barra. Las rachas cuentan desde la racha actual.
 - **Avatar sin foto** (cabecera y Perfil): iniciales del nombre (primera y última palabra) en blanco sobre `--grad`; sin nombre, ícono de persona.
+- **Inicio, regreso**: sin actividad hoy ni los 3 días anteriores (que no sean todos de descanso), la mascota (Cariño) dice "¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?", una vez por regreso.
