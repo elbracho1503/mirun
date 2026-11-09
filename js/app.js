@@ -46,19 +46,28 @@
   }
 
   // ---------- MASCOTA ----------
-  // PERSONAJES: cada uno con su carpeta y sus poses (nombre de la pose -> archivo sin .png). Monster es el
-  // principal y el que se usa por defecto. Agregar un personaje = sumar aquí su carpeta y sus poses
-  // (y sus archivos a FILES_TO_CACHE en sw.js). Si a un personaje le falta una pose, se usa la de Monster.
-  // Todavía no hay selector: siempre se usa DEFAULT_CHAR.
+  // PERSONAJES: cada uno con su carpeta y sus poses (nombre de la pose -> archivo sin .png).
+  // Brío (clave interna 'monster', archivos en img/mascota/) es el principal y el que se usa por defecto.
+  // Agregar un personaje = sumar aquí su carpeta y sus poses. Una pose puede apuntar a otro archivo del
+  // mismo personaje (Nova decidido = su 03_corriendo; Tizón cansado = su 08_agotado). Si falta una pose, se usa la de Brío.
+  // Originales de las hojas de poses: respaldo/personajes-original/ (fuera de GitHub y del teléfono).
+  const POSES_STD = {
+    aprobacion:'01_aprobacion', pesas:'02_pesas', corriendo:'03_corriendo', carino:'04_carino',
+    decidido:'05_decidido', pensando:'06_pensando', emocionado:'07_emocionado', agotado:'08_agotado',
+    celebrando:'09_celebrando', cansado:'10_cansado', frustrado:'11_frustrado', estudiando:'12_estudiando',
+    tu_puedes:'13_tu_puedes', durmiendo:'14_durmiendo', asomado:'15_asomado'};
   const CHARACTERS = {
-    monster: {name:'MIRUN Monster', dir:'img/mascota/', poses:{
-      aprobacion:'01_aprobacion', pesas:'02_pesas', corriendo:'03_corriendo', carino:'04_carino',
-      decidido:'05_decidido', pensando:'06_pensando', emocionado:'07_emocionado', agotado:'08_agotado',
-      celebrando:'09_celebrando', cansado:'10_cansado', frustrado:'11_frustrado', estudiando:'12_estudiando',
-      tu_puedes:'13_tu_puedes', durmiendo:'14_durmiendo', asomado:'15_asomado'}}
+    monster: {name:'Brío',   dir:'img/mascota/', poses: POSES_STD},
+    zafira:  {name:'Zafira', dir:'img/zafira/',  poses: POSES_STD},
+    nova:    {name:'Nova',   dir:'img/nova/',    poses: Object.assign({}, POSES_STD, {decidido:'03_corriendo'})},
+    tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})}
   };
   const DEFAULT_CHAR = 'monster';
-  function character(){ return CHARACTERS[DEFAULT_CHAR]; } // con el selector: el personaje elegido
+  // personaje elegido en Perfil ("Elige tu compañero", profile.character). Esta sección corre antes que PROFILE,
+  // por eso se lee directo del perfil guardado; setCharacter lo cambia después.
+  let charKey = (LS.get('mirun_profile', null) || {}).character;
+  if(!Object.prototype.hasOwnProperty.call(CHARACTERS, charKey)) charKey = DEFAULT_CHAR;
+  function character(){ return CHARACTERS[charKey]; }
   function poseSrc(pose){
     const c = character(), f = c.poses[pose] ? c : CHARACTERS[DEFAULT_CHAR];
     return f.dir + f.poses[pose] + '.png';
@@ -87,7 +96,20 @@
   // cambia la pose de una imagen de mascota (si está en medio de una reacción al toque, la deja para después)
   function setMascot(img, k){ const s = mascot(k); if(img.dataset.base) img.dataset.base = s; else img.src = s; }
   // imágenes fijas del HTML con data-pose="..." (siguen al personaje)
-  document.querySelectorAll('img[data-pose]').forEach(i=>{ i.src = poseSrc(i.dataset.pose); });
+  function refreshPoseImgs(){ document.querySelectorAll('img[data-pose]').forEach(i=>{ i.src = poseSrc(i.dataset.pose); }); }
+  refreshPoseImgs();
+  // El teléfono guarda (para usar sin internet) SOLO las imágenes del compañero elegido: se le pide al
+  // Service Worker con el mensaje 'mascota' (ver sw.js). keep = se descargan; spare = las de muestra del
+  // selector de Perfil (no se descargan aquí, pero si ya se vieron no se borran).
+  function syncCharacterCache(){
+    if(!('serviceWorker' in navigator)) return;
+    const c = character(), keep = [...new Set(Object.values(c.poses))].map(f=>c.dir + f + '.png');
+    const spare = Object.values(CHARACTERS).map(x=>x.dir + x.poses.aprobacion + '.png');
+    navigator.serviceWorker.ready.then(reg=>{ if(reg.active) reg.active.postMessage({type:'mascota', keep, spare}); }).catch(()=>{});
+  }
+  syncCharacterCache();
+  // versión nueva de la app (caché nuevo): se vuelven a pedir las del elegido
+  if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('controllerchange', syncCharacterCache);
   // mensaje con la mascota pequeña al lado (formularios)
   function mascotMsg(el, k, text, color){
     el.innerHTML = `<span class="msgM"><img src="${mascot(k)}" alt=""><span></span></span>`;
@@ -290,6 +312,25 @@
       (goal.weekMin ? '. Tú elegiste ' + goal.weekMin + ' min en Metas.' : ', se usa mientras no elijas otra en Metas.');
   }
   document.getElementById('profLevel').addEventListener('change', refreshLevelHint);
+
+  // "Elige tu compañero": se guarda al tocar (profile.character) y la mascota cambia en toda la app.
+  // Cada opción muestra la pose "aprobación" de ese personaje.
+  function renderCharPick(){
+    document.getElementById('charPick').innerHTML = Object.keys(CHARACTERS).map(k=>{ const c = CHARACTERS[k], on = k === charKey;
+      return `<button class="charOpt${on ? ' on' : ''}" data-char="${k}" aria-pressed="${on}">
+        <img src="${c.dir + c.poses.aprobacion}.png" alt="" loading="lazy"><span>${c.name}</span></button>`; }).join('');
+  }
+  function setCharacter(k){
+    charKey = Object.prototype.hasOwnProperty.call(CHARACTERS, k) ? k : DEFAULT_CHAR;
+    profile.character = charKey; LS.set('mirun_profile', profile);
+    refreshPoseImgs(); renderCharPick(); renderHome(); syncCharacterCache();
+    const img = document.querySelector('#charPick .charOpt.on img'); if(img) mascotReact(img, 'mHop'); // saluda el elegido
+    showSaved();
+  }
+  document.getElementById('charPick').addEventListener('click', ev=>{
+    const b = ev.target.closest('[data-char]'); if(b && b.dataset.char !== charKey) setCharacter(b.dataset.char);
+  });
+  renderCharPick();
   // saludo en la cabecera: "Hola, Nombre" o la marca si no hay nombre
   function refreshHello(){
     const h = document.getElementById('hello');
@@ -2453,9 +2494,14 @@
           if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
           if(typeof p.voice === 'boolean') ok.voice = p.voice;
           if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
+          if(typeof p.character === 'string' && Object.prototype.hasOwnProperty.call(CHARACTERS, p.character)) ok.character = p.character; // compañero elegido
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
           if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)
           take(profile, ok); LS.set('mirun_profile', profile);
+          // el compañero de la copia (si se tomó) se aplica enseguida
+          if(Object.prototype.hasOwnProperty.call(CHARACTERS, profile.character) && profile.character !== charKey){
+            charKey = profile.character; refreshPoseImgs(); renderCharPick(); renderHome(); syncCharacterCache();
+          }
         }
         if(data.goal && typeof data.goal === 'object'){
           const g = data.goal, ok = {}, num = (v, a, b)=>{ v = Number(v); return v >= a && v <= b ? v : undefined; };

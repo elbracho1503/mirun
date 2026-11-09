@@ -25,9 +25,15 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - Colores dentro del JS (canvas/mapas) usan los mismos valores en hex.
 
 ## Mascota: personajes y movimiento (2026-11-06)
-- Personajes en `CHARACTERS` (`js/app.js`, sección MASCOTA). Hoy solo **MIRUN Monster** (`img/mascota/`), el
-  principal y el que se usa por defecto (`DEFAULT_CHAR`). Agregar uno = sumar su carpeta y sus poses a la lista
-  (y sus archivos a `FILES_TO_CACHE`). Si le falta una pose, se usa la de Monster. Aún no hay selector.
+- Personajes en `CHARACTERS` (`js/app.js`, sección MASCOTA): **Brío** (clave interna `monster`, `img/mascota/`, el
+  principal y por defecto), **Zafira** (`img/zafira/`), **Nova** (`img/nova/`) y **Tizón** (`img/tizon/`). Mismos nombres de
+  archivo que Brío; Nova "decidido" usa su `03_corriendo` y Tizón "cansado" su `08_agotado`. Si a uno le falta una pose, se usa la de Brío.
+  Zafira y Nova "cansado" = la pose meditando (racha rota: calma para volver a empezar).
+- **Elige tu compañero** (Perfil, debajo de la foto): 4 opciones con la pose "aprobación" y el nombre; se guarda al tocar
+  (`profile.character`, `setCharacter`) y cambia la mascota en toda la app.
+- **Caché por personaje**: el teléfono guarda solo las imágenes del compañero elegido (mensaje `mascota` al Service Worker:
+  descarga las del elegido y borra las de los otros, salvo la imagen de muestra de cada uno si ya se vio en Perfil).
+  Las imágenes fijas del HTML no tienen `src` escrito (lo pone `refreshPoseImgs`), para no descargar las de Brío si se eligió otro.
 - `MASCOT` dice qué **pose** va en cada momento (por nombre, vale para cualquier personaje).
 - Movimiento solo con CSS `transform` (bloque `MASCOTA: movimiento` en `css/app.css`):
   - Reposo: flota suave 8 px en 5 s (`mIdle`), solo en Inicio y en el aviso de logro. Triste: más lento y cabizbaja (`mSadIdle`).

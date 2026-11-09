@@ -132,7 +132,7 @@
     </div>
 
     <div id="gpsTypeRow" style="margin-top:16px;">
-      <img class="mascotInline" src="img/mascota/03_corriendo.png" data-pose="corriendo" alt="">
+      <img class="mascotInline" data-pose="corriendo" alt="">
       <div class="chips">
       <button class="chip on" data-gtype="correr">🏃 Correr</button>
       <button class="chip" data-gtype="caminar">🚶 Caminar</button>
@@ -272,7 +272,7 @@
         <button class="chip" data-r="all">Todo</button>
       </div>
       <div class="panel" id="evoEmpty" style="display:none;">
-        <div class="empty"><img src="img/mascota/15_asomado.png" data-pose="asomado" alt="">Registra actividad para ver tu evolución.</div>
+        <div class="empty"><img data-pose="asomado" alt="">Registra actividad para ver tu evolución.</div>
       </div>
       <div id="evoCharts">
         <div class="panel"><h3>Comparado con el período anterior</h3><div id="evoCompare"></div></div>
@@ -336,6 +336,12 @@
         <button class="btn btn-ghost" id="btnPhotoDel">Quitar</button>
       </div>
       <input type="file" id="photoFile" accept="image/*" style="display:none;">
+    </div>
+    <!-- "Elige tu compañero": la mascota de toda la app (renderCharPick en js/app.js, sección PROFILE) -->
+    <div class="panel">
+      <h3>Elige tu compañero</h3>
+      <div class="hint">Te acompaña en Inicio, en tus logros y en tus mensajes. Puedes cambiarlo cuando quieras.</div>
+      <div class="charPick" id="charPick"></div>
     </div>
     <div class="panel">
       <h3>Tu objetivo</h3>
@@ -461,7 +467,7 @@
 <!-- Menú del botón "+": elegir cómo registrar la actividad -->
 <div id="plusSheet">
   <div class="sheet">
-    <div class="sheetTitle"><img src="img/mascota/02_pesas.png" data-pose="pesas" alt="">¿Qué vas a hacer?</div>
+    <div class="sheetTitle"><img data-pose="pesas" alt="">¿Qué vas a hacer?</div>
     <button class="sheetOpt" data-plus="correr"><span>🏃</span>Correr con GPS</button>
     <button class="sheetOpt" data-plus="caminar"><span>🚶</span>Caminar con GPS</button>
     <button class="sheetOpt" data-plus="bici"><span>🚴</span>Bicicleta con GPS</button>
@@ -535,7 +541,7 @@
 <!-- Bienvenida: solo la primera vez y solo sin datos guardados (BIENVENIDA en js/app.js) -->
 <div id="welcome">
   <div class="welBox">
-    <img class="welImg" src="img/bienvenida.jpg" alt="MIRUN Monster, la mascota de MiRun">
+    <img class="welImg" src="img/bienvenida.jpg" alt="Brío, la mascota de MiRun">
     <h2>¡Te damos la bienvenida a MiRun!</h2>
     <div class="welSub">Tu cuerpo, tu mejor versión</div>
     <p class="hint">Registra tus actividades, sigue tu racha y mira cómo mejoras. Todo se guarda solo en tu teléfono.</p>

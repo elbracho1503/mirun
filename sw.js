@@ -1,7 +1,7 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
 // IMPORTANTE: si se cambia mirun.html, css/app.css o js/app.js, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v26';
+const CACHE_NAME = 'mirun-cache-v27';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -18,22 +18,8 @@ const FILES_TO_CACHE = [
   './img/siluetas/masculina.png',
   './img/siluetas/femenina.png',
   './img/siluetas/neutra.png',
-  // mascota: solo las poses que usa la app (lista MASCOT en app.js y la de pantallas en mirun.html)
-  './img/mascota/01_aprobacion.png',
-  './img/mascota/02_pesas.png',
-  './img/mascota/03_corriendo.png',
-  './img/mascota/04_carino.png',
-  './img/mascota/05_decidido.png',
-  './img/mascota/06_pensando.png',
-  './img/mascota/07_emocionado.png',
-  './img/mascota/08_agotado.png',
-  './img/mascota/09_celebrando.png',
-  './img/mascota/10_cansado.png',
-  './img/mascota/11_frustrado.png',
-  './img/mascota/12_estudiando.png',
-  './img/mascota/13_tu_puedes.png',
-  './img/mascota/14_durmiendo.png',
-  './img/mascota/15_asomado.png',
+  // mascota: NO se descarga aquí. El teléfono guarda solo las imágenes del compañero elegido
+  // (la app las pide con el mensaje 'mascota', más abajo).
   './lib/leaflet.js',
   './lib/leaflet.css'
 ];
@@ -55,6 +41,23 @@ self.addEventListener('activate', (event) => {
       keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
     )).then(() => self.clients.claim())
   );
+});
+
+// Mascota: la app manda {type:'mascota', keep:[rutas del compañero elegido], spare:[muestras del selector]}.
+// Se descargan las de keep y se borran del caché las de los otros personajes (menos las de spare ya guardadas).
+const CHAR_DIRS = ['/img/mascota/', '/img/zafira/', '/img/nova/', '/img/tizon/'];
+self.addEventListener('message', (event) => {
+  const d = event.data || {};
+  if (d.type !== 'mascota' || !Array.isArray(d.keep)) return;
+  const abs = (f) => new URL(f, self.registration.scope).href;
+  const keep = d.keep.map(abs), stay = new Set(keep.concat((d.spare || []).map(abs)));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) =>
+    cache.addAll(keep)
+      .then(() => cache.keys())
+      .then((reqs) => Promise.all(reqs
+        .filter((r) => CHAR_DIRS.some((dir) => new URL(r.url).pathname.includes(dir)) && !stay.has(r.url))
+        .map((r) => cache.delete(r))))
+      .catch(() => {}))); // sin internet: se intenta otra vez la próxima vez
 });
 
 self.addEventListener('fetch', (event) => {
