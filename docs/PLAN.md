@@ -24,6 +24,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 6d | Limpieza: redondear segundos de metas y peso de medidas guardados en unidades imperiales. Solo valores nuevos: ritmo a 0,1 s/km (a segundo entero el 38 % de los ritmos en min/mi se verían 1 s distintos), distancia de meta al metro, peso a 0,01 kg | ✅ 2026-11-05 (rama `prueba/pendientes`) |
 | 7 | **Ícono de la app**: mascota con la M (192, 512, maskable 512, 180 iPhone) | ✅ 2026-11-03 |
 | 7b | Ícono maskable para Android: ícono nuevo (M con cuernos) al 80 % sobre fondo #061a4a, no se corta en el círculo | ✅ 2026-11-04 |
+| 7c | Ícono nuevo: emblema M dorado y azul con órbitas sobre azul marino (192, 512, 180 y maskable al 80 % sobre #061A4A; ninguna punta fuera del círculo del 80 %) | ✅ 2026-11-09 (rama `prueba/icono`) |
 | 8 | **Modo bolsillo**: botón que bloquea los toques durante el GPS (la pantalla se sigue viendo); se desbloquea manteniendo presionado el candado 1,5 s | ✅ 2026-11-02 |
 | 9 | **Evolución**: pestaña "Evolución" (antes Cuerpo) con vistas Actividad / Cuerpo; minutos y distancia por semana o mes, ritmo promedio, comparación con el período anterior; filtros 4 semanas, 3 meses, 1 año, Todo | ✅ 2026-11-04 |
 | 9c | Evolución: mostrar mejor la comparación cuando el período anterior tiene muy poca actividad (ej. +555 %). Si el cambio pasa de +200 % se muestra "antes N min / N km" (`EVO_MAX_PCT`) | ✅ 2026-11-05 (rama `prueba/pendientes`) |

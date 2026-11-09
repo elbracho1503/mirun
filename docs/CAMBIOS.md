@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-09 | Rama `prueba/icono`: ícono nuevo (emblema M dorado y azul con órbitas; original en `img/icono-original.png`), 192, 512, 180 y maskable al 80 % sobre #061A4A (el logo llega al 36 % del lado: nada sale del círculo del 80 %). Caché v26 → v28 (v27 es de `prueba/personajes`) | `img/*`, `sw.js`, `docs/*` | ~10k tokens |
 | 2026-11-08 | Rama `prueba/diseno`: caché v25 → v26 (ajustes 1 y 2). Unida a main y publicada | `sw.js` | ~3k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, ajuste 3: PLAN, pendiente 21 (pasada de alineación) | `docs/*` | ~1k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, ajuste 2: Bienvenida sin desplazar en 360x740 y 390x844 (mismo contenido; imagen hasta 24 % del alto, espacios y campos más justos; cabe también con mensaje de error) | `css/app.css`, `docs/*` | ~5k tokens |
