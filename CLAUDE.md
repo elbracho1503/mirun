@@ -33,13 +33,12 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de **Brío**, la mascota principal (antes "MIRUN Monster"; PNG 256 px transparentes) |
 | `img/zafira/`, `img/nova/`, `img/tizon/` | Poses de los otros personajes (PNG 256 px; Nova y Tizón tienen 14: una pose apunta a otro archivo, ver `CHARACTERS`) |
-| `img/personajes-original/` | Hojas de poses originales de Zafira, Nova y Tizón (no van al caché) |
 | `img/siluetas/` | Siluetas del cuerpo: masculina, femenina, neutra (PNG 640 px de alto, transparentes) |
 | `img/bienvenida.jpg` | Imagen de la pantalla de bienvenida (600 px, 80 KB, sí va al caché) |
 | `img/icono-original.png`, `img/siluetas-original.png`, `img/bienvenida-original.jpg` | Imágenes originales del usuario (no van al caché) |
 | `.gitignore` | Excluye `respaldo/` de GitHub |
 | `.claude/herramientas/` | Scripts Node sin dependencias: `png_lib.js` (leer/escribir PNG), `recortar.js` (cortar hoja de poses) |
-| `respaldo/` | Copias de versiones anteriores de `mirun.html` antes de cambios grandes |
+| `respaldo/` | Copias de versiones anteriores de `mirun.html` antes de cambios grandes. También `respaldo/personajes-original/`: hojas de poses originales de Zafira, Nova y Tizón (no se suben a GitHub) |
 | `docs/DATOS.md` | Esquema de datos en `localStorage` |
 | `docs/DISENO.md` | Colores, componentes y reglas visuales |
 | `docs/DECISIONES.md` | Decisiones tomadas y pendientes |

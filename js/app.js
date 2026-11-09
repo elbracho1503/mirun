@@ -50,7 +50,7 @@
   // Brío (clave interna 'monster', archivos en img/mascota/) es el principal y el que se usa por defecto.
   // Agregar un personaje = sumar aquí su carpeta y sus poses. Una pose puede apuntar a otro archivo del
   // mismo personaje (Nova decidido = su 03_corriendo; Tizón cansado = su 08_agotado). Si falta una pose, se usa la de Brío.
-  // Originales de las hojas de poses: img/personajes-original/ (no van al caché del teléfono).
+  // Originales de las hojas de poses: respaldo/personajes-original/ (fuera de GitHub y del teléfono).
   const POSES_STD = {
     aprobacion:'01_aprobacion', pesas:'02_pesas', corriendo:'03_corriendo', carino:'04_carino',
     decidido:'05_decidido', pensando:'06_pensando', emocionado:'07_emocionado', agotado:'08_agotado',
