@@ -111,7 +111,7 @@
 
   /* ---- ROUTE (canvas) ---- */
   .mapWrap{background:var(--track2);border:1px solid var(--lane-line);border-radius:16px;overflow:hidden;
-    margin-top:16px;position:relative;}
+    margin-top:16px;position:relative;isolation:isolate;} /* isolate: las capas del mapa (z-index 400–1000) no quedan encima de las hojas */
   .mapWrap canvas{display:block;width:100%;height:150px;}
   .mapWrap .mapLbl{position:absolute;top:10px;left:12px;font-size:10px;color:var(--sub);letter-spacing:.3px;font-weight:600;}
 
@@ -373,7 +373,7 @@
   .plusBtn svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;}
   #plusSheet,#editSheet{position:fixed;inset:0;background:rgba(3,7,18,.75);display:none;align-items:flex-end;justify-content:center;z-index:90;}
   #plusSheet.show,#editSheet.show{display:flex;}
-  #plusSheet .sheet,#editSheet .sheet{width:100%;max-width:480px;background:var(--track);border-radius:24px 24px 0 0;border:1px solid var(--lane-line);
+  #plusSheet .sheet,#editSheet .sheet,#stopConfirm .sheet{width:100%;max-width:480px;background:var(--track);border-radius:24px 24px 0 0;border:1px solid var(--lane-line);
     padding:18px 16px calc(20px + env(safe-area-inset-bottom));}
   .sheetTitle{font-weight:800;font-size:17px;margin:0 4px 12px;}
   .sheetOpt{display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin-top:8px;
@@ -497,6 +497,11 @@
   body.gpsOn #btnPause{grid-column:1 / -1;order:1;padding:22px;font-size:19px;font-weight:700;
     background:var(--signal);color:var(--signal-ink);border:none;}
   body.gpsOn .lockBtn{order:2;padding:12px 8px;font-size:13px;line-height:1.25;}
+  /* confirmar Terminar: hoja abajo, encima de los botones fijos (z 46) y debajo del modo bolsillo (z 120) */
+  #stopConfirm{position:fixed;inset:0;background:rgba(3,7,18,.75);display:none;align-items:flex-end;justify-content:center;z-index:100;}
+  #stopConfirm.show{display:flex;}
+  #stopConfirm .sheetTitle{font-size:19px;}
+  #stopConfirm .btnRow{margin-top:16px;}
   body.gpsOn #btnStop{order:3;padding:12px 8px;font-size:14px;background:transparent;
     color:var(--danger);border:1px solid rgba(255,107,107,.45);}
   #lockOverlay{position:fixed;inset:0;z-index:120;display:none;align-items:flex-end;justify-content:center;

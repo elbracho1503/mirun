@@ -1748,14 +1748,21 @@
     saveCurrentRun(true);
   });
 
-  document.getElementById('btnStop').addEventListener('click', ()=>{
-    finishRun();
-  });
+  // Terminar pide confirmación (Pausar no): "¿Terminar actividad?" con "Sí, terminar" y "Seguir".
+  // Tocar fuera de la hoja o Escape = Seguir. Si la actividad termina sola (meta cumplida), la hoja se cierra.
+  const stopConfirm = document.getElementById('stopConfirm');
+  const closeStopConfirm = ()=>stopConfirm.classList.remove('show');
+  document.getElementById('btnStop').addEventListener('click', ()=>{ if(running) stopConfirm.classList.add('show'); });
+  document.getElementById('btnStopNo').addEventListener('click', closeStopConfirm);
+  document.getElementById('btnStopYes').addEventListener('click', ()=>{ closeStopConfirm(); finishRun(); });
+  stopConfirm.addEventListener('click', ev=>{ if(ev.target === stopConfirm) closeStopConfirm(); });
+  document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && stopConfirm.classList.contains('show')) closeStopConfirm(); });
 
   let sumPath = []; // ruta del último resumen, para el mapa grande
   document.getElementById('btnSumBigMap').addEventListener('click', ()=>openBigMap(sumPath, 'Tu ruta'));
   function finishRun(){
     if(!running) return;
+    document.getElementById('stopConfirm').classList.remove('show'); // por si terminó sola con la hoja abierta
     const sec = currentElapsedSec();
     running = false;
     clearInterval(timerInterval);

@@ -55,7 +55,7 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 ## Pantallas: ajustes de diseño (2026-11-08, rama `prueba/diseno`)
 - **GPS en curso** (`body.gpsOn`): sin menú inferior, sin "+", sin saludo ni botón de perfil. Pausar/Reanudar
   grande y principal, fijo abajo; debajo, más chicos, "Bloquear pantalla" y "Terminar" (contorno rojo). Al terminar
-  todo vuelve.
+  todo vuelve. "Terminar" pide confirmación ("¿Terminar actividad?": "Sí, terminar" / "Seguir"); Pausar no.
 - **Inicio**: "+ Registrar actividad" y "Salir con GPS" van arriba, después de Hoy/Esta semana y antes del calendario.
 - **Bienvenida**: "Empezar" es el botón principal (a lo ancho); "Saltar por ahora" es un enlace discreto debajo.
 - **Evolución > Cuerpo**: orden "Tu progreso" → "Registrar medición" → IMC → silueta → gráfico → medidas a seguir → guardadas.

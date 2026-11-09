@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-08 | Rama `prueba/diseno`, ajuste 1: Terminar (GPS) pide confirmación "¿Terminar actividad?" (Sí, terminar / Seguir; tocar fuera o Escape = Seguir). `.mapWrap` con `isolation:isolate` para que el mapa no quede encima de las hojas | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*` | ~6k tokens |
 | 2026-11-08 | Rama `prueba/diseno`: caché v24 → v25 (una sola vez, por T1–T8) | `sw.js` | ~1k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, T8: ayuda visual (SVG) en "Registrar medición" para distinguir cintura (lo más angosto) y abdomen (el ombligo), si se sigue alguna de las dos (`WAIST_HELP`) | `js/app.js`, `css/app.css`, `docs/*` | ~5k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, T7: si vuelve tras 3 días o más sin actividad, Inicio dice una vez "¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?" (pose Cariño; `welcomeBack`, clave nueva `mirun_welcomeBack`) | `js/app.js`, `docs/*` | ~8k tokens |
