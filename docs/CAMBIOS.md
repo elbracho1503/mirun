@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-09 | Rama `prueba/personajes`: caché v26 → v27 (una sola vez, por T3–T5) | `sw.js` | ~1k tokens |
 | 2026-11-09 | Rama `prueba/personajes`, T5: el teléfono descarga y guarda solo las imágenes del compañero elegido (fuera de `FILES_TO_CACHE`; mensaje `mascota` al Service Worker; muestras del selector con carga diferida) | `js/app.js`, `mirun.html`, `sw.js`, `docs/*`, `CLAUDE.md` | ~20k tokens |
 | 2026-11-09 | Rama `prueba/personajes`, T4: "Elige tu compañero" en Perfil (Brío por defecto); campo nuevo `profile.character` en el perfil, la copia y la importación | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-09 | Rama `prueba/personajes`, T3: personajes Zafira, Nova y Tizón en `CHARACTERS` (poses recortadas de sus hojas 4x4 a 256 px, tabla aprobada); originales en `img/personajes-original/`; "MIRUN Monster" pasa a llamarse Brío (solo el nombre visible) | `js/app.js`, `mirun.html`, `css/app.css`, `img/*`, `docs/*`, `CLAUDE.md` | ~45k tokens (con la revisión y el recorte) |
