@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-08 | Rama `prueba/diseno`: caché v25 → v26 (ajustes 1 y 2). Unida a main y publicada | `sw.js` | ~3k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, ajuste 3: PLAN, pendiente 21 (pasada de alineación) | `docs/*` | ~1k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, ajuste 2: Bienvenida sin desplazar en 360x740 y 390x844 (mismo contenido; imagen hasta 24 % del alto, espacios y campos más justos; cabe también con mensaje de error) | `css/app.css`, `docs/*` | ~5k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, ajuste 1: Terminar (GPS) pide confirmación "¿Terminar actividad?" (Sí, terminar / Seguir; tocar fuera o Escape = Seguir). `.mapWrap` con `isolation:isolate` para que el mapa no quede encima de las hojas | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*` | ~6k tokens |
