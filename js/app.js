@@ -79,6 +79,7 @@
     cuerpo:     'estudiando',  // IMC y medidas
     error:      'pensando',    // error en un formulario
     meta:       'celebrando',  // celebración al cumplir la meta del día
+    vuelta:     'carino',      // Inicio, vuelve después de 3 días o más sin actividad
     toque:      'carino',      // al tocar la mascota
     mareado:    'frustrado'    // al tocarla muchas veces seguidas
   };
@@ -296,13 +297,23 @@
   }
 
   // Foto de perfil: se recorta al centro, se reduce a 256 px (JPEG ~30 KB) y se guarda en mirun_photo.
-  // Sin foto: círculo negro liso (decisión del usuario).
+  // Sin foto: iniciales del nombre sobre azul, o un ícono si no hay nombre (decisión del usuario 2026-11-08; antes, círculo negro).
+  // iniciales del nombre (primera letra de la primera y de la última palabra), para cuando no hay foto
+  function initials(name){
+    const w = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if(!w.length) return '';
+    return ((w[0][0] || '') + (w.length > 1 ? w[w.length-1][0] : '')).toLocaleUpperCase('es-ES');
+  }
+  const AVATAR_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
   function refreshAvatars(){
-    const ph = LS.get('mirun_photo', null);
+    const ph = LS.get('mirun_photo', null), ini = initials(profile.name);
     ['hdrAvatar','profAvatar'].forEach(id=>{
       const el = document.getElementById(id);
       el.style.backgroundImage = ph ? 'url("' + ph + '")' : '';
-      el.textContent = '';
+      el.classList.toggle('noPhoto', !ph); // sin foto: iniciales (o un ícono si no hay nombre)
+      if(ph) el.textContent = '';
+      else if(ini) el.textContent = ini;
+      else el.innerHTML = AVATAR_ICON;
     });
     document.getElementById('btnPhotoDel').style.display = ph ? '' : 'none';
   }
@@ -1021,8 +1032,17 @@
   function tracked(){ return Array.isArray(profile.measures) && profile.measures.length ? profile.measures : DEF_MEAS; }
   const fmt1 = v => (Math.round(v*10)/10).toLocaleString('es-ES');
 
+  // ayuda visual: dónde se mide la cintura (lo más angosto) y dónde el abdomen (el ombligo); SVG en línea
+  const WAIST_HELP = `<div class="waistHelp" role="img" aria-label="Cintura: la parte más angosta, entre las costillas y la cadera. Abdomen: a la altura del ombligo.">
+    <svg viewBox="0 0 120 140" aria-hidden="true">
+      <path class="wTorso" d="M22 8 C24 38 31 50 33 60 C35 72 29 98 22 132 L98 132 C91 98 85 72 87 60 C89 50 96 38 98 8"/>
+      <line class="wWaist" x1="24" y1="60" x2="96" y2="60"/><line class="wAbd" x1="22" y1="80" x2="98" y2="80"/>
+      <circle class="wNavel" cx="60" cy="80" r="2.6"/></svg>
+    <div><p><i class="wWaistDot"></i><b>Cintura</b>: la parte más angosta, entre las costillas y la cadera.</p>
+      <p><i class="wAbdDot"></i><b>Abdomen</b>: a la altura del ombligo, aunque ahí no sea lo más angosto.</p></div></div>`;
   function buildBodyForm(){
-    document.getElementById('bodyInputs').innerHTML = MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
+    const help = tracked().some(k=>k === 'cintura' || k === 'barriga') ? WAIST_HELP : '';
+    document.getElementById('bodyInputs').innerHTML = help + MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
       `<div class="measIn"><label>${m.n} (${mU(m)})</label>
         <input type="number" id="${m.id}" step="0.1" placeholder="${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
     document.getElementById('measChips').innerHTML = MEASURES.map(m=>
@@ -1679,6 +1699,7 @@
     document.getElementById('btnStart').style.display='none';
     document.getElementById('resumeBox').style.display='none';
     document.getElementById('activeBtns').style.display='flex';
+    document.body.classList.add('gpsOn'); // registrando con GPS: sin menú ni saludo, botones fijos abajo (CSS GPS EN CURSO)
     document.getElementById('btnPause').textContent = paused ? 'Reanudar' : 'Pausar';
     clearInterval(timerInterval);
     timerInterval = setInterval(updateDisplay, 1000);
@@ -1727,14 +1748,21 @@
     saveCurrentRun(true);
   });
 
-  document.getElementById('btnStop').addEventListener('click', ()=>{
-    finishRun();
-  });
+  // Terminar pide confirmación (Pausar no): "¿Terminar actividad?" con "Sí, terminar" y "Seguir".
+  // Tocar fuera de la hoja o Escape = Seguir. Si la actividad termina sola (meta cumplida), la hoja se cierra.
+  const stopConfirm = document.getElementById('stopConfirm');
+  const closeStopConfirm = ()=>stopConfirm.classList.remove('show');
+  document.getElementById('btnStop').addEventListener('click', ()=>{ if(running) stopConfirm.classList.add('show'); });
+  document.getElementById('btnStopNo').addEventListener('click', closeStopConfirm);
+  document.getElementById('btnStopYes').addEventListener('click', ()=>{ closeStopConfirm(); finishRun(); });
+  stopConfirm.addEventListener('click', ev=>{ if(ev.target === stopConfirm) closeStopConfirm(); });
+  document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && stopConfirm.classList.contains('show')) closeStopConfirm(); });
 
   let sumPath = []; // ruta del último resumen, para el mapa grande
   document.getElementById('btnSumBigMap').addEventListener('click', ()=>openBigMap(sumPath, 'Tu ruta'));
   function finishRun(){
     if(!running) return;
+    document.getElementById('stopConfirm').classList.remove('show'); // por si terminó sola con la hoja abierta
     const sec = currentElapsedSec();
     running = false;
     clearInterval(timerInterval);
@@ -1769,6 +1797,7 @@
     document.getElementById('gpsTypeRow').style.display = 'flex';
     document.getElementById('btnStart').style.display='block';
     document.getElementById('activeBtns').style.display='none';
+    document.body.classList.remove('gpsOn'); // vuelve el menú, el + y el saludo
     document.getElementById('btnPause').textContent='Pausar';
     paused = false;
 
@@ -1949,6 +1978,21 @@
     calMonth = calMonth === null || calMonth >= monthIdx(new Date()) ? null : calMonth + 1;
     renderCal();
   });
+  // Vuelve después de 3 días o más sin actividad (sin contar si esos días fueron todos de descanso):
+  // saludo especial en Inicio UNA vez por regreso. mirun_welcomeBack = día de la última actividad antes de ese
+  // regreso; en esta sesión se mantiene hasta que haya actividad hoy, y al volver a abrir ya no sale.
+  let welcomeBackFor = null;
+  function welcomeBack(mins, today, tk, recent){
+    if(recent || !history.length || (mins.get(tk) || 0) > 0) return false;
+    const last = [...mins.keys()].filter(k=>k < tk && mins.get(k) > 0).sort().pop();
+    if(!last) return false;
+    const allRest = [1,2,3].every(n=>{ const d = new Date(today); d.setDate(d.getDate()-n); return restDaysOn(d).includes(d.getDay()); });
+    if(allRest) return false;
+    if(welcomeBackFor === last) return true;               // ya se mostró en esta sesión: se mantiene
+    if(LS.get('mirun_welcomeBack', null) === last) return false; // ya se mostró antes para este regreso
+    welcomeBackFor = last; LS.set('mirun_welcomeBack', last);
+    return true;
+  }
   function renderHome(){
     const mins = minutesByDay(), st = streakInfo(mins);
     document.getElementById('streakVal').textContent = st.cur;
@@ -1971,6 +2015,7 @@
     if(tStat === 'done'){ mk = 'cumplido'; msg = '¡Meta de hoy cumplida! Llevas ' + st.cur + (st.cur === 1 ? ' día' : ' días') + ' de racha.'; }
     else if(tStat === 'rest'){ mk = 'descanso'; msg = 'Hoy es tu día de descanso. Recupera energía, tu racha sigue a salvo.'; }
     else if(st.cur === 0 && st.best > 0 && recent){ mk = 'rota'; msg = 'Tu racha se reinició, pero hoy empieza otra. ¡Vamos!'; }
+    else if(welcomeBack(mins, today, tk, recent)){ mk = 'vuelta'; msg = '¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?'; }
     else if((mins.get(tk) || 0) > 0){ mk = 'enCamino'; msg = '¡Vas bien! Te faltan ' + left + ' min para cumplir hoy.'; }
     else { mk = 'hoy'; msg = 'Te faltan ' + left + ' min para cumplir hoy. ¡Tú puedes!'; }
     const hm = document.getElementById('homeMascot');
@@ -2139,8 +2184,39 @@
     };
   }
 
+  // Logro bloqueado más cercano (el de mayor avance) y cuánto falta, en palabras.
+  // Rachas: se cuenta desde la racha ACTUAL (la mejor ya pasada no ayuda a subirla).
+  function nextAchievement(s){
+    const cur = streakInfo(minutesByDay()).cur;
+    const plural = (n, a, b)=>n + ' ' + (n === 1 ? a : b);
+    let best = null;
+    ACH.forEach(a=>{
+      const v = a.v(s); if(v >= a.g) return; // ya desbloqueado
+      const have = a.c === 1 ? cur : v, ratio = Math.max(0, have) / a.g;
+      if(!best || ratio > best.ratio || (ratio === best.ratio && a.g < best.a.g)) best = {a, ratio, have};
+    });
+    if(!best) return null;
+    const a = best.a, left = a.g - best.have;
+    let txt;
+    if(a.c === 0) txt = 'Te ' + (left === 1 ? 'falta ' : 'faltan ') + plural(left, 'actividad', 'actividades');
+    else if(a.c === 1) txt = 'Te ' + (left === 1 ? 'falta ' : 'faltan ') + plural(left, 'día', 'días') + ' seguidos';
+    else if(a.c === 2) txt = 'Cumple tu meta semanal de ' + weekMin() + ' min';
+    else if(a.c === 3){ const m = Math.ceil(left); txt = 'Te faltan ' + (m >= 60 ? Math.ceil(m / 60) + ' h' : m + ' min') + ' de actividad'; }
+    else if(a.c === 4) txt = 'Te faltan ' + fmtD(left, 1);
+    else if(a.c === 5) txt = 'Corre ' + raceTxt(a.g) + ' de una vez';
+    else txt = 'Te ' + (left === 1 ? 'falta ' : 'faltan ') + plural(left, 'tipo', 'tipos') + ' de actividad más';
+    if(a.c === 1 && left === 1) txt = 'Te falta 1 día'; // "Te falta 1 día para Semana eléctrica"
+    return {a, ratio: best.ratio, txt: txt + ' para ' + a.n};
+  }
   function renderAchievements(){
     const s = achStats();
+    // arriba: el logro más cercano a desbloquear
+    const nx = nextAchievement(s), nb = document.getElementById('nextAch');
+    nb.innerHTML = nx
+      ? `<div class="medal">${nx.a.e}</div><div class="nxT"><small>Tu próximo logro</small><b></b>
+          <div class="pbar"><div style="width:${Math.round(nx.ratio * 100)}%"></div></div></div>`
+      : `<div class="medal">🏆</div><div class="nxT"><small>Tus logros</small><b>¡Tienes todos los logros!</b></div>`;
+    if(nx) nb.querySelector('b').textContent = nx.txt;
     let on = 0;
     // tres estados: bloqueado (gris + candado), desbloqueado (azul), legendario (dorado)
     const card = a=>{

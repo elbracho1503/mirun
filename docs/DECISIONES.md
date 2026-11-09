@@ -23,6 +23,7 @@
 - Pasos diarios: **no se puede** en una app web.
 - Racha, récord de racha y logros se **calculan** desde el historial.
 - Un solo historial (`mirun_history`) con campo `type`; sin `type` = "correr".
+- **Avatar sin foto: iniciales del nombre** sobre azul (o ícono de persona si no hay nombre), en vez del círculo negro. (2026-11-08)
 - **appId de la app nativa (Android): `mirun.app.desafio`.** Decidido por el usuario (2026-11-05). No se puede
   cambiar después de publicar en Play Store. Se usa en `npx cap init` y `capacitor.config.json` (ver `docs/NATIVA.md`).
 

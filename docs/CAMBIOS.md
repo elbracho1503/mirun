@@ -5,6 +5,19 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-08 | Rama `prueba/diseno`: caché v25 → v26 (ajustes 1 y 2). Unida a main y publicada | `sw.js` | ~3k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, ajuste 3: PLAN, pendiente 21 (pasada de alineación) | `docs/*` | ~1k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, ajuste 2: Bienvenida sin desplazar en 360x740 y 390x844 (mismo contenido; imagen hasta 24 % del alto, espacios y campos más justos; cabe también con mensaje de error) | `css/app.css`, `docs/*` | ~5k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, ajuste 1: Terminar (GPS) pide confirmación "¿Terminar actividad?" (Sí, terminar / Seguir; tocar fuera o Escape = Seguir). `.mapWrap` con `isolation:isolate` para que el mapa no quede encima de las hojas | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*` | ~6k tokens |
+| 2026-11-08 | Rama `prueba/diseno`: caché v24 → v25 (una sola vez, por T1–T8) | `sw.js` | ~1k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T8: ayuda visual (SVG) en "Registrar medición" para distinguir cintura (lo más angosto) y abdomen (el ombligo), si se sigue alguna de las dos (`WAIST_HELP`) | `js/app.js`, `css/app.css`, `docs/*` | ~5k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T7: si vuelve tras 3 días o más sin actividad, Inicio dice una vez "¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?" (pose Cariño; `welcomeBack`, clave nueva `mirun_welcomeBack`) | `js/app.js`, `docs/*` | ~8k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T6: sin foto, la cabecera y Perfil muestran las iniciales del nombre sobre azul (o un ícono de persona si no hay nombre) en vez del círculo negro (`initials`) | `js/app.js`, `css/app.css`, `docs/*` | ~5k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T5: Logros, arriba "Tu próximo logro" (el bloqueado con más avance y cuánto falta; rachas desde la racha actual) `nextAchievement` | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~10k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T4: Evolución > Cuerpo empieza con "Tu progreso" (medidas que sigue) y "Registrar medición"; después IMC, silueta y gráfico | `mirun.html`, `docs/*` | ~3k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T3: Bienvenida, "Empezar" botón principal a lo ancho; "Saltar por ahora" enlace discreto debajo (mismos ids) | `mirun.html`, `css/app.css`, `docs/*` | ~2k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T2: Inicio, "+ Registrar actividad" y "Salir con GPS" arriba, antes del calendario | `mirun.html`, `css/app.css`, `docs/*` | ~3k tokens |
+| 2026-11-08 | Rama `prueba/diseno`, T1 (error): con GPS en curso se ocultan el menú, el "+", el saludo y el perfil; Pausar grande y Terminar discreto fijos abajo (`body.gpsOn`) | `js/app.js`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`: caché v23 → v24 (una sola vez, por los ajustes 1–5) | `sw.js` | ~1k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 5: mascota más viva (flota 8 px, gestos espontáneos cada 8–10 s en Inicio con `mTilt` nuevo, salto marcado al tocarla; se pausa con la app oculta y nada con reducir movimiento) | `js/app.js`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-06 | Rama `prueba/celebracion`, ajuste 4: `maybeCelebrate` dentro de try/catch en `checkAchievements` (un error en la celebración no frena los logros) | `js/app.js`, `docs/*` | ~3k tokens |
