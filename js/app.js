@@ -98,6 +98,18 @@
   // imágenes fijas del HTML con data-pose="..." (siguen al personaje)
   function refreshPoseImgs(){ document.querySelectorAll('img[data-pose]').forEach(i=>{ i.src = poseSrc(i.dataset.pose); }); }
   refreshPoseImgs();
+  // El teléfono guarda (para usar sin internet) SOLO las imágenes del compañero elegido: se le pide al
+  // Service Worker con el mensaje 'mascota' (ver sw.js). keep = se descargan; spare = las de muestra del
+  // selector de Perfil (no se descargan aquí, pero si ya se vieron no se borran).
+  function syncCharacterCache(){
+    if(!('serviceWorker' in navigator)) return;
+    const c = character(), keep = [...new Set(Object.values(c.poses))].map(f=>c.dir + f + '.png');
+    const spare = Object.values(CHARACTERS).map(x=>x.dir + x.poses.aprobacion + '.png');
+    navigator.serviceWorker.ready.then(reg=>{ if(reg.active) reg.active.postMessage({type:'mascota', keep, spare}); }).catch(()=>{});
+  }
+  syncCharacterCache();
+  // versión nueva de la app (caché nuevo): se vuelven a pedir las del elegido
+  if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('controllerchange', syncCharacterCache);
   // mensaje con la mascota pequeña al lado (formularios)
   function mascotMsg(el, k, text, color){
     el.innerHTML = `<span class="msgM"><img src="${mascot(k)}" alt=""><span></span></span>`;
@@ -311,7 +323,7 @@
   function setCharacter(k){
     charKey = Object.prototype.hasOwnProperty.call(CHARACTERS, k) ? k : DEFAULT_CHAR;
     profile.character = charKey; LS.set('mirun_profile', profile);
-    refreshPoseImgs(); renderCharPick(); renderHome();
+    refreshPoseImgs(); renderCharPick(); renderHome(); syncCharacterCache();
     const img = document.querySelector('#charPick .charOpt.on img'); if(img) mascotReact(img, 'mHop'); // saluda el elegido
     showSaved();
   }
@@ -2488,7 +2500,7 @@
           take(profile, ok); LS.set('mirun_profile', profile);
           // el compañero de la copia (si se tomó) se aplica enseguida
           if(Object.prototype.hasOwnProperty.call(CHARACTERS, profile.character) && profile.character !== charKey){
-            charKey = profile.character; refreshPoseImgs(); renderCharPick(); renderHome();
+            charKey = profile.character; refreshPoseImgs(); renderCharPick(); renderHome(); syncCharacterCache();
           }
         }
         if(data.goal && typeof data.goal === 'object'){

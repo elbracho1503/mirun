@@ -28,7 +28,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `css/app.css` | Todos los estilos |
 | `js/app.js` | Toda la lógica (secciones con marcadores `// ---------- NOMBRE`) |
 | `index.html` | Solo redirige a `mirun.html` |
-| `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché |
+| `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché. Las imágenes de la mascota NO están en `FILES_TO_CACHE`: la app manda el mensaje `mascota` (`syncCharacterCache`) y se guardan solo las del compañero elegido |
 | `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", `icon-512-maskable.png` (imagen al 80 % para el círculo de Android), 180 para iPhone) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de **Brío**, la mascota principal (antes "MIRUN Monster"; PNG 256 px transparentes) |
