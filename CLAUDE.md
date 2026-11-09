@@ -31,7 +31,9 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché |
 | `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", `icon-512-maskable.png` (imagen al 80 % para el círculo de Android), 180 para iPhone) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
-| `img/mascota/` | 15 poses de la mascota MIRUN Monster (PNG 256 px transparentes) |
+| `img/mascota/` | 15 poses de **Brío**, la mascota principal (antes "MIRUN Monster"; PNG 256 px transparentes) |
+| `img/zafira/`, `img/nova/`, `img/tizon/` | Poses de los otros personajes (PNG 256 px; Nova y Tizón tienen 14: una pose apunta a otro archivo, ver `CHARACTERS`) |
+| `img/personajes-original/` | Hojas de poses originales de Zafira, Nova y Tizón (no van al caché) |
 | `img/siluetas/` | Siluetas del cuerpo: masculina, femenina, neutra (PNG 640 px de alto, transparentes) |
 | `img/bienvenida.jpg` | Imagen de la pantalla de bienvenida (600 px, 80 KB, sí va al caché) |
 | `img/icono-original.png`, `img/siluetas-original.png`, `img/bienvenida-original.jpg` | Imágenes originales del usuario (no van al caché) |
@@ -59,7 +61,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Formulario de actividad (HTML) | `id="actForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
-| Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA MIRUN Monster` y `MASCOTA: movimiento`) |
+| Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
 | Perfil: saludo, foto (`mirun_photo`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |

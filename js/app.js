@@ -46,16 +46,21 @@
   }
 
   // ---------- MASCOTA ----------
-  // PERSONAJES: cada uno con su carpeta y sus poses (nombre de la pose -> archivo sin .png). Monster es el
-  // principal y el que se usa por defecto. Agregar un personaje = sumar aquí su carpeta y sus poses
-  // (y sus archivos a FILES_TO_CACHE en sw.js). Si a un personaje le falta una pose, se usa la de Monster.
-  // Todavía no hay selector: siempre se usa DEFAULT_CHAR.
+  // PERSONAJES: cada uno con su carpeta y sus poses (nombre de la pose -> archivo sin .png).
+  // Brío (clave interna 'monster', archivos en img/mascota/) es el principal y el que se usa por defecto.
+  // Agregar un personaje = sumar aquí su carpeta y sus poses. Una pose puede apuntar a otro archivo del
+  // mismo personaje (Nova decidido = su 03_corriendo; Tizón cansado = su 08_agotado). Si falta una pose, se usa la de Brío.
+  // Originales de las hojas de poses: img/personajes-original/ (no van al caché del teléfono).
+  const POSES_STD = {
+    aprobacion:'01_aprobacion', pesas:'02_pesas', corriendo:'03_corriendo', carino:'04_carino',
+    decidido:'05_decidido', pensando:'06_pensando', emocionado:'07_emocionado', agotado:'08_agotado',
+    celebrando:'09_celebrando', cansado:'10_cansado', frustrado:'11_frustrado', estudiando:'12_estudiando',
+    tu_puedes:'13_tu_puedes', durmiendo:'14_durmiendo', asomado:'15_asomado'};
   const CHARACTERS = {
-    monster: {name:'MIRUN Monster', dir:'img/mascota/', poses:{
-      aprobacion:'01_aprobacion', pesas:'02_pesas', corriendo:'03_corriendo', carino:'04_carino',
-      decidido:'05_decidido', pensando:'06_pensando', emocionado:'07_emocionado', agotado:'08_agotado',
-      celebrando:'09_celebrando', cansado:'10_cansado', frustrado:'11_frustrado', estudiando:'12_estudiando',
-      tu_puedes:'13_tu_puedes', durmiendo:'14_durmiendo', asomado:'15_asomado'}}
+    monster: {name:'Brío',   dir:'img/mascota/', poses: POSES_STD},
+    zafira:  {name:'Zafira', dir:'img/zafira/',  poses: POSES_STD},
+    nova:    {name:'Nova',   dir:'img/nova/',    poses: Object.assign({}, POSES_STD, {decidido:'03_corriendo'})},
+    tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})}
   };
   const DEFAULT_CHAR = 'monster';
   function character(){ return CHARACTERS[DEFAULT_CHAR]; } // con el selector: el personaje elegido

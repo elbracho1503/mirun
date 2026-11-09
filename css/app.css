@@ -389,7 +389,7 @@
   .bmiTag.warn{background:rgba(245,184,46,.15);color:var(--gold);}
   .bmiTag.bad{background:rgba(255,77,77,.15);color:var(--danger);}
 
-  /* ==== MASCOTA MIRUN Monster (poses en img/mascota/, lista MASCOT en app.js) ==== */
+  /* ==== MASCOTA (Brío y los demás personajes; poses en CHARACTERS y MASCOT de app.js) ==== */
   .mascotCard{display:flex;align-items:center;gap:8px;margin-top:10px;}
   .mascotCard img{width:112px;height:112px;flex-shrink:0;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));}
   .bubble{position:relative;flex:1;background:var(--track);border:1px solid var(--lane-line);border-radius:18px;
