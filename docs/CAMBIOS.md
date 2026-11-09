@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-09 | Rama `prueba/personajes`, T4: "Elige tu compañero" en Perfil (Brío por defecto); campo nuevo `profile.character` en el perfil, la copia y la importación | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~15k tokens |
 | 2026-11-09 | Rama `prueba/personajes`, T3: personajes Zafira, Nova y Tizón en `CHARACTERS` (poses recortadas de sus hojas 4x4 a 256 px, tabla aprobada); originales en `img/personajes-original/`; "MIRUN Monster" pasa a llamarse Brío (solo el nombre visible) | `js/app.js`, `mirun.html`, `css/app.css`, `img/*`, `docs/*`, `CLAUDE.md` | ~45k tokens (con la revisión y el recorte) |
 | 2026-11-08 | Rama `prueba/diseno`: caché v25 → v26 (ajustes 1 y 2). Unida a main y publicada | `sw.js` | ~3k tokens |
 | 2026-11-08 | Rama `prueba/diseno`, ajuste 3: PLAN, pendiente 21 (pasada de alineación) | `docs/*` | ~1k tokens |

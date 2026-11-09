@@ -64,7 +64,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
-| Perfil: saludo, foto (`mirun_photo`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
+| Perfil: saludo, foto (`mirun_photo`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |

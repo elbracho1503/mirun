@@ -63,7 +63,11 @@
     tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})}
   };
   const DEFAULT_CHAR = 'monster';
-  function character(){ return CHARACTERS[DEFAULT_CHAR]; } // con el selector: el personaje elegido
+  // personaje elegido en Perfil ("Elige tu compañero", profile.character). Esta sección corre antes que PROFILE,
+  // por eso se lee directo del perfil guardado; setCharacter lo cambia después.
+  let charKey = (LS.get('mirun_profile', null) || {}).character;
+  if(!Object.prototype.hasOwnProperty.call(CHARACTERS, charKey)) charKey = DEFAULT_CHAR;
+  function character(){ return CHARACTERS[charKey]; }
   function poseSrc(pose){
     const c = character(), f = c.poses[pose] ? c : CHARACTERS[DEFAULT_CHAR];
     return f.dir + f.poses[pose] + '.png';
@@ -92,7 +96,8 @@
   // cambia la pose de una imagen de mascota (si está en medio de una reacción al toque, la deja para después)
   function setMascot(img, k){ const s = mascot(k); if(img.dataset.base) img.dataset.base = s; else img.src = s; }
   // imágenes fijas del HTML con data-pose="..." (siguen al personaje)
-  document.querySelectorAll('img[data-pose]').forEach(i=>{ i.src = poseSrc(i.dataset.pose); });
+  function refreshPoseImgs(){ document.querySelectorAll('img[data-pose]').forEach(i=>{ i.src = poseSrc(i.dataset.pose); }); }
+  refreshPoseImgs();
   // mensaje con la mascota pequeña al lado (formularios)
   function mascotMsg(el, k, text, color){
     el.innerHTML = `<span class="msgM"><img src="${mascot(k)}" alt=""><span></span></span>`;
@@ -295,6 +300,25 @@
       (goal.weekMin ? '. Tú elegiste ' + goal.weekMin + ' min en Metas.' : ', se usa mientras no elijas otra en Metas.');
   }
   document.getElementById('profLevel').addEventListener('change', refreshLevelHint);
+
+  // "Elige tu compañero": se guarda al tocar (profile.character) y la mascota cambia en toda la app.
+  // Cada opción muestra la pose "aprobación" de ese personaje.
+  function renderCharPick(){
+    document.getElementById('charPick').innerHTML = Object.keys(CHARACTERS).map(k=>{ const c = CHARACTERS[k], on = k === charKey;
+      return `<button class="charOpt${on ? ' on' : ''}" data-char="${k}" aria-pressed="${on}">
+        <img src="${c.dir + c.poses.aprobacion}.png" alt="" loading="lazy"><span>${c.name}</span></button>`; }).join('');
+  }
+  function setCharacter(k){
+    charKey = Object.prototype.hasOwnProperty.call(CHARACTERS, k) ? k : DEFAULT_CHAR;
+    profile.character = charKey; LS.set('mirun_profile', profile);
+    refreshPoseImgs(); renderCharPick(); renderHome();
+    const img = document.querySelector('#charPick .charOpt.on img'); if(img) mascotReact(img, 'mHop'); // saluda el elegido
+    showSaved();
+  }
+  document.getElementById('charPick').addEventListener('click', ev=>{
+    const b = ev.target.closest('[data-char]'); if(b && b.dataset.char !== charKey) setCharacter(b.dataset.char);
+  });
+  renderCharPick();
   // saludo en la cabecera: "Hola, Nombre" o la marca si no hay nombre
   function refreshHello(){
     const h = document.getElementById('hello');
@@ -2458,9 +2482,14 @@
           if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
           if(typeof p.voice === 'boolean') ok.voice = p.voice;
           if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
+          if(typeof p.character === 'string' && Object.prototype.hasOwnProperty.call(CHARACTERS, p.character)) ok.character = p.character; // compañero elegido
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
           if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)
           take(profile, ok); LS.set('mirun_profile', profile);
+          // el compañero de la copia (si se tomó) se aplica enseguida
+          if(Object.prototype.hasOwnProperty.call(CHARACTERS, profile.character) && profile.character !== charKey){
+            charKey = profile.character; refreshPoseImgs(); renderCharPick(); renderHome();
+          }
         }
         if(data.goal && typeof data.goal === 'object'){
           const g = data.goal, ok = {}, num = (v, a, b)=>{ v = Number(v); return v >= a && v <= b ? v : undefined; };

@@ -408,6 +408,13 @@
   .empty img{display:block;width:120px;height:120px;margin:0 auto 10px;}
   .mascotSide{float:right;width:80px;height:80px;margin:-38px -4px 0 0;}
 
+  /* ==== ELIGE TU COMPAÑERO (Perfil) ==== */
+  .charPick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+  .charOpt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 10px;border-radius:16px;
+    background:var(--track2);border:1.5px solid var(--lane-line);color:var(--sub);font-family:'Inter',sans-serif;
+    font-size:13px;font-weight:700;-webkit-tap-highlight-color:transparent;}
+  .charOpt img{width:100%;max-width:72px;aspect-ratio:1;transform-origin:50% 100%;}
+  .charOpt.on{border-color:var(--signal);background:rgba(77,155,255,.14);color:var(--text);box-shadow:0 0 0 3px rgba(77,155,255,.15);}
   /* ==== MASCOTA: movimiento (solo transform: lo hace la tarjeta gráfica, gasta poco; ver mascotReact en app.js) ==== */
   /* reposo: flota suave (solo la mascota grande de Inicio y la del aviso de logro); lento para no marear */
   .mIdle{animation:mBreathe 5s ease-in-out infinite;transform-origin:50% 100%;}
