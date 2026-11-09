@@ -57,7 +57,7 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
   grande y principal, fijo abajo; debajo, más chicos, "Bloquear pantalla" y "Terminar" (contorno rojo). Al terminar
   todo vuelve. "Terminar" pide confirmación ("¿Terminar actividad?": "Sí, terminar" / "Seguir"); Pausar no.
 - **Inicio**: "+ Registrar actividad" y "Salir con GPS" van arriba, después de Hoy/Esta semana y antes del calendario.
-- **Bienvenida**: "Empezar" es el botón principal (a lo ancho); "Saltar por ahora" es un enlace discreto debajo.
+- **Bienvenida**: "Empezar" es el botón principal (a lo ancho); "Saltar por ahora" es un enlace discreto debajo. Todo cabe sin desplazar en 360x740 y 390x844 (la imagen mide hasta el 24 % del alto de la pantalla).
 - **Evolución > Cuerpo**: orden "Tu progreso" → "Registrar medición" → IMC → silueta → gráfico → medidas a seguir → guardadas.
 - **Logros**: arriba "Tu próximo logro": el bloqueado con más avance, cuánto falta en palabras ("Te falta 1 día para Semana eléctrica") y barra. Las rachas cuentan desde la racha actual.
 - **Avatar sin foto** (cabecera y Perfil): iniciales del nombre (primera y última palabra) en blanco sobre `--grad`; sin nombre, ícono de persona.
