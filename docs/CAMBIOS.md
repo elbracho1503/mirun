@@ -5,6 +5,8 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-09 | Rama `prueba/icono` (unida a main y publicada, caché v28; conflicto resuelto: v28 y las líneas de las dos ramas): maskable con relleno #01184C (el fondo de la imagen original) en vez de #061A4A, para que no se vea el cuadrado alrededor del logo | `img/iconos/icon-512-maskable.png`, `docs/*` | ~3k tokens |
+| 2026-11-09 | Rama `prueba/icono`: ícono nuevo (emblema M dorado y azul con órbitas; original en `img/icono-original.png`), 192, 512, 180 y maskable al 80 % sobre #061A4A (el logo llega al 36 % del lado: nada sale del círculo del 80 %). Caché v26 → v28 (v27 es de `prueba/personajes`) | `img/*`, `sw.js`, `docs/*` | ~10k tokens |
 | 2026-11-09 | Rama `prueba/personajes`: originales de los personajes movidos de `img/personajes-original/` a `respaldo/personajes-original/` (no se sube a GitHub). Unida a main y publicada (caché v27) | `img/*`, `js/app.js`, `docs/*`, `CLAUDE.md` | ~4k tokens |
 | 2026-11-09 | Rama `prueba/personajes`: caché v26 → v27 (una sola vez, por T3–T5) | `sw.js` | ~1k tokens |
 | 2026-11-09 | Rama `prueba/personajes`, T5: el teléfono descarga y guarda solo las imágenes del compañero elegido (fuera de `FILES_TO_CACHE`; mensaje `mascota` al Service Worker; muestras del selector con carga diferida) | `js/app.js`, `mirun.html`, `sw.js`, `docs/*`, `CLAUDE.md` | ~20k tokens |
