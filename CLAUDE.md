@@ -54,7 +54,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 |---|---|
 | CSS base (variables en `:root`) | `<style>` |
 | CSS del diseño azul (encima del base) | `DISEÑO v5` |
-| Cabecera (botón Perfil) y menú inferior con "+" | `<header>`, `Menú inferior`, `id="plusSheet"` (CSS: `MENÚ CON "+"`) |
+| Cabecera (botón Perfil con engranaje y "Perfil") y menú inferior con "+" | `<header>`, `Menú inferior`, `id="plusSheet"` (CSS: `MENÚ CON "+"`, `BOTÓN PERFIL DE LA CABECERA`) |
 | CSS de Inicio, calendario, chips | `INICIO: racha` |
 | Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `RECORDS`, `BODY`, `PROFILE` |
 | Formulario de actividad (HTML) | `id="actForm"` |
