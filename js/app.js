@@ -1357,12 +1357,20 @@
   // Sigue sola cuando se aleja 15 m del punto de la pausa en 2 posiciones seguidas (o con "Reanudar").
   // Si el GPS se pierde no se pausa (no se sabe si está quieta). Se apaga en Perfil (profile.autoPause).
   // Se guarda en la actividad: autoPausedSeconds (tiempo quieta descontado) y autoPauses (cuántas veces).
-  const AUTO_STILL_MS = 120000, AUTO_STILL_M = 25, AUTO_RESUME_M = 15;
+  // A los 10 minutos en pausa automática pregunta UNA vez por pausa "¿Terminaste tu actividad?" y muestra Terminar.
+  const AUTO_STILL_MS = 120000, AUTO_STILL_M = 25, AUTO_RESUME_M = 15, AUTO_ASK_MS = 600000;
   let autoPaused = false, stillAnchor = null, lastFix = null, pauseAt = null, pauseStartedAt = 0;
-  let autoPausedMs = 0, autoPauses = 0, resumeHits = 0;
+  let autoPausedMs = 0, autoPauses = 0, resumeHits = 0, autoAsked = false;
   function autoPauseOn(){ return profile.autoPause !== false; }
-  function resetAutoPause(){ autoPaused = false; stillAnchor = null; lastFix = null; pauseAt = null; pauseStartedAt = 0; autoPausedMs = 0; autoPauses = 0; resumeHits = 0; }
-  function showAutoPause(on){ document.getElementById('autoPauseBox').style.display = on ? '' : 'none'; }
+  function resetAutoPause(){ autoPaused = false; stillAnchor = null; lastFix = null; pauseAt = null; pauseStartedAt = 0; autoPausedMs = 0; autoPauses = 0; resumeHits = 0; autoAsked = false; }
+  // aviso en pantalla; con ask = true, la pregunta de los 10 minutos con el botón Terminar
+  function showAutoPause(on, ask){
+    document.getElementById('autoPauseBox').style.display = on ? '' : 'none';
+    document.getElementById('autoPauseMsg').textContent = ask
+      ? '¿Terminaste tu actividad? Llevas 10 minutos sin moverte.'
+      : 'Llevas 2 minutos sin moverte. Cuando vuelvas a moverte, sigue sola.';
+    document.getElementById('btnAutoStop').style.display = on && ask ? '' : 'none';
+  }
   // cada posición buena del GPS (también en pausa)
   function autoPauseOnFix(lat, lon, now){
     lastFix = {lat, lon};
@@ -1378,6 +1386,9 @@
   }
   // cada segundo (desde updateDisplay)
   function autoPauseTick(now){
+    if(running && autoPaused && !autoAsked && now - pauseStartedAt >= AUTO_ASK_MS){ // 10 minutos quieta
+      autoAsked = true; showAutoPause(true, true); say('¿Terminaste tu actividad?'); saveCurrentRun(true); return;
+    }
     if(!running || paused || !autoPauseOn() || !stillAnchor) return;
     if(now - lastFixTime > 20000) return; // GPS perdido: no se sabe si está quieta
     if(now - stillAnchor.t >= AUTO_STILL_MS) autoPause(now);
@@ -1386,7 +1397,7 @@
     const ran = elapsedBeforePause + (now - startTime);
     const stillMs = Math.min(now - stillAnchor.t, ran); // nunca más que lo que lleva
     elapsedBeforePause = ran - stillMs;
-    paused = true; autoPaused = true; resumeHits = 0;
+    paused = true; autoPaused = true; resumeHits = 0; autoAsked = false; // la pregunta de los 10 min es por pausa
     pauseAt = lastFix || {lat: stillAnchor.lat, lon: stillAnchor.lon};
     pauseStartedAt = now; autoPausedMs += stillMs; autoPauses++;
     stillAnchor = null;
@@ -1538,7 +1549,7 @@
     LS.set('mirun_current', {
       type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
       lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime,
-      autoPaused, pauseAt, pauseStartedAt, autoPausedMs, autoPauses, // pausa automática (se agregan)
+      autoPaused, pauseAt, pauseStartedAt, autoPausedMs, autoPauses, autoAsked, // pausa automática (se agregan)
       savedAt: Date.now()
     });
   }
@@ -1802,10 +1813,10 @@
     if(state){
       autoPaused = !!(state.autoPaused && state.paused);
       pauseAt = state.pauseAt || null; pauseStartedAt = state.pauseStartedAt || 0;
-      autoPausedMs = state.autoPausedMs || 0; autoPauses = state.autoPauses || 0;
+      autoPausedMs = state.autoPausedMs || 0; autoPauses = state.autoPauses || 0; autoAsked = !!state.autoAsked;
       if(autoPaused && !pauseAt) autoPaused = false;
     }
-    showAutoPause(autoPaused);
+    showAutoPause(autoPaused, autoPaused && autoAsked);
     runNote.style.display = 'none';
     resetStreetMap('live');
     document.getElementById('btnStart').style.display='none';
@@ -1869,6 +1880,8 @@
   document.getElementById('btnStop').addEventListener('click', ()=>{ if(running) stopConfirm.classList.add('show'); });
   document.getElementById('btnStopNo').addEventListener('click', closeStopConfirm);
   document.getElementById('btnStopYes').addEventListener('click', ()=>{ closeStopConfirm(); finishRun(); });
+  // "Terminar" de la pregunta de los 10 minutos en pausa automática: ya es la respuesta, termina directo
+  document.getElementById('btnAutoStop').addEventListener('click', ()=>{ if(running) finishRun(); });
   stopConfirm.addEventListener('click', ev=>{ if(ev.target === stopConfirm) closeStopConfirm(); });
   document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && stopConfirm.classList.contains('show')) closeStopConfirm(); });
 

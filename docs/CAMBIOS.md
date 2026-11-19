@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-18 | Rama `prueba/autopausa`, parte 2: a los 10 minutos en pausa automática la voz pregunta "¿Terminaste tu actividad?" y aparece el botón Terminar (una vez por pausa; se recuerda si se cierra la app) | `js/app.js`, `mirun.html`, `docs/*` | ~8k tokens |
 | 2026-11-18 | Rama `prueba/autopausa`, parte 1: pausa automática en actividades con GPS (quieta 2 min / menos de 25 m: se pausa, avisa por voz y descuenta esos 2 min; sigue sola al alejarse 15 m en 2 posiciones). `seconds` = tiempo en movimiento; campos nuevos `autoPausedSeconds` y `autoPauses` (actividad, copia e importación) y estado en `mirun_current` | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~30k tokens |
 | 2026-11-18 | Rama `prueba/ajustes`: caché v28 → v29 (una sola vez, por el ícono y el botón de Perfil) | `sw.js` | ~1k tokens |
 | 2026-11-18 | Rama `prueba/ajustes`, T2: el botón de Perfil de la cabecera lleva un engranaje chico y la palabra "Perfil" debajo; la cabecera sigue en 72 px y el saludo en el mismo lugar | `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~10k tokens |
