@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-18 | Rama `prueba/autopausa`: caché v29 → v30 (una sola vez) | `sw.js` | ~1k tokens |
 | 2026-11-18 | Rama `prueba/autopausa`, parte 4: PLAN 22 (pausa automática) y pendiente 22b "Los entrenos por intervalos (futuro) deben desactivar la pausa automática" | `docs/*` | ~1k tokens |
 | 2026-11-18 | Rama `prueba/autopausa`, parte 3: interruptor "Pausa automática (GPS)" en Perfil (encendido por defecto); campo `profile.autoPause` en el perfil, la copia y la importación | `js/app.js`, `mirun.html`, `docs/*` | ~5k tokens |
 | 2026-11-18 | Rama `prueba/autopausa`, parte 2: a los 10 minutos en pausa automática la voz pregunta "¿Terminaste tu actividad?" y aparece el botón Terminar (una vez por pausa; se recuerda si se cierra la app) | `js/app.js`, `mirun.html`, `docs/*` | ~8k tokens |
