@@ -1350,6 +1350,63 @@
   let wakeLock = null;
   let hiddenSince = 0;   // cuando se apago la pantalla / se cambio de app
 
+  // ---------- PAUSA AUTOMÁTICA (actividades con GPS) ----------
+  // "Quieta" = en los últimos 2 minutos se movió menos de 25 m (stillAnchor se mueve con la persona cada 25 m).
+  // Entonces se pausa sola, avisa por voz y DESCUENTA esos 2 minutos: el tiempo guardado (seconds) es el
+  // tiempo EN MOVIMIENTO, que es lo que cuentan la racha, las metas, el ritmo y las calorías.
+  // Sigue sola cuando se aleja 15 m del punto de la pausa en 2 posiciones seguidas (o con "Reanudar").
+  // Si el GPS se pierde no se pausa (no se sabe si está quieta). Se apaga en Perfil (profile.autoPause).
+  // Se guarda en la actividad: autoPausedSeconds (tiempo quieta descontado) y autoPauses (cuántas veces).
+  const AUTO_STILL_MS = 120000, AUTO_STILL_M = 25, AUTO_RESUME_M = 15;
+  let autoPaused = false, stillAnchor = null, lastFix = null, pauseAt = null, pauseStartedAt = 0;
+  let autoPausedMs = 0, autoPauses = 0, resumeHits = 0;
+  function autoPauseOn(){ return profile.autoPause !== false; }
+  function resetAutoPause(){ autoPaused = false; stillAnchor = null; lastFix = null; pauseAt = null; pauseStartedAt = 0; autoPausedMs = 0; autoPauses = 0; resumeHits = 0; }
+  function showAutoPause(on){ document.getElementById('autoPauseBox').style.display = on ? '' : 'none'; }
+  // cada posición buena del GPS (también en pausa)
+  function autoPauseOnFix(lat, lon, now){
+    lastFix = {lat, lon};
+    if(!running || !autoPauseOn()) return;
+    if(autoPaused){
+      const d = haversine(pauseAt.lat, pauseAt.lon, lat, lon) * 1000;
+      resumeHits = d >= AUTO_RESUME_M ? resumeHits + 1 : 0;
+      if(resumeHits >= 2) autoResume(now, true);
+      return;
+    }
+    if(paused) return;
+    if(!stillAnchor || haversine(stillAnchor.lat, stillAnchor.lon, lat, lon) * 1000 >= AUTO_STILL_M) stillAnchor = {lat, lon, t: now};
+  }
+  // cada segundo (desde updateDisplay)
+  function autoPauseTick(now){
+    if(!running || paused || !autoPauseOn() || !stillAnchor) return;
+    if(now - lastFixTime > 20000) return; // GPS perdido: no se sabe si está quieta
+    if(now - stillAnchor.t >= AUTO_STILL_MS) autoPause(now);
+  }
+  function autoPause(now){
+    const ran = elapsedBeforePause + (now - startTime);
+    const stillMs = Math.min(now - stillAnchor.t, ran); // nunca más que lo que lleva
+    elapsedBeforePause = ran - stillMs;
+    paused = true; autoPaused = true; resumeHits = 0;
+    pauseAt = lastFix || {lat: stillAnchor.lat, lon: stillAnchor.lon};
+    pauseStartedAt = now; autoPausedMs += stillMs; autoPauses++;
+    stillAnchor = null;
+    const t = elapsedBeforePause / 1000; // por si un kilómetro se cumplió dentro del rato descontado
+    lastSplitTime = Math.min(lastSplitTime, t); lastVoiceTime = Math.min(lastVoiceTime, t);
+    document.getElementById('btnPause').textContent = 'Reanudar';
+    showAutoPause(true);
+    say('Pausa automática.');
+    saveCurrentRun(true);
+  }
+  function autoResume(now, spoken){
+    autoPausedMs += now - pauseStartedAt;
+    autoPaused = false; paused = false; startTime = now; lastFixTime = now; resumeHits = 0;
+    stillAnchor = lastFix ? {lat: lastFix.lat, lon: lastFix.lon, t: now} : null;
+    document.getElementById('btnPause').textContent = 'Pausar';
+    showAutoPause(false);
+    if(spoken) say('Seguimos.');
+    saveCurrentRun(true);
+  }
+
   const gpsStatus = document.getElementById('gpsStatus');
   const liveMapWrap = document.getElementById('liveMapWrap');
   const liveMapCanvas = document.getElementById('liveMap');
@@ -1480,12 +1537,15 @@
     lastSaveAt = Date.now();
     LS.set('mirun_current', {
       type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
-      lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime, savedAt: Date.now()
+      lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime,
+      autoPaused, pauseAt, pauseStartedAt, autoPausedMs, autoPauses, // pausa automática (se agregan)
+      savedAt: Date.now()
     });
   }
   function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
 
   function updateDisplay(){
+    autoPauseTick(Date.now()); // antes de leer el tiempo: la pausa automática lo descuenta
     const sec = currentElapsedSec();
     document.getElementById('distVal').textContent = toD(totalDist).toFixed(2); // km o mi
     document.getElementById('timeVal').textContent = fmtTime(sec);
@@ -1567,6 +1627,7 @@
     gpsStatus.className = 'ok';
     const now = Date.now();
     lastFixTime = now;
+    autoPauseOnFix(latitude, longitude, now); // pausa automática: quieta / vuelve a moverse
     if(!running || paused || !lastPos){
       // Sin correr (o en pausa) solo se mueve el punto de referencia: no suma distancia
       lastPos = {lat:latitude, lon:longitude, t:now};
@@ -1735,6 +1796,16 @@
     lastVoiceTime = state ? (state.lastVoiceTime != null ? state.lastVoiceTime
       : (totalDist > 0 ? currentElapsedSec() * Math.min(1, lastVoiceMi * KM_MI / totalDist) : 0)) : 0;
     lastPos = null; badJumps = 0; lastFixTime = Date.now();
+    // pausa automática: se sigue donde estaba; la cuenta de "quieta" empieza de nuevo (con la app
+    // cerrada no se sabe si se movió, así que ese rato no se descuenta)
+    resetAutoPause();
+    if(state){
+      autoPaused = !!(state.autoPaused && state.paused);
+      pauseAt = state.pauseAt || null; pauseStartedAt = state.pauseStartedAt || 0;
+      autoPausedMs = state.autoPausedMs || 0; autoPauses = state.autoPauses || 0;
+      if(autoPaused && !pauseAt) autoPaused = false;
+    }
+    showAutoPause(autoPaused);
     runNote.style.display = 'none';
     resetStreetMap('live');
     document.getElementById('btnStart').style.display='none';
@@ -1776,6 +1847,8 @@
   }
 
   document.getElementById('btnPause').addEventListener('click', function(){
+    if(autoPaused){ autoResume(Date.now(), false); return; } // "Reanudar" durante la pausa automática
+    stillAnchor = null; // la cuenta de "quieta" empieza de nuevo
     if(!paused){
       paused = true;
       elapsedBeforePause += Date.now()-startTime;
@@ -1805,6 +1878,8 @@
     if(!running) return;
     document.getElementById('stopConfirm').classList.remove('show'); // por si terminó sola con la hoja abierta
     const sec = currentElapsedSec();
+    if(autoPaused) autoPausedMs += Date.now() - pauseStartedAt; // terminó estando en pausa automática
+    const autoInfo = autoPauses ? {autoPausedSeconds: Math.round(autoPausedMs / 1000), autoPauses} : {};
     running = false;
     clearInterval(timerInterval);
     releaseScreen();
@@ -1829,7 +1904,8 @@
         cal: cal,
         path: path.map(p=>({lat:p.lat, lon:p.lon})),
         splits: splits,
-        type: runType
+        type: runType,
+        ...autoInfo // pausa automática (solo si hubo)
       });
       LS.set('mirun_history', history);
     }
@@ -1846,7 +1922,9 @@
     document.getElementById('sumTime').textContent = fmtTime(sec);
     document.getElementById('sumPace').textContent = paceTxt(sec, totalDist) + ' ' + paceU(); // paceStr (min/km) es lo que se guarda
     document.getElementById('sumCal').textContent = cal;
-    document.getElementById('sumSteps').textContent = stepsTxt({type: runType, dist: totalDist}); // pasos aproximados
+    document.getElementById('sumSteps').textContent = stepsTxt({type: runType, dist: totalDist}) + // pasos aproximados
+      (autoInfo.autoPauses ? (stepsTxt({type: runType, dist: totalDist}) ? ' · ' : '') + 'Sin moverte ' + fmtTime(autoInfo.autoPausedSeconds) + ' (pausa automática, no cuenta)' : '');
+    resetAutoPause(); showAutoPause(false);
 
     const sumMapWrap = document.getElementById('sumMapWrap');
     sumPath = [];
@@ -2457,7 +2535,10 @@
             ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {}),
             // campos de edición: identificador original y fecha de la edición (texto corto)
             ...(typeof h.origDate === 'string' ? {origDate: h.origDate.slice(0,40)} : {}),
-            ...(typeof h.edited === 'string' ? {edited: h.edited.slice(0,40)} : {})
+            ...(typeof h.edited === 'string' ? {edited: h.edited.slice(0,40)} : {}),
+            // pausa automática (actividades con GPS): tiempo quieta descontado y cuántas veces
+            ...(Number(h.autoPausedSeconds) >= 0 && isFinite(h.autoPausedSeconds) ? {autoPausedSeconds: Math.round(Number(h.autoPausedSeconds))} : {}),
+            ...(Number.isInteger(h.autoPauses) && h.autoPauses >= 0 ? {autoPauses: h.autoPauses} : {})
           }));
         // teléfono "nuevo" (sin datos): la copia restaura perfil, metas y foto completos;
         // si ya hay datos, solo completa lo que falta y nunca reemplaza lo que existe

@@ -116,6 +116,12 @@
 
     <div id="paceAlert"></div>
 
+    <!-- pausa automática: aviso mientras está quieta (ver PAUSA AUTOMÁTICA en js/app.js) -->
+    <div id="autoPauseBox" role="status" style="display:none;">
+      <b>Pausa automática</b>
+      <span id="autoPauseMsg">Llevas 2 minutos sin moverte. Cuando vuelvas a moverte, sigue sola.</span>
+    </div>
+
     <div class="lanes">
       <div class="lane"><span class="lane-label">Tiempo</span><span class="lane-val num" id="timeVal">00:00</span></div>
       <div class="lane"><span class="lane-label">Ritmo <small class="uP">min/km</small></span><span class="lane-val num" id="paceVal">--:--</span></div>

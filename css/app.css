@@ -503,6 +503,11 @@
   #activeBtns{flex-wrap:wrap;}
   .lockBtn{flex-basis:100%;padding:14px;font-size:14px;}
 
+  /* ==== PAUSA AUTOMÁTICA: aviso en la pantalla de GPS ==== */
+  #autoPauseBox{display:flex;flex-direction:column;gap:4px;margin:12px 0;padding:12px 14px;border-radius:14px;
+    background:rgba(245,184,46,.10);border:1px solid rgba(245,184,46,.45);}
+  #autoPauseBox b{color:var(--gold);font-size:15px;}
+  #autoPauseBox span{color:var(--sub);font-size:13px;line-height:1.4;}
   /* ==== GPS EN CURSO (body.gpsOn, lo ponen beginRun y finishRun) ====
      Sin menú inferior, sin "+", sin saludo ni botón de perfil (sin menú no habría cómo volver).
      Pausar grande y principal; Bloquear y Terminar más chicos debajo; todo fijo abajo respetando el borde. */
