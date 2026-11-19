@@ -303,6 +303,7 @@
     set('profLevel', profile.level || 'ligero');
     set('profVoice', profile.voice ? '1' : '0');
     set('profSounds', profile.sounds === false ? '0' : '1');
+    set('profAutoPause', profile.autoPause === false ? '0' : '1'); // sin campo = encendida
     set('profMap', profile.mapMode);
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
@@ -409,6 +410,7 @@
       level: document.getElementById('profLevel').value,
       voice: document.getElementById('profVoice').value === '1',
       sounds: document.getElementById('profSounds').value === '1',
+      autoPause: document.getElementById('profAutoPause').value === '1', // pausa automática en GPS
       mapMode: document.getElementById('profMap').value
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
@@ -2588,6 +2590,7 @@
           if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
           if(typeof p.voice === 'boolean') ok.voice = p.voice;
           if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
+          if(typeof p.autoPause === 'boolean') ok.autoPause = p.autoPause; // pausa automática en GPS
           if(typeof p.character === 'string' && Object.prototype.hasOwnProperty.call(CHARACTERS, p.character)) ok.character = p.character; // compañero elegido
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
           if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)
