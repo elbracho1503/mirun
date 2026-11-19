@@ -1903,6 +1903,7 @@
     });
     document.getElementById('btnResumeDiscard').addEventListener('click', ()=>{
       clearCurrentRun(); box.style.display = 'none';
+      if(rtSessionActive()) showTab('rutinas'); // si también quedó una rutina sin terminar, se muestra
     });
   } else if(pending){
     clearCurrentRun();
@@ -2415,7 +2416,9 @@
     const doneSets = ses.items.reduce((a, it)=>a + it.done, 0), allSets = ses.items.reduce((a, it)=>a + it.sets, 0);
     v.innerHTML = `<div class="panel rtSesHead">
         <h3>${esc(ses.name)}</h3>
-        ${sesClosedNote ? '<div class="hint rtSesNote">La app se cerró: tu sesión quedó en pausa. Toca Reanudar para seguir.</div>' : ''}
+        ${sesClosedNote === 'stale' ? '<div class="hint rtSesNote">Tienes una rutina sin terminar. ¿Guardar lo hecho o descartar?</div>'
+          : sesClosedNote ? '<div class="hint rtSesNote">La app se cerró: tu sesión quedó en pausa. Toca Reanudar para seguir.</div>' : ''}
+        ${gpsPendingShown() ? '<div class="hint rtSesNote">También tienes una actividad con GPS sin terminar. <button class="linkBtn" id="btnSesGoRun">Ver la actividad</button></div>' : ''}
         <div class="rtSesTime num" id="rtSesTime">${fmtTime(sesElapsed() / 1000)}</div>
         <div class="hint">${ses.paused ? 'En pausa' : 'Tiempo de la sesión'} · ${doneSets} de ${allSets} series</div>
         <div class="btnRow"><button class="btn ${ses.paused ? 'btn-start' : 'btn-ghost'}" id="btnSesPause">${ses.paused ? 'Reanudar' : 'Pausar'}</button></div>
@@ -2448,10 +2451,11 @@
     if(ev.target.closest('[data-cd-stop]')){ sesCd = null; renderSession(); return; }
     if(id === 'btnSesPause'){
       const now = Date.now();
-      if(ses.paused){ ses.paused = false; ses.startTime = now; sesClosedNote = false; }
+      if(ses.paused){ ses.paused = false; ses.startTime = now; sesClosedNote = false; delete ses.ask; }
       else { ses.elapsedBefore += now - ses.startTime; ses.paused = true; sesCd = null; }
       saveSession(); renderSession(); return;
     }
+    if(id === 'btnSesGoRun'){ showTab('run'); return; }
     if(id === 'btnSesEnd'){ sesFinishing = true; renderSession(); document.querySelector('.rtFinish').scrollIntoView({block:'center'}); return; }
     if(id === 'btnSesKeep'){ sesFinishing = false; renderSession(); return; }
     if(ev.target.closest('#rtFinInt [data-int]')){ pickOne(document.getElementById('rtFinInt'), ev); return; }
@@ -2480,15 +2484,27 @@
       'Rutina guardada: ' + mins + ' min. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
     renderHistory(); checkAchievements();
   }
-  // al abrir la app: si quedó una sesión, se retoma EN PAUSA desde el último guardado (máximo 12 horas)
+  // la actividad con GPS sin terminar (caja #resumeBox de "Correr") está a la vista para seguirla
+  function gpsPendingShown(){ return document.getElementById('resumeBox').style.display === 'block'; }
+  // al abrir la app: si quedó una sesión, se retoma EN PAUSA desde el último guardado (el rato cerrada no cuenta).
+  // Nunca se borra sola: si pasaron más de 12 horas se abre "Terminar" y se pregunta si guardar lo hecho o descartar.
+  // Si además hay una actividad con GPS sin terminar, la app se queda en esa pantalla y avisa de las dos (ninguna se pierde).
   {
     const p = LS.get('mirun_session', null);
-    if(p && Array.isArray(p.items) && p.items.length && Date.now() - (p.savedAt || 0) < 12 * 3600 * 1000){
+    if(p && typeof p === 'object' && Array.isArray(p.items) && p.items.length){
       ses = p;
+      // ask = la pregunta sigue pendiente aunque se vuelva a cerrar la app sin responder (se quita al reanudar)
+      const stale = !!p.ask || Date.now() - (Number(p.savedAt) || 0) >= 12 * 3600 * 1000;
+      if(stale) ses.ask = true;
       if(!ses.paused){ ses.elapsedBefore += Math.max(0, (ses.savedAt || Date.now()) - ses.startTime); ses.paused = true; }
-      sesClosedNote = true; saveSession(); runSessionTimer();
-      showTab('rutinas');
-    } else if(p) { try{ localStorage.removeItem('mirun_session'); }catch(e){} }
+      sesClosedNote = stale ? 'stale' : 'closed'; sesFinishing = stale;
+      saveSession(); runSessionTimer();
+      if(gpsPendingShown()){
+        document.getElementById('resumeRtInfo').textContent = 'También tienes una rutina sin terminar: «' + ses.name + '».';
+        document.getElementById('resumeRt').style.display = '';
+        document.getElementById('btnResumeRt').addEventListener('click', ()=>showTab('rutinas'));
+      } else showTab('rutinas');
+    }
   }
 
   // ---------- CELEBRACIÓN (meta del día cumplida) ----------
