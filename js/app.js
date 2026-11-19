@@ -18,6 +18,15 @@
 
   // texto de la persona dentro de HTML (nombres de rutinas y ejercicios propios): siempre escapado
   const esc = t=>String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // Ejercicios de las rutinas y límites (arriba porque el Historial los usa al cargar; ver MIS RUTINAS)
+  const EXERCISES = [
+    {k:'flexiones', n:'Flexiones'}, {k:'abdominales', n:'Abdominales'}, {k:'sentadillas', n:'Sentadillas'},
+    {k:'zancadas', n:'Zancadas'}, {k:'burpees', n:'Burpees'}, {k:'tijera', n:'Saltos de tijera'},
+    {k:'escaladores', n:'Escaladores'}, {k:'puente', n:'Puente de glúteos'}, {k:'fondos', n:'Fondos en silla'},
+    {k:'elev_piernas', n:'Elevación de piernas'}, {k:'giros_rusos', n:'Giros rusos'}, {k:'rodillas_pecho', n:'Rodillas al pecho'},
+    {k:'plancha', n:'Plancha'}, {k:'plancha_lateral', n:'Plancha lateral'}, {k:'sentadilla_pared', n:'Sentadilla en pared'},
+    {k:'superman', n:'Superman'}, {k:'dominadas', n:'Dominadas'}];
+  const RT_LIM = {routines:50, items:30, name:40, reps:[1,999], secs:[1,3600], sets:[1,20]};
 
   // Versión del formato de datos. Las migraciones SOLO agregan campos, nunca borran.
   const SCHEMA = 5;
@@ -756,6 +765,14 @@
   }
 
   // ---------- HISTORY ----------
+  // detalle de una sesión de rutina guardada (solo lectura)
+  function routineDetail(r){
+    if(!r || !Array.isArray(r.items) || !r.items.length) return '';
+    const exN = it=>{ const e = EXERCISES.find(x=>x.k === it.ex); return e ? e.n : String(it.name || 'Ejercicio'); };
+    const done = r.items.reduce((a,it)=>a + (Number(it.done) || 0), 0), total = r.items.reduce((a,it)=>a + (Number(it.sets) || 0), 0);
+    const rows = r.items.map(it=>`<li><b>${esc(exN(it))}</b> · ${Number(it.done) || 0} de ${it.sets} series × ${it.amount}${it.kind === 'secs' ? ' s' : ''}</li>`).join('');
+    return `<details class="rtHist"><summary>Rutina «${esc(r.name || 'Sin nombre')}» · ${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'} · ${done} de ${total} series</summary><ul>${rows}</ul></details>`;
+  }
   // "Ver mapa" (o tocar la ruta pequeña) abre el mapa grande de esa actividad
   document.getElementById('histList').addEventListener('click', ev=>{
     const w = ev.target.closest('[data-map]'); if(!w) return;
@@ -780,7 +797,7 @@
           return `<div class="histItem">${head}<div class="stats">
             <div><div class="num">${Math.round(h.seconds/60)}</div><small>min</small></div>
             <div><div class="num">${h.intensity || '-'}</div><small>intensidad</small></div>
-            <div><div class="num">${h.cal}</div><small>kcal</small></div></div></div>`;
+            <div><div class="num">${h.cal}</div><small>kcal</small></div></div>${routineDetail(h.routine)}</div>`;
         }
         return `<div class="histItem">
           ${head}
@@ -2230,14 +2247,6 @@
   // mirun_routines = [{id, name, created, items:[{ex | name, kind:'reps'|'secs', amount, sets}]}]
   //   ex = clave de EXERCISES; un ejercicio propio guarda name (texto de la persona).
   // Una sesión terminada se guarda como actividad 'ejercicios' con el detalle en routine (ver SESIÓN DE RUTINA).
-  const EXERCISES = [
-    {k:'flexiones', n:'Flexiones'}, {k:'abdominales', n:'Abdominales'}, {k:'sentadillas', n:'Sentadillas'},
-    {k:'zancadas', n:'Zancadas'}, {k:'burpees', n:'Burpees'}, {k:'tijera', n:'Saltos de tijera'},
-    {k:'escaladores', n:'Escaladores'}, {k:'puente', n:'Puente de glúteos'}, {k:'fondos', n:'Fondos en silla'},
-    {k:'elev_piernas', n:'Elevación de piernas'}, {k:'giros_rusos', n:'Giros rusos'}, {k:'rodillas_pecho', n:'Rodillas al pecho'},
-    {k:'plancha', n:'Plancha'}, {k:'plancha_lateral', n:'Plancha lateral'}, {k:'sentadilla_pared', n:'Sentadilla en pared'},
-    {k:'superman', n:'Superman'}, {k:'dominadas', n:'Dominadas'}];
-  const RT_LIM = {routines:50, items:30, name:40, reps:[1,999], secs:[1,3600], sets:[1,20]};
   let routines = LS.get('mirun_routines', []);
   if(!Array.isArray(routines)) routines = [];
   function exName(it){ const e = EXERCISES.find(x=>x.k === it.ex); return e ? e.n : String(it.name || 'Ejercicio'); }

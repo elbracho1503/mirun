@@ -142,6 +142,7 @@
   .histItem .stats .num{font-size:17px;font-weight:600;}
   .histItem .stats small{display:block;font-size:10px;color:var(--sub2);font-weight:500;margin-top:2px;letter-spacing:.2px;}
   .histItem .mini-route{margin-top:12px;}
+  .rtHist{margin-top:10px;font-size:13px;color:var(--sub);} .rtHist summary{cursor:pointer;font-weight:600;color:var(--text);} .rtHist ul{margin:6px 0 0;padding-left:18px;} .rtHist li{margin:3px 0;}
   .histItem .mini-route canvas{width:100%;height:56px;display:block;border-radius:16px;background:var(--track2);}
   .histItem .mini-route{position:relative;cursor:pointer;}
   .mapBigBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(7,13,31,.85);color:var(--signal);

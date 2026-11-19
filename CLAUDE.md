@@ -68,7 +68,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
-| Historial (incluye "≈ N pasos") | `// ---------- HISTORY` |
+| Historial (incluye "≈ N pasos" y el detalle de rutina `routineDetail`) | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
 | Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
