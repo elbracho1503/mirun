@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-18 | Rama `prueba/rutinas`, parte 5: caché v31 y plan (punto 23 hecho) | `sw.js`, `docs/PLAN.md`, `docs/CAMBIOS.md` | ~2k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 4: la copia de seguridad lleva las rutinas; la importación las agrega por `id` (máximo 50) y limpia rutinas y `routine` del Historial con `cleanRtItems`; una copia vieja sin rutinas se importa igual | `js/app.js`, `docs/DATOS.md`, `docs/CAMBIOS.md` | ~15k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 3: en Historial, las actividades de rutina muestran «Rutina X · N ejercicios · hechas de total series» con el detalle desplegable (solo lectura). `EXERCISES` y `RT_LIM` pasan arriba del archivo porque el Historial se dibuja al cargar | `js/app.js`, `css/app.css`, `CLAUDE.md`, `docs/CAMBIOS.md` | ~12k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 2: sesión de rutina (cronómetro con pausa, series para marcar, cuenta regresiva por serie en ejercicios por segundos, retomar en pausa si se cierra la app, `mirun_session`); al terminar se elige la intensidad y se guarda como actividad 'ejercicios' con `routine`; al editarla solo cambian fecha, duración e intensidad | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~30k tokens |
