@@ -45,6 +45,8 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 21 | Pasada de alineación: centrar títulos, números grandes, tarjetas cortas y pantallas vacías; listas y formularios siguen a la izquierda | ⬜ |
 | 22 | Pausa automática y tiempo en movimiento en actividades con GPS (2 min / 25 m; sigue sola a 15 m; pregunta a los 10 min; interruptor en Perfil) | ✅ 2026-11-18 (rama `prueba/autopausa`) |
 | 22b | Los entrenos por intervalos (futuro) deben desactivar la pausa automática | ⬜ |
+| 23 | Mis rutinas: crear/editar/borrar rutinas de fuerza (menú "+"), sesión con series, cuenta regresiva y pausa (retoma si se cierra la app), guardar como actividad "Flexiones, abdominales, burpees" con el detalle (visible en Historial, no editable) y rutinas en la copia | ✅ 2026-11-18 (rama `prueba/rutinas`, sin merge) |
+| 23b | Pendiente pequeño: si queda una rutina sin terminar y se cierra la caja del GPS, mostrar un aviso de la rutina en Inicio | ⬜ |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial

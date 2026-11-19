@@ -9,7 +9,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_body` | Array de mediciones | `date` (`AAAA-MM-DD`, una por día) |
 | `mirun_profile` | Objeto | — |
 | `mirun_goal` | Objeto | — |
-| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar. Desde 2026-11-18 agrega la pausa automática: `autoPaused`, `pauseAt`, `pauseStartedAt`, `autoPausedMs`, `autoPauses`, `autoAsked` (ya preguntó a los 10 min en esta pausa). Desde 2026-11-05 agrega `lastVoiceMi` y `lastVoiceTime` (aviso por voz en millas; si faltan se calculan) |
+| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar o con "Borrarla" (pide confirmación), nunca sola. Desde 2026-11-18: si es de hace más de 6 h se avisa y, sin pausa, el rato con la app cerrada no cuenta (al seguir o al guardarla así). Desde 2026-11-18 agrega la pausa automática: `autoPaused`, `pauseAt`, `pauseStartedAt`, `autoPausedMs`, `autoPauses`, `autoAsked` (ya preguntó a los 10 min en esta pausa). Desde 2026-11-05 agrega `lastVoiceMi` y `lastVoiceTime` (aviso por voz en millas; si faltan se calculan) |
 | `mirun_schema` | Número | Versión del formato de datos (hoy 5) |
 | `mirun_lastBackup` | Texto ISO | Fecha de la última copia exportada (para el recordatorio) |
 | `mirun_photo` | Texto (data URL JPEG 256 px, ~30 KB) | Foto de perfil (v5). Va en la copia de seguridad |
@@ -17,6 +17,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_welcomed` | `true` | Ya se mostró (o se saltó) la bienvenida, o al abrir ya había datos. No va en la copia (solo controla esa pantalla) |
 | `mirun_celebrated` | `'AAAA-MM-DD'` | Último día en que se celebró la meta del día cumplida (para no repetir). No va en la copia (solo controla la celebración) |
 | `mirun_welcomeBack` | `'AAAA-MM-DD'` | Día de la última actividad antes del último regreso ya saludado con "¡Qué bueno verte de vuelta!" (para mostrarlo una vez por regreso). No va en la copia |
+| `mirun_routines` | Array | Rutinas de fuerza de la persona: `{id, name, created, items:[{ex \| name, kind:'reps'\|'secs', amount, sets}]}` (`ex` = clave de `EXERCISES`; un ejercicio propio guarda `name`). Hasta 50 rutinas y 30 ejercicios por rutina. Va en la copia (ver más abajo) |
+| `mirun_session` | Objeto o ausente | Sesión de rutina en curso `{rid, name, items:[{…ejercicio, done}], start, startTime, elapsedBefore, paused, savedAt}`; se borra solo al guardar o descartar (nunca sola). Al abrir la app vuelve en pausa desde el último guardado; si pasaron más de 12 h se abre "Terminar" con la pregunta "¿Guardar lo hecho o descartar?" y se guarda `ask:true` hasta que se reanude, guarde o descarte. Si a la vez hay un `mirun_current`, la app abre en Correr y avisa de las dos. No va en la copia |
 
 ## mirun_history — actividad
 ```js
@@ -56,6 +58,9 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 - `cintura` (parte más angosta) es una medida distinta, agregada en v5.
 - Las medidas se definen en `MEASURES` (sección CUERPO): `{k, n, u, id, good}`.
   `good` = 1 si subir es bueno, -1 si bajar es bueno. La importación usa esta misma lista.
+- **Sesiones de rutina** (desde 2026-11-18): actividad `type:'ejercicios'`, `manual:true` (`date` = inicio), `seconds` = tiempo del
+  cronómetro sin pausas, y `routine: {name, items:[{ex | name, kind:'reps'|'secs', amount, sets, done}]}` con lo que se marcó.
+  El detalle no se edita (Editar solo cambia fecha, duración e intensidad; el tipo queda fijo).
 - **Actividades con GPS y pausa automática** (desde 2026-11-18): `seconds` es el tiempo EN MOVIMIENTO (sin pausas manuales ni
   automáticas); si hubo pausas automáticas se agregan `autoPausedSeconds` (tiempo quieta descontado) y `autoPauses` (cuántas).
   Las actividades anteriores no cambian. Editar una actividad no toca `autoPausedSeconds`. La importación acepta los dos campos.
@@ -96,7 +101,10 @@ Perfil y metas se guardan con `Object.assign` para no perder campos que la panta
 `dayStatus()` = done / rest / part / miss → `streakInfo()` = racha actual y récord.
 
 ## Copia de seguridad (archivo .json)
-Exporta `{app:'MiRun', version:4, exported, photo, profile, goal, history, body}`.
+Exporta `{app:'MiRun', version:4, exported, photo, profile, goal, history, body, routines}` (`routines` desde 2026-11-18; una copia sin ese campo se importa igual).
 Importa todo (copias version 2, 3 y 4), filtrando a campos y valores conocidos.
 Actividades y medidas: solo agrega fechas nuevas. Perfil, metas y foto: en un teléfono sin datos se
 restauran completos; si ya hay datos, solo completan lo que falta. Si se agregan campos, actualizar este filtro.
+Rutinas: se agregan las que faltan (mismo `id` = ya está; sin `id` válido se le crea uno), sin pasar de 50; cada
+ejercicio se limpia con `cleanRtItems` (clave de `EXERCISES` o nombre propio de 1 a 40, `kind` reps/secs, cantidad y
+series en rango; lo inválido se descarta). El `routine` de una actividad se limpia igual y `done` queda entre 0 y `sets`.

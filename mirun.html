@@ -110,6 +110,10 @@
         <button class="btn btn-ghost" id="btnResumeSave">Guardarla así</button>
         <button class="btn btn-ghost" id="btnResumeDiscard">Borrarla</button>
       </div>
+      <div id="resumeRt" style="display:none;margin-top:12px;">
+        <div class="hint" id="resumeRtInfo"></div>
+        <div class="btnRow" style="margin-top:8px;"><button class="btn btn-ghost" id="btnResumeRt">Ver la rutina</button></div>
+      </div>
     </div>
 
     <div id="runNote" style="display:none;"></div>
@@ -198,6 +202,36 @@
       </div>
     </div>
     <div class="btnRow"><button class="btn btn-start" id="btnSaveGoal">Guardar metas</button></div>
+  </div>
+
+  <!-- MIS RUTINAS (sin botón en el menú: se entra por el "+"). Tres vistas: lista, editor y sesión (ver MIS RUTINAS en js/app.js) -->
+  <div class="screen" id="tab-rutinas">
+    <div id="rtListView">
+      <div class="panel">
+        <h3>Mis rutinas</h3>
+        <div class="hint">Arma tus rutinas de fuerza con tus ejercicios, repeticiones o segundos, y series.</div>
+        <div id="rtResume"></div>
+        <div id="rtList"></div>
+        <div class="hint" id="rtSavedMsg" style="margin-top:8px;"></div>
+        <div class="btnRow"><button class="btn btn-start" id="btnRtNew">+ Crear rutina</button></div>
+      </div>
+    </div>
+    <div id="rtEditView" style="display:none;">
+      <div class="panel">
+        <h3 id="rtEditTitle">Nueva rutina</h3>
+        <label>Nombre de la rutina</label>
+        <input type="text" id="rtName" maxlength="40" placeholder="Por ejemplo: Piernas">
+        <label>Agrega ejercicios</label>
+        <div class="chips" id="rtExChips"></div>
+        <div class="row2 rtCustomRow"><div><label>Ejercicio propio</label><input type="text" id="rtCustom" maxlength="40" placeholder="Nombre del ejercicio"></div>
+          <div><button class="btn btn-ghost" id="btnRtCustom">Agregar</button></div></div>
+        <label>Tu rutina</label>
+        <div id="rtItems"></div>
+        <div class="hint" id="rtMsg" style="margin-top:8px;"></div>
+        <div class="btnRow"><button class="btn btn-ghost" id="btnRtCancel">Cancelar</button><button class="btn btn-start" id="btnRtSave">Guardar rutina</button></div>
+      </div>
+    </div>
+    <div id="rtSesView" style="display:none;"></div>
   </div>
 
   <!-- HISTORY SCREEN -->
@@ -492,6 +526,7 @@
     <button class="sheetOpt" data-plus="correr"><span>🏃</span>Correr con GPS</button>
     <button class="sheetOpt" data-plus="caminar"><span>🚶</span>Caminar con GPS</button>
     <button class="sheetOpt" data-plus="bici"><span>🚴</span>Bicicleta con GPS</button>
+    <button class="sheetOpt" data-plus="rutina"><span>🏋️</span>Mi rutina de fuerza<small>Tus ejercicios, con series y repeticiones o segundos</small></button>
     <button class="sheetOpt" data-plus="manual"><span>✍️</span>Registrar otra actividad<small>Gimnasio, natación, baile, yoga…</small></button>
   </div>
 </div>
@@ -501,6 +536,7 @@
   <div class="sheet">
     <div class="sheetTitle">Editar actividad</div>
     <div class="chips actChips" id="edChips"></div>
+    <div class="hint" id="edRoutineNote" style="display:none;"></div>
     <div class="row2">
       <div><label>Fecha</label><input type="date" id="edDate"></div>
       <div><label>Hora de inicio</label><input type="time" id="edTime"></div>

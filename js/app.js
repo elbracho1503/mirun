@@ -16,6 +16,39 @@
     }
   };
 
+  // texto de la persona dentro de HTML (nombres de rutinas y ejercicios propios): siempre escapado
+  const esc = t=>String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // Ejercicios de las rutinas y límites (arriba porque el Historial los usa al cargar; ver MIS RUTINAS)
+  const EXERCISES = [
+    {k:'flexiones', n:'Flexiones'}, {k:'abdominales', n:'Abdominales'}, {k:'sentadillas', n:'Sentadillas'},
+    {k:'zancadas', n:'Zancadas'}, {k:'burpees', n:'Burpees'}, {k:'tijera', n:'Saltos de tijera'},
+    {k:'escaladores', n:'Escaladores'}, {k:'puente', n:'Puente de glúteos'}, {k:'fondos', n:'Fondos en silla'},
+    {k:'elev_piernas', n:'Elevación de piernas'}, {k:'giros_rusos', n:'Giros rusos'}, {k:'rodillas_pecho', n:'Rodillas al pecho'},
+    {k:'plancha', n:'Plancha'}, {k:'plancha_lateral', n:'Plancha lateral'}, {k:'sentadilla_pared', n:'Sentadilla en pared'},
+    {k:'superman', n:'Superman'}, {k:'dominadas', n:'Dominadas'}];
+  const RT_LIM = {routines:50, items:30, name:40, reps:[1,999], secs:[1,3600], sets:[1,20]};
+  // limpia los ejercicios de una rutina (copias importadas): solo campos conocidos y valores en rango.
+  // withDone = sesión guardada en el Historial (lleva cuántas series se hicieron, de 0 a sets)
+  function cleanRtItems(items, withDone){
+    if(!Array.isArray(items)) return [];
+    const out = [];
+    items.slice(0, RT_LIM.items).forEach(it=>{
+      if(!it || typeof it !== 'object') return;
+      const kind = it.kind === 'secs' ? 'secs' : it.kind === 'reps' ? 'reps' : null;
+      const amount = Number(it.amount), sets = Number(it.sets), lim = RT_LIM[kind];
+      if(!kind || !Number.isInteger(amount) || amount < lim[0] || amount > lim[1]) return;
+      if(!Number.isInteger(sets) || sets < RT_LIM.sets[0] || sets > RT_LIM.sets[1]) return;
+      const c = {};
+      if(EXERCISES.some(e=>e.k === it.ex)) c.ex = it.ex;
+      else if(typeof it.name === 'string' && it.name.trim()) c.name = it.name.trim().slice(0, RT_LIM.name);
+      else return;
+      c.kind = kind; c.amount = amount; c.sets = sets;
+      if(withDone){ const d = Number(it.done); c.done = Number.isInteger(d) && d >= 0 ? Math.min(d, sets) : 0; }
+      out.push(c);
+    });
+    return out;
+  }
+
   // Versión del formato de datos. Las migraciones SOLO agregan campos, nunca borran.
   const SCHEMA = 5;
   if(LS.get('mirun_schema', 0) < SCHEMA) LS.set('mirun_schema', SCHEMA);
@@ -230,6 +263,7 @@
     if(tab==='history') renderHistory();
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
+    if(tab==='rutinas') renderRoutines();
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -256,6 +290,8 @@
     if(o.dataset.plus === 'manual'){
       showTab('history');
       document.getElementById('actForm').scrollIntoView({block:'start'});
+    } else if(o.dataset.plus === 'rutina'){
+      showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
       document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === o.dataset.plus));
       showTab('run');
@@ -750,6 +786,14 @@
   }
 
   // ---------- HISTORY ----------
+  // detalle de una sesión de rutina guardada (solo lectura)
+  function routineDetail(r){
+    if(!r || !Array.isArray(r.items) || !r.items.length) return '';
+    const exN = it=>{ const e = EXERCISES.find(x=>x.k === it.ex); return e ? e.n : String(it.name || 'Ejercicio'); };
+    const done = r.items.reduce((a,it)=>a + (Number(it.done) || 0), 0), total = r.items.reduce((a,it)=>a + (Number(it.sets) || 0), 0);
+    const rows = r.items.map(it=>`<li><b>${esc(exN(it))}</b> · ${Number(it.done) || 0} de ${it.sets} series × ${it.amount}${it.kind === 'secs' ? ' s' : ''}</li>`).join('');
+    return `<details class="rtHist"><summary>Rutina «${esc(r.name || 'Sin nombre')}» · ${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'} · ${done} de ${total} series</summary><ul>${rows}</ul></details>`;
+  }
   // "Ver mapa" (o tocar la ruta pequeña) abre el mapa grande de esa actividad
   document.getElementById('histList').addEventListener('click', ev=>{
     const w = ev.target.closest('[data-map]'); if(!w) return;
@@ -774,7 +818,7 @@
           return `<div class="histItem">${head}<div class="stats">
             <div><div class="num">${Math.round(h.seconds/60)}</div><small>min</small></div>
             <div><div class="num">${h.intensity || '-'}</div><small>intensidad</small></div>
-            <div><div class="num">${h.cal}</div><small>kcal</small></div></div></div>`;
+            <div><div class="num">${h.cal}</div><small>kcal</small></div></div>${routineDetail(h.routine)}</div>`;
         }
         return `<div class="histItem">
           ${head}
@@ -854,6 +898,11 @@
     edTarget = h;
     const st = new Date(actRange(h)[0]), t = h.type || 'correr', s = Math.round(h.seconds);
     edChips.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.act === t));
+    // sesión de rutina: el tipo y el detalle no se editan (solo fecha, duración e intensidad)
+    edChips.style.display = h.routine ? 'none' : '';
+    const rn = document.getElementById('edRoutineNote');
+    rn.style.display = h.routine ? '' : 'none';
+    rn.textContent = h.routine ? 'Rutina "' + h.routine.name + '": solo se editan la fecha, la duración y la intensidad.' : '';
     const it = INTENSITY.includes(h.intensity) ? h.intensity : 'media';
     edInt.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.int === it));
     document.getElementById('edDate').value = dayKey(st);
@@ -1840,23 +1889,35 @@
     beginRun(null);
   });
 
-  // Si quedo una carrera a medias (se cerro la app o se recargo), ofrecer seguirla
+  // Si quedo una carrera a medias (se cerro la app o se recargo), ofrecer seguirla. Nunca se borra sola:
+  // si es de hace más de 6 horas se avisa y el rato con la app cerrada NO cuenta (ni al seguir ni al guardarla así).
+  // "Borrarla" pide confirmación.
   const pending = LS.get('mirun_current', null);
-  if(pending && pending.startTime && Date.now() - pending.savedAt < 6*3600*1000){
+  if(pending && pending.startTime){
     showTab('run'); // la app abre en Inicio; si hay una actividad sin terminar, mostrarla
     const box = document.getElementById('resumeBox');
+    const stale = Date.now() - (Number(pending.savedAt) || 0) >= 6*3600*1000;
     document.getElementById('resumeInfo').textContent =
-      'Tienes una actividad sin terminar: ' + fmtD(pending.totalDist||0) + '.';
+      'Tienes una actividad sin terminar: ' + fmtD(pending.totalDist||0) + '.' +
+      (stale ? ' Es de hace más de 6 horas: el tiempo con la app cerrada no cuenta.' : '');
     box.style.display = 'block';
-    document.getElementById('btnResume').addEventListener('click', ()=>beginRun(pending));
+    // vieja y sin pausa: el tiempo cuenta solo hasta el último guardado y sigue desde ahora
+    const fixStale = ()=>{
+      if(!stale || pending.paused || pending.staleFixed) return;
+      pending.elapsedBeforePause = (Number(pending.elapsedBeforePause) || 0) + Math.max(0, (Number(pending.savedAt) || 0) - pending.startTime);
+      pending.startTime = Date.now(); pending.staleFixed = true;
+    };
+    document.getElementById('btnResume').addEventListener('click', ()=>{ fixStale(); beginRun(pending); });
     document.getElementById('btnResumeSave').addEventListener('click', ()=>{
-      beginRun(pending); finishRun();
+      fixStale(); beginRun(pending); finishRun();
     });
     document.getElementById('btnResumeDiscard').addEventListener('click', ()=>{
+      if(!confirm('¿Borrar la actividad sin terminar? No se guarda nada.')) return;
       clearCurrentRun(); box.style.display = 'none';
+      if(rtSessionActive()) showTab('rutinas'); // si también quedó una rutina sin terminar, se muestra
     });
   } else if(pending){
-    clearCurrentRun();
+    clearCurrentRun(); // dato dañado (sin hora de inicio): no se puede seguir
   }
 
   document.getElementById('btnPause').addEventListener('click', function(){
@@ -2212,6 +2273,251 @@
     renderHistory(); checkAchievements();
   });
 
+
+  // ---------- MIS RUTINAS ----------
+  // Rutinas de fuerza que arma la persona (menú "+" -> "Mi rutina de fuerza"). La app NO recomienda cantidades ni
+  // da instrucciones de técnica: solo nombres de ejercicios y lo que la persona escribe.
+  // mirun_routines = [{id, name, created, items:[{ex | name, kind:'reps'|'secs', amount, sets}]}]
+  //   ex = clave de EXERCISES; un ejercicio propio guarda name (texto de la persona).
+  // Una sesión terminada se guarda como actividad 'ejercicios' con el detalle en routine (ver SESIÓN DE RUTINA).
+  let routines = LS.get('mirun_routines', []);
+  if(!Array.isArray(routines)) routines = [];
+  function exName(it){ const e = EXERCISES.find(x=>x.k === it.ex); return e ? e.n : String(it.name || 'Ejercicio'); }
+  function itemTxt(it){ return it.sets + (it.sets === 1 ? ' serie' : ' series') + ' × ' + it.amount + (it.kind === 'secs' ? ' s' : (it.amount === 1 ? ' repetición' : ' repeticiones')); }
+  function saveRoutines(){ return LS.set('mirun_routines', routines); }
+  const rtViews = ['rtListView', 'rtEditView', 'rtSesView'];
+  function rtView(v){ rtViews.forEach(id=>{ document.getElementById(id).style.display = id === v ? '' : 'none'; }); window.scrollTo(0, 0); }
+
+  // lista de rutinas
+  function renderRoutines(){
+    if(typeof rtSessionActive === 'function' && rtSessionActive()){ rtView('rtSesView'); renderSession(); return; }
+    rtView('rtListView');
+    const box = document.getElementById('rtList');
+    box.innerHTML = routines.length ? routines.map(r=>`<div class="rtCard">
+        <div class="rtName">${esc(r.name)}</div>
+        <div class="hint">${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'}: ${esc(r.items.map(exName).join(', '))}</div>
+        <div class="btnRow"><button class="btn btn-start" data-rt-go="${esc(r.id)}">Empezar</button>
+          <button class="btn btn-ghost" data-rt-edit="${esc(r.id)}">Editar</button></div>
+        <button class="linkBtn rtDel" data-rt-del="${esc(r.id)}">Borrar rutina</button></div>`).join('')
+      : `<div class="empty"><img src="${mascot('vacio')}" alt="">Todavía no tienes rutinas.<br>Crea la primera con tus ejercicios.</div>`;
+  }
+  document.getElementById('rtList').addEventListener('click', ev=>{
+    const g = ev.target.closest('[data-rt-go]'), e = ev.target.closest('[data-rt-edit]'), d = ev.target.closest('[data-rt-del]');
+    const find = id=>routines.find(r=>r.id === id);
+    if(g){ const r = find(g.dataset.rtGo); if(r && typeof startSession === 'function') startSession(r); }
+    else if(e){ const r = find(e.dataset.rtEdit); if(r) openRoutineEditor(r); }
+    else if(d){ const r = find(d.dataset.rtDel); if(!r) return;
+      if(!confirm('¿Borrar la rutina "' + r.name + '"? Las sesiones que ya guardaste no se borran.')) return;
+      routines = routines.filter(x=>x !== r); saveRoutines(); renderRoutines(); }
+  });
+  document.getElementById('btnRtNew').addEventListener('click', ()=>{
+    if(routines.length >= RT_LIM.routines){ alert('Puedes tener hasta ' + RT_LIM.routines + ' rutinas.'); return; }
+    openRoutineEditor(null);
+  });
+
+  // editor: rtDraft es una copia; solo se guarda con "Guardar rutina"
+  let rtDraft = null;
+  function openRoutineEditor(r){
+    rtDraft = r ? {id: r.id, name: r.name, created: r.created, items: r.items.map(i=>Object.assign({}, i))}
+                : {id: null, name: '', items: []};
+    document.getElementById('rtEditTitle').textContent = r ? 'Editar rutina' : 'Nueva rutina';
+    document.getElementById('rtName').value = rtDraft.name;
+    document.getElementById('rtCustom').value = '';
+    document.getElementById('rtMsg').textContent = '';
+    renderDraftItems(); rtView('rtEditView');
+  }
+  document.getElementById('rtExChips').innerHTML = EXERCISES.map(e=>`<button class="chip" data-ex="${e.k}">+ ${e.n}</button>`).join('');
+  function addDraftItem(it){
+    if(rtDraft.items.length >= RT_LIM.items){ mascotMsg(document.getElementById('rtMsg'), 'error', 'Puedes poner hasta ' + RT_LIM.items + ' ejercicios por rutina.', 'var(--danger)'); return; }
+    rtDraft.items.push(Object.assign({kind:'reps', amount:'', sets:''}, it)); renderDraftItems();
+  }
+  document.getElementById('rtExChips').addEventListener('click', ev=>{
+    const c = ev.target.closest('[data-ex]'); if(c) addDraftItem({ex: c.dataset.ex});
+  });
+  document.getElementById('btnRtCustom').addEventListener('click', ()=>{
+    const inp = document.getElementById('rtCustom'), n = inp.value.trim().slice(0, RT_LIM.name);
+    if(!n){ inp.focus(); return; }
+    addDraftItem({name: n}); inp.value = '';
+  });
+  // cada ejercicio: repeticiones o segundos, cantidad y series (vacíos: la app no sugiere números), subir, bajar, quitar
+  function renderDraftItems(){
+    const box = document.getElementById('rtItems');
+    box.innerHTML = rtDraft.items.length ? rtDraft.items.map((it, i)=>`<div class="rtItem">
+        <div class="rtItemTop"><b>${esc(exName(it))}</b>
+          <span class="rtMove"><button class="linkBtn" data-mv="${i}" data-d="-1" aria-label="Subir"${i ? '' : ' disabled'}>↑</button>
+          <button class="linkBtn" data-mv="${i}" data-d="1" aria-label="Bajar"${i < rtDraft.items.length - 1 ? '' : ' disabled'}>↓</button>
+          <button class="linkBtn" data-rm="${i}" aria-label="Quitar">✕</button></span></div>
+        <div class="chips rtKind"><button class="chip${it.kind === 'reps' ? ' on' : ''}" data-kind="reps" data-i="${i}">Repeticiones</button>
+          <button class="chip${it.kind === 'secs' ? ' on' : ''}" data-kind="secs" data-i="${i}">Segundos</button></div>
+        <div class="row2"><div><label>${it.kind === 'secs' ? 'Segundos' : 'Repeticiones'}</label><input type="number" inputmode="numeric" data-f="amount" data-i="${i}" value="${it.amount}"></div>
+          <div><label>Series</label><input type="number" inputmode="numeric" data-f="sets" data-i="${i}" value="${it.sets}"></div></div></div>`).join('')
+      : '<div class="hint">Toca los ejercicios de arriba para agregarlos.</div>';
+  }
+  const rtItemsBox = document.getElementById('rtItems');
+  rtItemsBox.addEventListener('input', ev=>{
+    const f = ev.target.dataset.f; if(!f) return;
+    rtDraft.items[+ev.target.dataset.i][f] = ev.target.value;
+  });
+  rtItemsBox.addEventListener('click', ev=>{
+    const k = ev.target.closest('[data-kind]'), mv = ev.target.closest('[data-mv]'), rm = ev.target.closest('[data-rm]');
+    if(k){ rtDraft.items[+k.dataset.i].kind = k.dataset.kind; renderDraftItems(); }
+    else if(mv && !mv.disabled){ const i = +mv.dataset.mv, j = i + (+mv.dataset.d); const a = rtDraft.items; [a[i], a[j]] = [a[j], a[i]]; renderDraftItems(); }
+    else if(rm){ rtDraft.items.splice(+rm.dataset.rm, 1); renderDraftItems(); }
+  });
+  document.getElementById('btnRtCancel').addEventListener('click', ()=>{ rtDraft = null; renderRoutines(); });
+  document.getElementById('btnRtSave').addEventListener('click', ()=>{
+    const msg = document.getElementById('rtMsg'), bad = t=>mascotMsg(msg, 'error', t, 'var(--danger)');
+    const name = document.getElementById('rtName').value.trim().slice(0, RT_LIM.name);
+    if(!name) return bad('Ponle un nombre a la rutina.');
+    if(!rtDraft.items.length) return bad('Agrega al menos un ejercicio.');
+    const items = [];
+    for(const it of rtDraft.items){
+      const amount = parseInt(it.amount), sets = parseInt(it.sets), lim = RT_LIM[it.kind];
+      if(!(amount >= lim[0] && amount <= lim[1])) return bad(exName(it) + ': escribe ' + (it.kind === 'secs' ? 'los segundos (1 a 3600).' : 'las repeticiones (1 a 999).'));
+      if(!(sets >= RT_LIM.sets[0] && sets <= RT_LIM.sets[1])) return bad(exName(it) + ': escribe las series (1 a 20).');
+      items.push(Object.assign(it.ex ? {ex: it.ex} : {name: String(it.name).slice(0, RT_LIM.name)}, {kind: it.kind, amount, sets}));
+    }
+    if(rtDraft.id){
+      const r = routines.find(x=>x.id === rtDraft.id);
+      if(r){ r.name = name; r.items = items; }
+    } else {
+      routines.push({id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, created: new Date().toISOString(), items});
+    }
+    saveRoutines(); rtDraft = null; renderRoutines(); showSaved();
+  });
+
+
+  // ---------- SESIÓN DE RUTINA ----------
+  // Cronómetro (con pausa) y las series de cada ejercicio para marcar lo hecho. En ejercicios por segundos hay una
+  // cuenta regresiva por serie que la marca sola al terminar ("Serie lista" por voz si el aviso por voz está activo).
+  // mirun_session = sesión en curso {rid, name, items:[{...ejercicio, done}], start, startTime, elapsedBefore, paused, savedAt}.
+  // Si la app se cierra, al abrir vuelve a la sesión EN PAUSA desde el último guardado (el rato cerrada no cuenta).
+  // "Terminar": se elige la intensidad y se guarda como actividad 'ejercicios' con el detalle en routine
+  // ({name, items:[{ex | name, kind, amount, sets, done}]}). La racha cuenta sus minutos como cualquier actividad.
+  let ses = null, sesTimer = null, sesCd = null, sesSaveAt = 0, sesClosedNote = false, sesFinishing = false;
+  function rtSessionActive(){ return !!ses; }
+  function sesElapsed(){ return ses ? ses.elapsedBefore + (ses.paused ? 0 : Date.now() - ses.startTime) : 0; }
+  function saveSession(){ if(ses){ ses.savedAt = Date.now(); LS.set('mirun_session', ses); sesSaveAt = ses.savedAt; } }
+  function clearSession(){ ses = null; sesCd = null; sesFinishing = false; sesClosedNote = false; clearInterval(sesTimer); sesTimer = null; try{ localStorage.removeItem('mirun_session'); }catch(e){} }
+  function startSession(r){
+    const now = Date.now();
+    ses = {rid: r.id, name: r.name, items: r.items.map(i=>Object.assign({}, i, {done: 0})),
+           start: new Date(now).toISOString(), startTime: now, elapsedBefore: 0, paused: false, savedAt: now};
+    saveSession(); runSessionTimer(); rtView('rtSesView'); renderSession();
+  }
+  function runSessionTimer(){ clearInterval(sesTimer); sesTimer = setInterval(tickSession, 1000); }
+  function tickSession(){
+    if(!ses) return;
+    const t = document.getElementById('rtSesTime'); if(t) t.textContent = fmtTime(sesElapsed() / 1000);
+    if(sesCd){
+      const left = Math.ceil((sesCd.endsAt - Date.now()) / 1000), el = document.getElementById('rtCdLeft');
+      if(left <= 0){ // serie por segundos terminada: se marca sola
+        const it = ses.items[sesCd.i]; if(it.done < it.sets) it.done++;
+        sesCd = null; say('Serie lista.');
+        if(profile.sounds !== false){ try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){} }
+        saveSession(); renderSession(); return;
+      }
+      if(el) el.textContent = left + ' s';
+    }
+    if(Date.now() - sesSaveAt > 5000) saveSession();
+  }
+  function renderSession(){
+    const v = document.getElementById('rtSesView');
+    if(!ses){ v.innerHTML = ''; return; }
+    const doneSets = ses.items.reduce((a, it)=>a + it.done, 0), allSets = ses.items.reduce((a, it)=>a + it.sets, 0);
+    v.innerHTML = `<div class="panel rtSesHead">
+        <h3>${esc(ses.name)}</h3>
+        ${sesClosedNote === 'stale' ? '<div class="hint rtSesNote">Tienes una rutina sin terminar. ¿Guardar lo hecho o descartar?</div>'
+          : sesClosedNote ? '<div class="hint rtSesNote">La app se cerró: tu sesión quedó en pausa. Toca Reanudar para seguir.</div>' : ''}
+        ${gpsPendingShown() ? '<div class="hint rtSesNote">También tienes una actividad con GPS sin terminar. <button class="linkBtn" id="btnSesGoRun">Ver la actividad</button></div>' : ''}
+        <div class="rtSesTime num" id="rtSesTime">${fmtTime(sesElapsed() / 1000)}</div>
+        <div class="hint">${ses.paused ? 'En pausa' : 'Tiempo de la sesión'} · ${doneSets} de ${allSets} series</div>
+        <div class="btnRow"><button class="btn ${ses.paused ? 'btn-start' : 'btn-ghost'}" id="btnSesPause">${ses.paused ? 'Reanudar' : 'Pausar'}</button></div>
+      </div>` + ses.items.map((it, i)=>{
+        const cd = sesCd && sesCd.i === i, left = it.done < it.sets;
+        return `<div class="panel rtSesItem${it.done >= it.sets ? ' full' : ''}">
+          <div class="rtItemTop"><b>${esc(exName(it))}</b><span class="hint">${itemTxt(it)}</span></div>
+          <div class="rtSets">${Array.from({length: it.sets}, (_, j)=>`<button class="setBtn${j < it.done ? ' on' : ''}" data-set="${j}" data-i="${i}" aria-pressed="${j < it.done}" aria-label="Serie ${j + 1}">${j < it.done ? '✓' : j + 1}</button>`).join('')}</div>
+          ${it.kind === 'secs' && left ? (cd
+            ? `<div class="rtCd"><span>Cuenta regresiva</span><b class="num" id="rtCdLeft">${Math.max(0, Math.ceil((sesCd.endsAt - Date.now()) / 1000))} s</b><button class="btn btn-ghost" data-cd-stop="1">Detener</button></div>`
+            : `<button class="btn btn-ghost rtCdBtn" data-cd="${i}"${ses.paused ? ' disabled' : ''}>▶ Cuenta regresiva: ${it.amount} s (serie ${it.done + 1})</button>`) : ''}
+        </div>`; }).join('') +
+      (sesFinishing ? `<div class="panel rtFinish"><h3>¿Cómo fue la intensidad?</h3>
+          <div class="chips" id="rtFinInt">${INTENSITY.map(x=>`<button class="chip${x === 'media' ? ' on' : ''}" data-int="${x}">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div>
+          <div class="hint" id="rtFinMsg" style="margin-top:8px;"></div>
+          <div class="btnRow"><button class="btn btn-ghost" id="btnSesKeep">Seguir</button><button class="btn btn-start" id="btnSesSave">Guardar actividad</button></div>
+          <button class="linkBtn rtDel" id="btnSesDiscard">Descartar la sesión sin guardar</button></div>`
+        : `<div class="btnRow"><button class="btn btn-stop" id="btnSesEnd">Terminar sesión</button></div>`);
+  }
+  document.getElementById('rtSesView').addEventListener('click', ev=>{
+    if(!ses) return;
+    const set = ev.target.closest('[data-set]'), cd = ev.target.closest('[data-cd]'), id = (ev.target.closest('button') || {}).id;
+    if(set){ // tocar una serie: marca hasta esa; tocar la última marcada la desmarca
+      const it = ses.items[+set.dataset.i], j = +set.dataset.set;
+      it.done = j < it.done ? j : j + 1;
+      if(sesCd && sesCd.i === +set.dataset.i) sesCd = null;
+      saveSession(); renderSession(); return;
+    }
+    if(cd && !cd.disabled){ const it = ses.items[+cd.dataset.cd]; sesCd = {i: +cd.dataset.cd, endsAt: Date.now() + it.amount * 1000}; renderSession(); return; }
+    if(ev.target.closest('[data-cd-stop]')){ sesCd = null; renderSession(); return; }
+    if(id === 'btnSesPause'){
+      const now = Date.now();
+      if(ses.paused){ ses.paused = false; ses.startTime = now; sesClosedNote = false; delete ses.ask; }
+      else { ses.elapsedBefore += now - ses.startTime; ses.paused = true; sesCd = null; }
+      saveSession(); renderSession(); return;
+    }
+    if(id === 'btnSesGoRun'){ showTab('run'); return; }
+    if(id === 'btnSesEnd'){ sesFinishing = true; renderSession(); document.querySelector('.rtFinish').scrollIntoView({block:'center'}); return; }
+    if(id === 'btnSesKeep'){ sesFinishing = false; renderSession(); return; }
+    if(ev.target.closest('#rtFinInt [data-int]')){ pickOne(document.getElementById('rtFinInt'), ev); return; }
+    if(id === 'btnSesDiscard'){
+      if(!confirm('¿Descartar la sesión? No se guarda nada.')) return;
+      clearSession(); renderRoutines(); return;
+    }
+    if(id === 'btnSesSave') finishSession();
+  });
+  function finishSession(){
+    const seconds = Math.round(sesElapsed() / 1000);
+    if(seconds < 60){ mascotMsg(document.getElementById('rtFinMsg'), 'error', 'La sesión duró menos de 1 minuto: no se puede guardar. Sigue o descártala.', 'var(--danger)'); return; }
+    const intensity = document.querySelector('#rtFinInt .chip.on').dataset.int, type = 'ejercicios';
+    let iso = ses.start;
+    while(history.some(h=>h.date === iso)) iso = new Date(new Date(iso).getTime() + 1000).toISOString();
+    history.push({date: iso, type, intensity, seconds,
+      cal: metCalories(actInfo(type).met[INTENSITY.indexOf(intensity)], seconds),
+      dist: 0, pace: '--:--', path: [], splits: [], manual: true,
+      routine: {name: ses.name, items: ses.items.map(it=>Object.assign(it.ex ? {ex: it.ex} : {name: it.name}, {kind: it.kind, amount: it.amount, sets: it.sets, done: it.done}))}});
+    history.sort((a,b)=>a.date < b.date ? -1 : 1);
+    LS.set('mirun_history', history);
+    const mins = Math.round(seconds / 60);
+    clearSession(); renderRoutines();
+    const st = streakInfo(minutesByDay());
+    mascotMsg(document.getElementById('rtSavedMsg'), mins >= 60 ? 'guardadoLargo' : 'guardado',
+      'Rutina guardada: ' + mins + ' min. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
+    renderHistory(); checkAchievements();
+  }
+  // la actividad con GPS sin terminar (caja #resumeBox de "Correr") está a la vista para seguirla
+  function gpsPendingShown(){ return document.getElementById('resumeBox').style.display === 'block'; }
+  // al abrir la app: si quedó una sesión, se retoma EN PAUSA desde el último guardado (el rato cerrada no cuenta).
+  // Nunca se borra sola: si pasaron más de 12 horas se abre "Terminar" y se pregunta si guardar lo hecho o descartar.
+  // Si además hay una actividad con GPS sin terminar, la app se queda en esa pantalla y avisa de las dos (ninguna se pierde).
+  {
+    const p = LS.get('mirun_session', null);
+    if(p && typeof p === 'object' && Array.isArray(p.items) && p.items.length){
+      ses = p;
+      // ask = la pregunta sigue pendiente aunque se vuelva a cerrar la app sin responder (se quita al reanudar)
+      const stale = !!p.ask || Date.now() - (Number(p.savedAt) || 0) >= 12 * 3600 * 1000;
+      if(stale) ses.ask = true;
+      if(!ses.paused){ ses.elapsedBefore += Math.max(0, (ses.savedAt || Date.now()) - ses.startTime); ses.paused = true; }
+      sesClosedNote = stale ? 'stale' : 'closed'; sesFinishing = stale;
+      saveSession(); runSessionTimer();
+      if(gpsPendingShown()){
+        document.getElementById('resumeRtInfo').textContent = 'También tienes una rutina sin terminar: «' + ses.name + '».';
+        document.getElementById('resumeRt').style.display = '';
+        document.getElementById('btnResumeRt').addEventListener('click', ()=>showTab('rutinas'));
+      } else showTab('rutinas');
+    }
+  }
+
   // ---------- CELEBRACIÓN (meta del día cumplida) ----------
   // Se celebra SOLO cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una
   // actividad (lo llama checkAchievements), y una sola vez por día: mirun_celebrated = 'AAAA-MM-DD' del último
@@ -2511,7 +2817,7 @@
   document.getElementById('btnExport').addEventListener('click', ()=>{
     LS.set('mirun_lastBackup', new Date().toISOString());
     const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
-                                 profile, goal, history, body});
+                                 profile, goal, history, body, routines});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
     const d = new Date();
@@ -2519,7 +2825,8 @@
     a.download = 'MiRun-copia-' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
-    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones, tu perfil y metas).');
+    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones' +
+              (routines.length ? ', ' + routines.length + (routines.length === 1 ? ' rutina' : ' rutinas') : '') + ', tu perfil y metas).');
   });
 
   const fileInput = document.getElementById('importFile');
@@ -2553,7 +2860,10 @@
             ...(typeof h.edited === 'string' ? {edited: h.edited.slice(0,40)} : {}),
             // pausa automática (actividades con GPS): tiempo quieta descontado y cuántas veces
             ...(Number(h.autoPausedSeconds) >= 0 && isFinite(h.autoPausedSeconds) ? {autoPausedSeconds: Math.round(Number(h.autoPausedSeconds))} : {}),
-            ...(Number.isInteger(h.autoPauses) && h.autoPauses >= 0 ? {autoPauses: h.autoPauses} : {})
+            ...(Number.isInteger(h.autoPauses) && h.autoPauses >= 0 ? {autoPauses: h.autoPauses} : {}),
+            // sesión de rutina: nombre y ejercicios con las series hechas
+            ...(h.routine && typeof h.routine === 'object' && cleanRtItems(h.routine.items, true).length ?
+                {routine: {name: String(h.routine.name || 'Rutina').slice(0, RT_LIM.name), items: cleanRtItems(h.routine.items, true)}} : {})
           }));
         // teléfono "nuevo" (sin datos): la copia restaura perfil, metas y foto completos;
         // si ya hay datos, solo completa lo que falta y nunca reemplaza lo que existe
@@ -2575,6 +2885,24 @@
             body.push(c); haveB.add(e.date); nuevasMed++;
           });
           LS.set('mirun_body', body);
+        }
+        // rutinas (copias nuevas): se agregan las que faltan (mismo id = ya está), sin pasar de 50
+        let nuevasRt = 0;
+        if(Array.isArray(data.routines)){
+          const haveR = new Set(routines.map(x=>x.id));
+          data.routines.forEach(x=>{
+            if(!x || typeof x !== 'object' || routines.length >= RT_LIM.routines) return;
+            const name = typeof x.name === 'string' ? x.name.trim().slice(0, RT_LIM.name) : '';
+            const items = cleanRtItems(x.items, false);
+            if(!name || !items.length) return;
+            let id = typeof x.id === 'string' && /^[\w-]{1,40}$/.test(x.id) ? x.id : '';
+            if(id && haveR.has(id)) return;
+            if(!id) do { id = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); } while(haveR.has(id));
+            const c = {id, name, items};
+            if(typeof x.created === 'string') c.created = x.created.slice(0, 40);
+            routines.push(c); haveR.add(id); nuevasRt++;
+          });
+          if(nuevasRt) saveRoutines();
         }
         // perfil, metas y foto (copias de v5 en adelante): solo campos conocidos y valores válidos
         let perfil = false;
@@ -2615,7 +2943,8 @@
         }
         fillProfileForm(); loadGoalForm(); loadStreakForm(); refreshGoalLabels(); buildBodyForm();
         renderHistory(); checkAchievements(true);
-        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades y ' + nuevasMed + ' mediciones nuevas' +
+        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades' + (nuevasRt ? ', ' : ' y ') + nuevasMed + ' mediciones' +
+                   (nuevasRt ? ' y ' + nuevasRt + (nuevasRt === 1 ? ' rutina' : ' rutinas') : '') + ' nuevas' +
                    (perfil ? ', además de tu perfil y metas.' : '.'));
       }catch(e){
         backupNote('Ese archivo no es una copia de MiRun.');
@@ -2632,7 +2961,7 @@
   // mirun_achSeen no cuentan: la app los crea sola al abrir).
   (function(){
     if(LS.get('mirun_welcomed', false)) return;
-    const hasData = ['mirun_profile','mirun_goal','mirun_photo','mirun_current'].some(k=>localStorage.getItem(k) !== null) ||
+    const hasData = ['mirun_profile','mirun_goal','mirun_photo','mirun_current','mirun_routines'].some(k=>localStorage.getItem(k) !== null) ||
                     history.length > 0 || body.length > 0;
     if(hasData){ LS.set('mirun_welcomed', true); return; }
     const wel = document.getElementById('welcome'), wUnits = document.getElementById('welUnits'), wSex = document.getElementById('welSex');

@@ -68,7 +68,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
-| Historial (incluye "≈ N pasos") | `// ---------- HISTORY` |
+| Historial (incluye "≈ N pasos" y el detalle de rutina `routineDetail`) | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
 | Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
@@ -82,6 +82,8 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
 | Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
+| Mis rutinas (menú "+"): lista, editor (`EXERCISES`, `routines`, `mirun_routines`) | `// ---------- MIS RUTINAS` (HTML: `id="tab-rutinas"`, CSS: `MIS RUTINAS`) |
+| Sesión de rutina: series, cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
