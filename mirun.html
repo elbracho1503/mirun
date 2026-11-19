@@ -116,6 +116,13 @@
 
     <div id="paceAlert"></div>
 
+    <!-- pausa automática: aviso mientras está quieta (ver PAUSA AUTOMÁTICA en js/app.js) -->
+    <div id="autoPauseBox" role="status" style="display:none;">
+      <b>Pausa automática</b>
+      <span id="autoPauseMsg">Llevas 2 minutos sin moverte. Cuando vuelvas a moverte, sigue sola.</span>
+      <button class="btn btn-stop" id="btnAutoStop" style="display:none;margin-top:8px;">Terminar</button>
+    </div>
+
     <div class="lanes">
       <div class="lane"><span class="lane-label">Tiempo</span><span class="lane-val num" id="timeVal">00:00</span></div>
       <div class="lane"><span class="lane-label">Ritmo <small class="uP">min/km</small></span><span class="lane-val num" id="paceVal">--:--</span></div>
@@ -398,6 +405,15 @@
       <select id="profVoice">
         <option value="1">Sí, avisarme</option>
         <option value="0">No</option>
+      </select>
+    </div>
+    <div class="panel">
+      <h3>Pausa automática (GPS)</h3>
+      <div class="hint">Si llevas 2 minutos sin moverte, la actividad se pausa sola y sigue cuando vuelves a moverte. Solo cuenta el tiempo en movimiento.</div>
+      <label>Pausa automática</label>
+      <select id="profAutoPause">
+        <option value="1">Encendida</option>
+        <option value="0">Apagada</option>
       </select>
     </div>
     <div class="panel">

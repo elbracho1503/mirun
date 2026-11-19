@@ -9,7 +9,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_body` | Array de mediciones | `date` (`AAAA-MM-DD`, una por día) |
 | `mirun_profile` | Objeto | — |
 | `mirun_goal` | Objeto | — |
-| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar. Desde 2026-11-05 agrega `lastVoiceMi` y `lastVoiceTime` (aviso por voz en millas; si faltan se calculan) |
+| `mirun_current` | Objeto o ausente | Actividad GPS en curso; se borra al terminar. Desde 2026-11-18 agrega la pausa automática: `autoPaused`, `pauseAt`, `pauseStartedAt`, `autoPausedMs`, `autoPauses`, `autoAsked` (ya preguntó a los 10 min en esta pausa). Desde 2026-11-05 agrega `lastVoiceMi` y `lastVoiceTime` (aviso por voz en millas; si faltan se calculan) |
 | `mirun_schema` | Número | Versión del formato de datos (hoy 5) |
 | `mirun_lastBackup` | Texto ISO | Fecha de la última copia exportada (para el recordatorio) |
 | `mirun_photo` | Texto (data URL JPEG 256 px, ~30 KB) | Foto de perfil (v5). Va en la copia de seguridad |
@@ -56,6 +56,9 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 - `cintura` (parte más angosta) es una medida distinta, agregada en v5.
 - Las medidas se definen en `MEASURES` (sección CUERPO): `{k, n, u, id, good}`.
   `good` = 1 si subir es bueno, -1 si bajar es bueno. La importación usa esta misma lista.
+- **Actividades con GPS y pausa automática** (desde 2026-11-18): `seconds` es el tiempo EN MOVIMIENTO (sin pausas manuales ni
+  automáticas); si hubo pausas automáticas se agregan `autoPausedSeconds` (tiempo quieta descontado) y `autoPauses` (cuántas).
+  Las actividades anteriores no cambian. Editar una actividad no toca `autoPausedSeconds`. La importación acepta los dos campos.
 - Guardar un `peso` también actualiza `profile.weight`.
 - Escrito en lb, el `peso` nuevo se guarda en kg redondeado a 2 decimales (desde 2026-11-05; lo ya guardado no cambia).
 
@@ -71,7 +74,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   sex: 'm'|'f'|'x',          // 'x' = prefiero no decir (v5)
   voice: true/false, mapMode: 'calles'|'linea',
   sounds: true/false,
-  character: 'monster'|'zafira'|'nova'|'tizon' }  // 2026-11-09: compañero elegido (sin campo = Brío, 'monster'). Va en la copia; la importación solo acepta claves de CHARACTERS        // 2026-11-06: "Sonidos y vibración" de la celebración (sin campo = encendido). Va en la copia y en la importación
+  character: 'monster'|'zafira'|'nova'|'tizon',
+  autoPause: true/false }  // 2026-11-18: pausa automática en GPS (sin campo = encendida). Va en la copia y en la importación  // 2026-11-09: compañero elegido (sin campo = Brío, 'monster'). Va en la copia; la importación solo acepta claves de CHARACTERS        // 2026-11-06: "Sonidos y vibración" de la celebración (sin campo = encendido). Va en la copia y en la importación
 ```
 `sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965), los pasos estimados y la silueta.
 Perfil nuevo (sin `mirun_profile` guardado): `sex: 'x'` por defecto (antes `'m'`; los perfiles ya guardados no cambian).
