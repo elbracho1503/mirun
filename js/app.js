@@ -27,6 +27,27 @@
     {k:'plancha', n:'Plancha'}, {k:'plancha_lateral', n:'Plancha lateral'}, {k:'sentadilla_pared', n:'Sentadilla en pared'},
     {k:'superman', n:'Superman'}, {k:'dominadas', n:'Dominadas'}];
   const RT_LIM = {routines:50, items:30, name:40, reps:[1,999], secs:[1,3600], sets:[1,20]};
+  // limpia los ejercicios de una rutina (copias importadas): solo campos conocidos y valores en rango.
+  // withDone = sesión guardada en el Historial (lleva cuántas series se hicieron, de 0 a sets)
+  function cleanRtItems(items, withDone){
+    if(!Array.isArray(items)) return [];
+    const out = [];
+    items.slice(0, RT_LIM.items).forEach(it=>{
+      if(!it || typeof it !== 'object') return;
+      const kind = it.kind === 'secs' ? 'secs' : it.kind === 'reps' ? 'reps' : null;
+      const amount = Number(it.amount), sets = Number(it.sets), lim = RT_LIM[kind];
+      if(!kind || !Number.isInteger(amount) || amount < lim[0] || amount > lim[1]) return;
+      if(!Number.isInteger(sets) || sets < RT_LIM.sets[0] || sets > RT_LIM.sets[1]) return;
+      const c = {};
+      if(EXERCISES.some(e=>e.k === it.ex)) c.ex = it.ex;
+      else if(typeof it.name === 'string' && it.name.trim()) c.name = it.name.trim().slice(0, RT_LIM.name);
+      else return;
+      c.kind = kind; c.amount = amount; c.sets = sets;
+      if(withDone){ const d = Number(it.done); c.done = Number.isInteger(d) && d >= 0 ? Math.min(d, sets) : 0; }
+      out.push(c);
+    });
+    return out;
+  }
 
   // Versión del formato de datos. Las migraciones SOLO agregan campos, nunca borran.
   const SCHEMA = 5;
@@ -2769,7 +2790,7 @@
   document.getElementById('btnExport').addEventListener('click', ()=>{
     LS.set('mirun_lastBackup', new Date().toISOString());
     const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
-                                 profile, goal, history, body});
+                                 profile, goal, history, body, routines});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
     const d = new Date();
@@ -2777,7 +2798,8 @@
     a.download = 'MiRun-copia-' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
-    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones, tu perfil y metas).');
+    backupNote('Copia guardada en la carpeta Descargas del teléfono (' + history.length + ' actividades, ' + body.length + ' mediciones' +
+              (routines.length ? ', ' + routines.length + (routines.length === 1 ? ' rutina' : ' rutinas') : '') + ', tu perfil y metas).');
   });
 
   const fileInput = document.getElementById('importFile');
@@ -2811,7 +2833,10 @@
             ...(typeof h.edited === 'string' ? {edited: h.edited.slice(0,40)} : {}),
             // pausa automática (actividades con GPS): tiempo quieta descontado y cuántas veces
             ...(Number(h.autoPausedSeconds) >= 0 && isFinite(h.autoPausedSeconds) ? {autoPausedSeconds: Math.round(Number(h.autoPausedSeconds))} : {}),
-            ...(Number.isInteger(h.autoPauses) && h.autoPauses >= 0 ? {autoPauses: h.autoPauses} : {})
+            ...(Number.isInteger(h.autoPauses) && h.autoPauses >= 0 ? {autoPauses: h.autoPauses} : {}),
+            // sesión de rutina: nombre y ejercicios con las series hechas
+            ...(h.routine && typeof h.routine === 'object' && cleanRtItems(h.routine.items, true).length ?
+                {routine: {name: String(h.routine.name || 'Rutina').slice(0, RT_LIM.name), items: cleanRtItems(h.routine.items, true)}} : {})
           }));
         // teléfono "nuevo" (sin datos): la copia restaura perfil, metas y foto completos;
         // si ya hay datos, solo completa lo que falta y nunca reemplaza lo que existe
@@ -2833,6 +2858,24 @@
             body.push(c); haveB.add(e.date); nuevasMed++;
           });
           LS.set('mirun_body', body);
+        }
+        // rutinas (copias nuevas): se agregan las que faltan (mismo id = ya está), sin pasar de 50
+        let nuevasRt = 0;
+        if(Array.isArray(data.routines)){
+          const haveR = new Set(routines.map(x=>x.id));
+          data.routines.forEach(x=>{
+            if(!x || typeof x !== 'object' || routines.length >= RT_LIM.routines) return;
+            const name = typeof x.name === 'string' ? x.name.trim().slice(0, RT_LIM.name) : '';
+            const items = cleanRtItems(x.items, false);
+            if(!name || !items.length) return;
+            let id = typeof x.id === 'string' && /^[\w-]{1,40}$/.test(x.id) ? x.id : '';
+            if(id && haveR.has(id)) return;
+            if(!id) do { id = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); } while(haveR.has(id));
+            const c = {id, name, items};
+            if(typeof x.created === 'string') c.created = x.created.slice(0, 40);
+            routines.push(c); haveR.add(id); nuevasRt++;
+          });
+          if(nuevasRt) saveRoutines();
         }
         // perfil, metas y foto (copias de v5 en adelante): solo campos conocidos y valores válidos
         let perfil = false;
@@ -2873,7 +2916,8 @@
         }
         fillProfileForm(); loadGoalForm(); loadStreakForm(); refreshGoalLabels(); buildBodyForm();
         renderHistory(); checkAchievements(true);
-        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades y ' + nuevasMed + ' mediciones nuevas' +
+        backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades' + (nuevasRt ? ', ' : ' y ') + nuevasMed + ' mediciones' +
+                   (nuevasRt ? ' y ' + nuevasRt + (nuevasRt === 1 ? ' rutina' : ' rutinas') : '') + ' nuevas' +
                    (perfil ? ', además de tu perfil y metas.' : '.'));
       }catch(e){
         backupNote('Ese archivo no es una copia de MiRun.');

@@ -101,7 +101,10 @@ Perfil y metas se guardan con `Object.assign` para no perder campos que la panta
 `dayStatus()` = done / rest / part / miss → `streakInfo()` = racha actual y récord.
 
 ## Copia de seguridad (archivo .json)
-Exporta `{app:'MiRun', version:4, exported, photo, profile, goal, history, body}`.
+Exporta `{app:'MiRun', version:4, exported, photo, profile, goal, history, body, routines}` (`routines` desde 2026-11-18; una copia sin ese campo se importa igual).
 Importa todo (copias version 2, 3 y 4), filtrando a campos y valores conocidos.
 Actividades y medidas: solo agrega fechas nuevas. Perfil, metas y foto: en un teléfono sin datos se
 restauran completos; si ya hay datos, solo completan lo que falta. Si se agregan campos, actualizar este filtro.
+Rutinas: se agregan las que faltan (mismo `id` = ya está; sin `id` válido se le crea uno), sin pasar de 50; cada
+ejercicio se limpia con `cleanRtItems` (clave de `EXERCISES` o nombre propio de 1 a 40, `kind` reps/secs, cantidad y
+series en rango; lo inválido se descarta). El `routine` de una actividad se limpia igual y `done` queda entre 0 y `sets`.
