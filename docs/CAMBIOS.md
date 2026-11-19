@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-18 | Rama `prueba/ajustes`: caché v28 → v29 (una sola vez, por el ícono y el botón de Perfil) | `sw.js` | ~1k tokens |
 | 2026-11-18 | Rama `prueba/ajustes`, T2: el botón de Perfil de la cabecera lleva un engranaje chico y la palabra "Perfil" debajo; la cabecera sigue en 72 px y el saludo en el mismo lugar | `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~10k tokens |
 | 2026-11-18 | Rama `prueba/ajustes`, T1: ícono nuevo "Logo de M con rayo y órbitas doradas" (original en `img/icono-original.png`); 192, 512, 180 y maskable al 80 % sobre #011553 (su mismo fondo); el logo llega al 46 % del lado, al 80 % queda en 36,8 %: nada se corta | `img/*`, `docs/*` | ~10k tokens |
 | 2026-11-09 | Rama `prueba/icono` (unida a main y publicada, caché v28; conflicto resuelto: v28 y las líneas de las dos ramas): maskable con relleno #01184C (el fondo de la imagen original) en vez de #061A4A, para que no se vea el cuadrado alrededor del logo | `img/iconos/icon-512-maskable.png`, `docs/*` | ~3k tokens |
