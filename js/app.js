@@ -16,6 +16,9 @@
     }
   };
 
+  // texto de la persona dentro de HTML (nombres de rutinas y ejercicios propios): siempre escapado
+  const esc = t=>String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
   // Versión del formato de datos. Las migraciones SOLO agregan campos, nunca borran.
   const SCHEMA = 5;
   if(LS.get('mirun_schema', 0) < SCHEMA) LS.set('mirun_schema', SCHEMA);
@@ -230,6 +233,7 @@
     if(tab==='history') renderHistory();
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
+    if(tab==='rutinas') renderRoutines();
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -256,6 +260,8 @@
     if(o.dataset.plus === 'manual'){
       showTab('history');
       document.getElementById('actForm').scrollIntoView({block:'start'});
+    } else if(o.dataset.plus === 'rutina'){
+      showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
       document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === o.dataset.plus));
       showTab('run');
@@ -2212,6 +2218,127 @@
     renderHistory(); checkAchievements();
   });
 
+
+  // ---------- MIS RUTINAS ----------
+  // Rutinas de fuerza que arma la persona (menú "+" -> "Mi rutina de fuerza"). La app NO recomienda cantidades ni
+  // da instrucciones de técnica: solo nombres de ejercicios y lo que la persona escribe.
+  // mirun_routines = [{id, name, created, items:[{ex | name, kind:'reps'|'secs', amount, sets}]}]
+  //   ex = clave de EXERCISES; un ejercicio propio guarda name (texto de la persona).
+  // Una sesión terminada se guarda como actividad 'ejercicios' con el detalle en routine (ver SESIÓN DE RUTINA).
+  const EXERCISES = [
+    {k:'flexiones', n:'Flexiones'}, {k:'abdominales', n:'Abdominales'}, {k:'sentadillas', n:'Sentadillas'},
+    {k:'zancadas', n:'Zancadas'}, {k:'burpees', n:'Burpees'}, {k:'tijera', n:'Saltos de tijera'},
+    {k:'escaladores', n:'Escaladores'}, {k:'puente', n:'Puente de glúteos'}, {k:'fondos', n:'Fondos en silla'},
+    {k:'elev_piernas', n:'Elevación de piernas'}, {k:'giros_rusos', n:'Giros rusos'}, {k:'rodillas_pecho', n:'Rodillas al pecho'},
+    {k:'plancha', n:'Plancha'}, {k:'plancha_lateral', n:'Plancha lateral'}, {k:'sentadilla_pared', n:'Sentadilla en pared'},
+    {k:'superman', n:'Superman'}, {k:'dominadas', n:'Dominadas'}];
+  const RT_LIM = {routines:50, items:30, name:40, reps:[1,999], secs:[1,3600], sets:[1,20]};
+  let routines = LS.get('mirun_routines', []);
+  if(!Array.isArray(routines)) routines = [];
+  function exName(it){ const e = EXERCISES.find(x=>x.k === it.ex); return e ? e.n : String(it.name || 'Ejercicio'); }
+  function itemTxt(it){ return it.sets + (it.sets === 1 ? ' serie' : ' series') + ' × ' + it.amount + (it.kind === 'secs' ? ' s' : (it.amount === 1 ? ' repetición' : ' repeticiones')); }
+  function saveRoutines(){ return LS.set('mirun_routines', routines); }
+  const rtViews = ['rtListView', 'rtEditView', 'rtSesView'];
+  function rtView(v){ rtViews.forEach(id=>{ document.getElementById(id).style.display = id === v ? '' : 'none'; }); window.scrollTo(0, 0); }
+
+  // lista de rutinas
+  function renderRoutines(){
+    if(typeof rtSessionActive === 'function' && rtSessionActive()){ rtView('rtSesView'); renderSession(); return; }
+    rtView('rtListView');
+    const box = document.getElementById('rtList');
+    box.innerHTML = routines.length ? routines.map(r=>`<div class="rtCard">
+        <div class="rtName">${esc(r.name)}</div>
+        <div class="hint">${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'}: ${esc(r.items.map(exName).join(', '))}</div>
+        <div class="btnRow"><button class="btn btn-start" data-rt-go="${esc(r.id)}">Empezar</button>
+          <button class="btn btn-ghost" data-rt-edit="${esc(r.id)}">Editar</button></div>
+        <button class="linkBtn rtDel" data-rt-del="${esc(r.id)}">Borrar rutina</button></div>`).join('')
+      : `<div class="empty"><img src="${mascot('vacio')}" alt="">Todavía no tienes rutinas.<br>Crea la primera con tus ejercicios.</div>`;
+  }
+  document.getElementById('rtList').addEventListener('click', ev=>{
+    const g = ev.target.closest('[data-rt-go]'), e = ev.target.closest('[data-rt-edit]'), d = ev.target.closest('[data-rt-del]');
+    const find = id=>routines.find(r=>r.id === id);
+    if(g){ const r = find(g.dataset.rtGo); if(r && typeof startSession === 'function') startSession(r); }
+    else if(e){ const r = find(e.dataset.rtEdit); if(r) openRoutineEditor(r); }
+    else if(d){ const r = find(d.dataset.rtDel); if(!r) return;
+      if(!confirm('¿Borrar la rutina "' + r.name + '"? Las sesiones que ya guardaste no se borran.')) return;
+      routines = routines.filter(x=>x !== r); saveRoutines(); renderRoutines(); }
+  });
+  document.getElementById('btnRtNew').addEventListener('click', ()=>{
+    if(routines.length >= RT_LIM.routines){ alert('Puedes tener hasta ' + RT_LIM.routines + ' rutinas.'); return; }
+    openRoutineEditor(null);
+  });
+
+  // editor: rtDraft es una copia; solo se guarda con "Guardar rutina"
+  let rtDraft = null;
+  function openRoutineEditor(r){
+    rtDraft = r ? {id: r.id, name: r.name, created: r.created, items: r.items.map(i=>Object.assign({}, i))}
+                : {id: null, name: '', items: []};
+    document.getElementById('rtEditTitle').textContent = r ? 'Editar rutina' : 'Nueva rutina';
+    document.getElementById('rtName').value = rtDraft.name;
+    document.getElementById('rtCustom').value = '';
+    document.getElementById('rtMsg').textContent = '';
+    renderDraftItems(); rtView('rtEditView');
+  }
+  document.getElementById('rtExChips').innerHTML = EXERCISES.map(e=>`<button class="chip" data-ex="${e.k}">+ ${e.n}</button>`).join('');
+  function addDraftItem(it){
+    if(rtDraft.items.length >= RT_LIM.items){ mascotMsg(document.getElementById('rtMsg'), 'error', 'Puedes poner hasta ' + RT_LIM.items + ' ejercicios por rutina.', 'var(--danger)'); return; }
+    rtDraft.items.push(Object.assign({kind:'reps', amount:'', sets:''}, it)); renderDraftItems();
+  }
+  document.getElementById('rtExChips').addEventListener('click', ev=>{
+    const c = ev.target.closest('[data-ex]'); if(c) addDraftItem({ex: c.dataset.ex});
+  });
+  document.getElementById('btnRtCustom').addEventListener('click', ()=>{
+    const inp = document.getElementById('rtCustom'), n = inp.value.trim().slice(0, RT_LIM.name);
+    if(!n){ inp.focus(); return; }
+    addDraftItem({name: n}); inp.value = '';
+  });
+  // cada ejercicio: repeticiones o segundos, cantidad y series (vacíos: la app no sugiere números), subir, bajar, quitar
+  function renderDraftItems(){
+    const box = document.getElementById('rtItems');
+    box.innerHTML = rtDraft.items.length ? rtDraft.items.map((it, i)=>`<div class="rtItem">
+        <div class="rtItemTop"><b>${esc(exName(it))}</b>
+          <span class="rtMove"><button class="linkBtn" data-mv="${i}" data-d="-1" aria-label="Subir"${i ? '' : ' disabled'}>↑</button>
+          <button class="linkBtn" data-mv="${i}" data-d="1" aria-label="Bajar"${i < rtDraft.items.length - 1 ? '' : ' disabled'}>↓</button>
+          <button class="linkBtn" data-rm="${i}" aria-label="Quitar">✕</button></span></div>
+        <div class="chips rtKind"><button class="chip${it.kind === 'reps' ? ' on' : ''}" data-kind="reps" data-i="${i}">Repeticiones</button>
+          <button class="chip${it.kind === 'secs' ? ' on' : ''}" data-kind="secs" data-i="${i}">Segundos</button></div>
+        <div class="row2"><div><label>${it.kind === 'secs' ? 'Segundos' : 'Repeticiones'}</label><input type="number" inputmode="numeric" data-f="amount" data-i="${i}" value="${it.amount}"></div>
+          <div><label>Series</label><input type="number" inputmode="numeric" data-f="sets" data-i="${i}" value="${it.sets}"></div></div></div>`).join('')
+      : '<div class="hint">Toca los ejercicios de arriba para agregarlos.</div>';
+  }
+  const rtItemsBox = document.getElementById('rtItems');
+  rtItemsBox.addEventListener('input', ev=>{
+    const f = ev.target.dataset.f; if(!f) return;
+    rtDraft.items[+ev.target.dataset.i][f] = ev.target.value;
+  });
+  rtItemsBox.addEventListener('click', ev=>{
+    const k = ev.target.closest('[data-kind]'), mv = ev.target.closest('[data-mv]'), rm = ev.target.closest('[data-rm]');
+    if(k){ rtDraft.items[+k.dataset.i].kind = k.dataset.kind; renderDraftItems(); }
+    else if(mv && !mv.disabled){ const i = +mv.dataset.mv, j = i + (+mv.dataset.d); const a = rtDraft.items; [a[i], a[j]] = [a[j], a[i]]; renderDraftItems(); }
+    else if(rm){ rtDraft.items.splice(+rm.dataset.rm, 1); renderDraftItems(); }
+  });
+  document.getElementById('btnRtCancel').addEventListener('click', ()=>{ rtDraft = null; renderRoutines(); });
+  document.getElementById('btnRtSave').addEventListener('click', ()=>{
+    const msg = document.getElementById('rtMsg'), bad = t=>mascotMsg(msg, 'error', t, 'var(--danger)');
+    const name = document.getElementById('rtName').value.trim().slice(0, RT_LIM.name);
+    if(!name) return bad('Ponle un nombre a la rutina.');
+    if(!rtDraft.items.length) return bad('Agrega al menos un ejercicio.');
+    const items = [];
+    for(const it of rtDraft.items){
+      const amount = parseInt(it.amount), sets = parseInt(it.sets), lim = RT_LIM[it.kind];
+      if(!(amount >= lim[0] && amount <= lim[1])) return bad(exName(it) + ': escribe ' + (it.kind === 'secs' ? 'los segundos (1 a 3600).' : 'las repeticiones (1 a 999).'));
+      if(!(sets >= RT_LIM.sets[0] && sets <= RT_LIM.sets[1])) return bad(exName(it) + ': escribe las series (1 a 20).');
+      items.push(Object.assign(it.ex ? {ex: it.ex} : {name: String(it.name).slice(0, RT_LIM.name)}, {kind: it.kind, amount, sets}));
+    }
+    if(rtDraft.id){
+      const r = routines.find(x=>x.id === rtDraft.id);
+      if(r){ r.name = name; r.items = items; }
+    } else {
+      routines.push({id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, created: new Date().toISOString(), items});
+    }
+    saveRoutines(); rtDraft = null; renderRoutines(); showSaved();
+  });
+
   // ---------- CELEBRACIÓN (meta del día cumplida) ----------
   // Se celebra SOLO cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una
   // actividad (lo llama checkAchievements), y una sola vez por día: mirun_celebrated = 'AAAA-MM-DD' del último
@@ -2632,7 +2759,7 @@
   // mirun_achSeen no cuentan: la app los crea sola al abrir).
   (function(){
     if(LS.get('mirun_welcomed', false)) return;
-    const hasData = ['mirun_profile','mirun_goal','mirun_photo','mirun_current'].some(k=>localStorage.getItem(k) !== null) ||
+    const hasData = ['mirun_profile','mirun_goal','mirun_photo','mirun_current','mirun_routines'].some(k=>localStorage.getItem(k) !== null) ||
                     history.length > 0 || body.length > 0;
     if(hasData){ LS.set('mirun_welcomed', true); return; }
     const wel = document.getElementById('welcome'), wUnits = document.getElementById('welUnits'), wSex = document.getElementById('welSex');

@@ -457,6 +457,24 @@
   .nextAch .nxT{flex:1;min-width:0;}
   .nextAch small{display:block;font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
   .nextAch b{display:block;font-size:15px;line-height:1.35;margin:3px 0 8px;}
+  /* ==== MIS RUTINAS (lista, editor y sesión) ==== */
+  .rtCard{background:var(--track2);border:1px solid var(--lane-line);border-radius:16px;padding:14px;margin-top:12px;}
+  .rtCard .btnRow{margin-top:12px;}
+  .rtCard .btn{padding:13px;}
+  .rtName{font-weight:800;font-size:16px;margin-bottom:4px;overflow-wrap:anywhere;}
+  .rtDel{display:block;margin:8px auto 0;padding:8px;color:var(--sub2);}
+  #rtExChips{margin-top:4px;}
+  #rtExChips .chip{font-size:13px;padding:8px 11px;}
+  .rtCustomRow{align-items:end;}
+  .rtCustomRow .btn{padding:13px;width:100%;}
+  .rtItem{background:var(--track2);border:1px solid var(--lane-line);border-radius:14px;padding:12px;margin-top:10px;}
+  .rtItemTop{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .rtItemTop b{overflow-wrap:anywhere;}
+  .rtMove{display:flex;flex-shrink:0;}
+  .rtMove .linkBtn{min-width:36px;min-height:36px;padding:0;font-size:17px;color:var(--text);}
+  .rtMove .linkBtn[disabled]{opacity:.3;}
+  .rtKind{margin-top:8px;}
+  .rtKind .chip{padding:7px 11px;font-size:13px;}
   /* ==== CELEBRACIÓN: meta del día cumplida (confeti y tarjeta; solo transform y opacity, se borra sola) ==== */
   .celebrate{position:fixed;inset:0;z-index:140;pointer-events:none;overflow:hidden;}
   .celebrate i{position:absolute;top:-18px;width:8px;height:14px;border-radius:2px;animation:confFall linear 1 both;}
