@@ -475,6 +475,24 @@
   .rtMove .linkBtn[disabled]{opacity:.3;}
   .rtKind{margin-top:8px;}
   .rtKind .chip{padding:7px 11px;font-size:13px;}
+  /* sesión de rutina */
+  .rtSesHead{text-align:center;}
+  .rtSesHead h3{overflow-wrap:anywhere;}
+  .rtSesTime{font-size:48px;font-weight:800;line-height:1.1;margin:6px 0 2px;}
+  .rtSesNote{color:var(--gold);margin:4px 0 6px;}
+  .rtSesItem.full{border-color:rgba(52,211,153,.45);}
+  .rtSesItem .rtItemTop .hint{margin:0;flex-shrink:0;}
+  .rtSets{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .setBtn{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--lane-line);background:var(--track2);
+    color:var(--text);font:700 15px 'Inter',sans-serif;}
+  .setBtn.on{background:var(--good);border-color:var(--good);color:#04241a;}
+  .rtCdBtn{width:100%;margin-top:12px;padding:13px;}
+  .rtCdBtn[disabled]{opacity:.45;}
+  .rtCd{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(77,155,255,.12);}
+  .rtCd span{flex:1;color:var(--sub);font-size:13px;}
+  .rtCd b{font-size:26px;}
+  .rtCd .btn{flex:0 0 auto;padding:10px 14px;}
+  .rtFinish .btnRow{margin-top:12px;}
   /* ==== CELEBRACIÓN: meta del día cumplida (confeti y tarjeta; solo transform y opacity, se borra sola) ==== */
   .celebrate{position:fixed;inset:0;z-index:140;pointer-events:none;overflow:hidden;}
   .celebrate i{position:absolute;top:-18px;width:8px;height:14px;border-radius:2px;animation:confFall linear 1 both;}

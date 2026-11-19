@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-18 | Rama `prueba/rutinas`, parte 2: sesión de rutina (cronómetro con pausa, series para marcar, cuenta regresiva por serie en ejercicios por segundos, retomar en pausa si se cierra la app, `mirun_session`); al terminar se elige la intensidad y se guarda como actividad 'ejercicios' con `routine`; al editarla solo cambian fecha, duración e intensidad | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~30k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 1: "Mis rutinas" (menú "+" → Mi rutina de fuerza): lista, crear, editar (orden, quitar, repeticiones o segundos, series) y borrar con confirmación; 17 ejercicios + propios; sin cantidades sugeridas; clave nueva `mirun_routines` | `js/app.js`, `mirun.html`, `css/app.css`, `docs/*`, `CLAUDE.md` | ~25k tokens |
 | 2026-11-18 | Rama `prueba/autopausa`: caché v29 → v30 (una sola vez) | `sw.js` | ~1k tokens |
 | 2026-11-18 | Rama `prueba/autopausa`, parte 4: PLAN 22 (pausa automática) y pendiente 22b "Los entrenos por intervalos (futuro) deben desactivar la pausa automática" | `docs/*` | ~1k tokens |

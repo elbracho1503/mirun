@@ -18,6 +18,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_celebrated` | `'AAAA-MM-DD'` | Último día en que se celebró la meta del día cumplida (para no repetir). No va en la copia (solo controla la celebración) |
 | `mirun_welcomeBack` | `'AAAA-MM-DD'` | Día de la última actividad antes del último regreso ya saludado con "¡Qué bueno verte de vuelta!" (para mostrarlo una vez por regreso). No va en la copia |
 | `mirun_routines` | Array | Rutinas de fuerza de la persona: `{id, name, created, items:[{ex \| name, kind:'reps'\|'secs', amount, sets}]}` (`ex` = clave de `EXERCISES`; un ejercicio propio guarda `name`). Hasta 50 rutinas y 30 ejercicios por rutina. Va en la copia (ver más abajo) |
+| `mirun_session` | Objeto o ausente | Sesión de rutina en curso `{rid, name, items:[{…ejercicio, done}], start, startTime, elapsedBefore, paused, savedAt}`; se borra al guardar o descartar. Al abrir la app vuelve en pausa desde el último guardado (máximo 12 h). No va en la copia |
 
 ## mirun_history — actividad
 ```js
@@ -57,6 +58,9 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 - `cintura` (parte más angosta) es una medida distinta, agregada en v5.
 - Las medidas se definen en `MEASURES` (sección CUERPO): `{k, n, u, id, good}`.
   `good` = 1 si subir es bueno, -1 si bajar es bueno. La importación usa esta misma lista.
+- **Sesiones de rutina** (desde 2026-11-18): actividad `type:'ejercicios'`, `manual:true` (`date` = inicio), `seconds` = tiempo del
+  cronómetro sin pausas, y `routine: {name, items:[{ex | name, kind:'reps'|'secs', amount, sets, done}]}` con lo que se marcó.
+  El detalle no se edita (Editar solo cambia fecha, duración e intensidad; el tipo queda fijo).
 - **Actividades con GPS y pausa automática** (desde 2026-11-18): `seconds` es el tiempo EN MOVIMIENTO (sin pausas manuales ni
   automáticas); si hubo pausas automáticas se agregan `autoPausedSeconds` (tiempo quieta descontado) y `autoPauses` (cuántas).
   Las actividades anteriores no cambian. Editar una actividad no toca `autoPausedSeconds`. La importación acepta los dos campos.

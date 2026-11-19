@@ -860,6 +860,11 @@
     edTarget = h;
     const st = new Date(actRange(h)[0]), t = h.type || 'correr', s = Math.round(h.seconds);
     edChips.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.act === t));
+    // sesión de rutina: el tipo y el detalle no se editan (solo fecha, duración e intensidad)
+    edChips.style.display = h.routine ? 'none' : '';
+    const rn = document.getElementById('edRoutineNote');
+    rn.style.display = h.routine ? '' : 'none';
+    rn.textContent = h.routine ? 'Rutina "' + h.routine.name + '": solo se editan la fecha, la duración y la intensidad.' : '';
     const it = INTENSITY.includes(h.intensity) ? h.intensity : 'media';
     edInt.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.int === it));
     document.getElementById('edDate').value = dayKey(st);
@@ -2338,6 +2343,123 @@
     }
     saveRoutines(); rtDraft = null; renderRoutines(); showSaved();
   });
+
+
+  // ---------- SESIÓN DE RUTINA ----------
+  // Cronómetro (con pausa) y las series de cada ejercicio para marcar lo hecho. En ejercicios por segundos hay una
+  // cuenta regresiva por serie que la marca sola al terminar ("Serie lista" por voz si el aviso por voz está activo).
+  // mirun_session = sesión en curso {rid, name, items:[{...ejercicio, done}], start, startTime, elapsedBefore, paused, savedAt}.
+  // Si la app se cierra, al abrir vuelve a la sesión EN PAUSA desde el último guardado (el rato cerrada no cuenta).
+  // "Terminar": se elige la intensidad y se guarda como actividad 'ejercicios' con el detalle en routine
+  // ({name, items:[{ex | name, kind, amount, sets, done}]}). La racha cuenta sus minutos como cualquier actividad.
+  let ses = null, sesTimer = null, sesCd = null, sesSaveAt = 0, sesClosedNote = false, sesFinishing = false;
+  function rtSessionActive(){ return !!ses; }
+  function sesElapsed(){ return ses ? ses.elapsedBefore + (ses.paused ? 0 : Date.now() - ses.startTime) : 0; }
+  function saveSession(){ if(ses){ ses.savedAt = Date.now(); LS.set('mirun_session', ses); sesSaveAt = ses.savedAt; } }
+  function clearSession(){ ses = null; sesCd = null; sesFinishing = false; sesClosedNote = false; clearInterval(sesTimer); sesTimer = null; try{ localStorage.removeItem('mirun_session'); }catch(e){} }
+  function startSession(r){
+    const now = Date.now();
+    ses = {rid: r.id, name: r.name, items: r.items.map(i=>Object.assign({}, i, {done: 0})),
+           start: new Date(now).toISOString(), startTime: now, elapsedBefore: 0, paused: false, savedAt: now};
+    saveSession(); runSessionTimer(); rtView('rtSesView'); renderSession();
+  }
+  function runSessionTimer(){ clearInterval(sesTimer); sesTimer = setInterval(tickSession, 1000); }
+  function tickSession(){
+    if(!ses) return;
+    const t = document.getElementById('rtSesTime'); if(t) t.textContent = fmtTime(sesElapsed() / 1000);
+    if(sesCd){
+      const left = Math.ceil((sesCd.endsAt - Date.now()) / 1000), el = document.getElementById('rtCdLeft');
+      if(left <= 0){ // serie por segundos terminada: se marca sola
+        const it = ses.items[sesCd.i]; if(it.done < it.sets) it.done++;
+        sesCd = null; say('Serie lista.');
+        if(profile.sounds !== false){ try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){} }
+        saveSession(); renderSession(); return;
+      }
+      if(el) el.textContent = left + ' s';
+    }
+    if(Date.now() - sesSaveAt > 5000) saveSession();
+  }
+  function renderSession(){
+    const v = document.getElementById('rtSesView');
+    if(!ses){ v.innerHTML = ''; return; }
+    const doneSets = ses.items.reduce((a, it)=>a + it.done, 0), allSets = ses.items.reduce((a, it)=>a + it.sets, 0);
+    v.innerHTML = `<div class="panel rtSesHead">
+        <h3>${esc(ses.name)}</h3>
+        ${sesClosedNote ? '<div class="hint rtSesNote">La app se cerró: tu sesión quedó en pausa. Toca Reanudar para seguir.</div>' : ''}
+        <div class="rtSesTime num" id="rtSesTime">${fmtTime(sesElapsed() / 1000)}</div>
+        <div class="hint">${ses.paused ? 'En pausa' : 'Tiempo de la sesión'} · ${doneSets} de ${allSets} series</div>
+        <div class="btnRow"><button class="btn ${ses.paused ? 'btn-start' : 'btn-ghost'}" id="btnSesPause">${ses.paused ? 'Reanudar' : 'Pausar'}</button></div>
+      </div>` + ses.items.map((it, i)=>{
+        const cd = sesCd && sesCd.i === i, left = it.done < it.sets;
+        return `<div class="panel rtSesItem${it.done >= it.sets ? ' full' : ''}">
+          <div class="rtItemTop"><b>${esc(exName(it))}</b><span class="hint">${itemTxt(it)}</span></div>
+          <div class="rtSets">${Array.from({length: it.sets}, (_, j)=>`<button class="setBtn${j < it.done ? ' on' : ''}" data-set="${j}" data-i="${i}" aria-pressed="${j < it.done}" aria-label="Serie ${j + 1}">${j < it.done ? '✓' : j + 1}</button>`).join('')}</div>
+          ${it.kind === 'secs' && left ? (cd
+            ? `<div class="rtCd"><span>Cuenta regresiva</span><b class="num" id="rtCdLeft">${Math.max(0, Math.ceil((sesCd.endsAt - Date.now()) / 1000))} s</b><button class="btn btn-ghost" data-cd-stop="1">Detener</button></div>`
+            : `<button class="btn btn-ghost rtCdBtn" data-cd="${i}"${ses.paused ? ' disabled' : ''}>▶ Cuenta regresiva: ${it.amount} s (serie ${it.done + 1})</button>`) : ''}
+        </div>`; }).join('') +
+      (sesFinishing ? `<div class="panel rtFinish"><h3>¿Cómo fue la intensidad?</h3>
+          <div class="chips" id="rtFinInt">${INTENSITY.map(x=>`<button class="chip${x === 'media' ? ' on' : ''}" data-int="${x}">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div>
+          <div class="hint" id="rtFinMsg" style="margin-top:8px;"></div>
+          <div class="btnRow"><button class="btn btn-ghost" id="btnSesKeep">Seguir</button><button class="btn btn-start" id="btnSesSave">Guardar actividad</button></div>
+          <button class="linkBtn rtDel" id="btnSesDiscard">Descartar la sesión sin guardar</button></div>`
+        : `<div class="btnRow"><button class="btn btn-stop" id="btnSesEnd">Terminar sesión</button></div>`);
+  }
+  document.getElementById('rtSesView').addEventListener('click', ev=>{
+    if(!ses) return;
+    const set = ev.target.closest('[data-set]'), cd = ev.target.closest('[data-cd]'), id = (ev.target.closest('button') || {}).id;
+    if(set){ // tocar una serie: marca hasta esa; tocar la última marcada la desmarca
+      const it = ses.items[+set.dataset.i], j = +set.dataset.set;
+      it.done = j < it.done ? j : j + 1;
+      if(sesCd && sesCd.i === +set.dataset.i) sesCd = null;
+      saveSession(); renderSession(); return;
+    }
+    if(cd && !cd.disabled){ const it = ses.items[+cd.dataset.cd]; sesCd = {i: +cd.dataset.cd, endsAt: Date.now() + it.amount * 1000}; renderSession(); return; }
+    if(ev.target.closest('[data-cd-stop]')){ sesCd = null; renderSession(); return; }
+    if(id === 'btnSesPause'){
+      const now = Date.now();
+      if(ses.paused){ ses.paused = false; ses.startTime = now; sesClosedNote = false; }
+      else { ses.elapsedBefore += now - ses.startTime; ses.paused = true; sesCd = null; }
+      saveSession(); renderSession(); return;
+    }
+    if(id === 'btnSesEnd'){ sesFinishing = true; renderSession(); document.querySelector('.rtFinish').scrollIntoView({block:'center'}); return; }
+    if(id === 'btnSesKeep'){ sesFinishing = false; renderSession(); return; }
+    if(ev.target.closest('#rtFinInt [data-int]')){ pickOne(document.getElementById('rtFinInt'), ev); return; }
+    if(id === 'btnSesDiscard'){
+      if(!confirm('¿Descartar la sesión? No se guarda nada.')) return;
+      clearSession(); renderRoutines(); return;
+    }
+    if(id === 'btnSesSave') finishSession();
+  });
+  function finishSession(){
+    const seconds = Math.round(sesElapsed() / 1000);
+    if(seconds < 60){ mascotMsg(document.getElementById('rtFinMsg'), 'error', 'La sesión duró menos de 1 minuto: no se puede guardar. Sigue o descártala.', 'var(--danger)'); return; }
+    const intensity = document.querySelector('#rtFinInt .chip.on').dataset.int, type = 'ejercicios';
+    let iso = ses.start;
+    while(history.some(h=>h.date === iso)) iso = new Date(new Date(iso).getTime() + 1000).toISOString();
+    history.push({date: iso, type, intensity, seconds,
+      cal: metCalories(actInfo(type).met[INTENSITY.indexOf(intensity)], seconds),
+      dist: 0, pace: '--:--', path: [], splits: [], manual: true,
+      routine: {name: ses.name, items: ses.items.map(it=>Object.assign(it.ex ? {ex: it.ex} : {name: it.name}, {kind: it.kind, amount: it.amount, sets: it.sets, done: it.done}))}});
+    history.sort((a,b)=>a.date < b.date ? -1 : 1);
+    LS.set('mirun_history', history);
+    const mins = Math.round(seconds / 60);
+    clearSession(); renderRoutines();
+    const st = streakInfo(minutesByDay());
+    mascotMsg(document.getElementById('rtSavedMsg'), mins >= 60 ? 'guardadoLargo' : 'guardado',
+      'Rutina guardada: ' + mins + ' min. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
+    renderHistory(); checkAchievements();
+  }
+  // al abrir la app: si quedó una sesión, se retoma EN PAUSA desde el último guardado (máximo 12 horas)
+  {
+    const p = LS.get('mirun_session', null);
+    if(p && Array.isArray(p.items) && p.items.length && Date.now() - (p.savedAt || 0) < 12 * 3600 * 1000){
+      ses = p;
+      if(!ses.paused){ ses.elapsedBefore += Math.max(0, (ses.savedAt || Date.now()) - ses.startTime); ses.paused = true; }
+      sesClosedNote = true; saveSession(); runSessionTimer();
+      showTab('rutinas');
+    } else if(p) { try{ localStorage.removeItem('mirun_session'); }catch(e){} }
+  }
 
   // ---------- CELEBRACIÓN (meta del día cumplida) ----------
   // Se celebra SOLO cuando la meta del día pasa de "falta" a "cumplida" al registrar, editar o deshacer una
