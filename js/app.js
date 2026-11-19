@@ -1889,24 +1889,35 @@
     beginRun(null);
   });
 
-  // Si quedo una carrera a medias (se cerro la app o se recargo), ofrecer seguirla
+  // Si quedo una carrera a medias (se cerro la app o se recargo), ofrecer seguirla. Nunca se borra sola:
+  // si es de hace más de 6 horas se avisa y el rato con la app cerrada NO cuenta (ni al seguir ni al guardarla así).
+  // "Borrarla" pide confirmación.
   const pending = LS.get('mirun_current', null);
-  if(pending && pending.startTime && Date.now() - pending.savedAt < 6*3600*1000){
+  if(pending && pending.startTime){
     showTab('run'); // la app abre en Inicio; si hay una actividad sin terminar, mostrarla
     const box = document.getElementById('resumeBox');
+    const stale = Date.now() - (Number(pending.savedAt) || 0) >= 6*3600*1000;
     document.getElementById('resumeInfo').textContent =
-      'Tienes una actividad sin terminar: ' + fmtD(pending.totalDist||0) + '.';
+      'Tienes una actividad sin terminar: ' + fmtD(pending.totalDist||0) + '.' +
+      (stale ? ' Es de hace más de 6 horas: el tiempo con la app cerrada no cuenta.' : '');
     box.style.display = 'block';
-    document.getElementById('btnResume').addEventListener('click', ()=>beginRun(pending));
+    // vieja y sin pausa: el tiempo cuenta solo hasta el último guardado y sigue desde ahora
+    const fixStale = ()=>{
+      if(!stale || pending.paused || pending.staleFixed) return;
+      pending.elapsedBeforePause = (Number(pending.elapsedBeforePause) || 0) + Math.max(0, (Number(pending.savedAt) || 0) - pending.startTime);
+      pending.startTime = Date.now(); pending.staleFixed = true;
+    };
+    document.getElementById('btnResume').addEventListener('click', ()=>{ fixStale(); beginRun(pending); });
     document.getElementById('btnResumeSave').addEventListener('click', ()=>{
-      beginRun(pending); finishRun();
+      fixStale(); beginRun(pending); finishRun();
     });
     document.getElementById('btnResumeDiscard').addEventListener('click', ()=>{
+      if(!confirm('¿Borrar la actividad sin terminar? No se guarda nada.')) return;
       clearCurrentRun(); box.style.display = 'none';
       if(rtSessionActive()) showTab('rutinas'); // si también quedó una rutina sin terminar, se muestra
     });
   } else if(pending){
-    clearCurrentRun();
+    clearCurrentRun(); // dato dañado (sin hora de inicio): no se puede seguir
   }
 
   document.getElementById('btnPause').addEventListener('click', function(){

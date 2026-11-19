@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-18 | Rama `prueba/rutinas`: una carrera GPS sin terminar de más de 6 h ya no se borra sola (aviso en la caja; sin pausa, el rato con la app cerrada no cuenta al seguir ni al guardarla así); "Borrarla" pide confirmación; pendiente 23b en PLAN; caché v33 | `js/app.js`, `sw.js`, `docs/DATOS.md`, `docs/PLAN.md`, `docs/CAMBIOS.md` | ~15k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, ajustes del auditor: una sesión de más de 12 h ya no se borra sola (pregunta guardar o descartar, y sigue preguntando hasta responder); con una carrera GPS y una rutina sin terminar a la vez, la app avisa de las dos (botones "Ver la rutina" / "Ver la actividad") y no se pierde ninguna; caché v32 | `js/app.js`, `mirun.html`, `sw.js`, `docs/DATOS.md`, `docs/CAMBIOS.md` | ~20k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 5: caché v31 y plan (punto 23 hecho) | `sw.js`, `docs/PLAN.md`, `docs/CAMBIOS.md` | ~2k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 4: la copia de seguridad lleva las rutinas; la importación las agrega por `id` (máximo 50) y limpia rutinas y `routine` del Historial con `cleanRtItems`; una copia vieja sin rutinas se importa igual | `js/app.js`, `docs/DATOS.md`, `docs/CAMBIOS.md` | ~15k tokens |
