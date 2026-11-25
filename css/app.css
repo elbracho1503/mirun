@@ -678,3 +678,26 @@
   body:not(.gpsOn) #tab-run #gpsTypeRow .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;}
   body:not(.gpsOn) #tab-run #gpsTypeRow .chip{padding:14px 4px;font-size:15px;font-weight:600;text-align:center;}
   #startRow .btn{padding:22px;font-size:19px;font-weight:700;}
+  /* Íconos (Lucide, ver ICONOS en js/app.js): mismo trazo que el menú inferior */
+  .ico{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+    vertical-align:-.22em;flex-shrink:0;}
+  .chip .ico{margin-right:6px;color:var(--signal);}
+  .chip.on .ico{color:#fff;}
+  .actChips .chip .ico{width:24px;height:24px;margin:0 0 2px;}
+  .actRow .ic{color:var(--signal);}
+  .actRow .ic .ico{width:24px;height:24px;}
+  .sheetOpt span{color:var(--signal);display:flex;justify-content:center;}
+  .sheetOpt span .ico{width:24px;height:24px;}
+  .lockBtn .ico{margin-right:6px;}
+  .medal .ico{width:48%;height:48%;color:#fff;}
+  .ach.lock .medal .ico{color:var(--sub2);}
+  .ach.leg .medal .ico, .medal.big:not(.blue) .ico{color:#3a2400;}
+  .medal .lk{color:var(--sub);}
+  .medal .lk .ico{width:13px;height:13px;}
+  .nextAch .medal .ico{color:var(--gold);}
+  .setBtn .ico{width:20px;height:20px;stroke-width:2.5;}
+  .linkBtn .ico{width:18px;height:18px;}
+  .tpIco{color:var(--signal);}
+  .tpIco.ok{color:var(--good);}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chip{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chip .ico{width:26px;height:26px;margin:0;}

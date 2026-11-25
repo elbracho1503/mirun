@@ -45,6 +45,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `docs/PLAN.md` | Plan por etapas y estado |
 | `docs/CAMBIOS.md` | Registro de cambios con costo en tokens |
 | `docs/PROMPTS.md` | Prompts para generar imágenes (siluetas, ícono) y lecciones aprendidas |
+| `docs/LICENCIAS.md` | Licencias de terceros: Lucide (íconos, ISC) y Leaflet |
 | `docs/NATIVA.md` | Plan para la app nativa con Capacitor (F4): instalación, migración de datos, Health Connect, GPS con pantalla apagada |
 
 ## Mapa de mirun.html
@@ -59,6 +60,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `RECORDS`, `BODY`, `PROFILE` |
 | Formulario de actividad (HTML) | `id="actForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
+| Íconos SVG de Lucide (`ICONS`, `ico('nombre')`; licencia en `docs/LICENCIAS.md`). Nunca emojis como íconos | `// ---------- ÍCONOS` (CSS: `.ico` en `DISEÑO 2`) |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
 | Frases motivacionales (`PHRASES`, `dailyPhrase`: una por día y lugar, `mirun_phrases`; fe solo con `profile.faith`) | `// ---------- FRASES` (HTML Perfil: `id="profFaith"`, GPS: `id="runPhrase"`) |
 | Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |

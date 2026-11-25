@@ -77,3 +77,7 @@ Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al f
 - **GPS antes de salir** (sin `body.gpsOn`): solo la mascota, el tipo (Correr, Caminar, Bici) en 3 botones iguales y un
   botón grande "Empezar" abajo, encima del menú (la pantalla es una columna de alto completo y el tipo se empuja
   hacia abajo). El 0.00, tiempo/ritmo/calorías y las metas se ven solo con `body.gpsOn`. El aviso de GPS bloqueado sigue arriba.
+- **Íconos en lugar de emojis**: 34 íconos de Lucide (ISC, `docs/LICENCIAS.md`) guardados como SVG en `js/app.js` (`ICONS`,
+  `ico()`) y en `mirun.html`. Mismo trazo que el menú inferior (2 px, puntas redondas, `currentColor`). Actividades
+  (`ACTIVITIES[].i`), medallas (`ACH[].i`), menú "+", tipo de GPS, candado, quitar (x), serie hecha (check) y "Hoy toca".
+  Los emojis que quedan son parte de textos (frases), no íconos. Para agregar uno: copiar el `<path>` del SVG de Lucide a `ICONS`.
