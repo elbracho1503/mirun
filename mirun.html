@@ -228,6 +228,11 @@
           <div><button class="btn btn-ghost" id="btnRtCustom">Agregar</button></div></div>
         <label>Tu rutina</label>
         <div id="rtItems"></div>
+        <label>Orden</label>
+        <div class="chips" id="rtMode"><button class="chip on" data-mode="ejercicio">Por ejercicio</button><button class="chip" data-mode="circuito">Circuito</button></div>
+        <div class="hint" id="rtModeHint"></div>
+        <label>Descanso entre series (segundos)</label>
+        <input type="number" inputmode="numeric" id="rtRest" placeholder="Sin descanso">
         <div class="hint" id="rtMsg" style="margin-top:8px;"></div>
         <div class="btnRow"><button class="btn btn-ghost" id="btnRtCancel">Cancelar</button><button class="btn btn-start" id="btnRtSave">Guardar rutina</button></div>
       </div>
