@@ -401,7 +401,7 @@
     document.body.dataset.tab = tab; // el CSS muestra el estado del GPS solo en la pantalla GPS
     window.scrollTo(0, 0);
     if(tab==='home') renderHome();
-    if(tab==='history') renderHistory();
+    if(tab==='history'){ histWeeks = 4; renderHistory(); }
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
@@ -971,6 +971,11 @@
     const rows = r.items.map(it=>`<li><b>${esc(exN(it))}</b> · ${Number(it.done) || 0} de ${it.sets} series × ${it.amount}${it.kind === 'secs' ? ' s' : ''}</li>`).join('');
     return `<details class="rtHist"><summary>Rutina «${esc(r.name || 'Sin nombre')}» · ${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'} · ${done} de ${total} series</summary><ul>${rows}</ul></details>`;
   }
+  // "Ver más": otras 4 semanas
+  document.getElementById('histList').addEventListener('click', ev=>{
+    if(!ev.target.closest('#histMore')) return;
+    const y = window.scrollY, b = document.body.scrollTop; histWeeks += 4; renderHistory(); window.scrollTo(0, y); document.body.scrollTop = b;
+  });
   // "Ver mapa" (o tocar la ruta pequeña) abre el mapa grande de esa actividad
   document.getElementById('histList').addEventListener('click', ev=>{
     const w = ev.target.closest('[data-map]'); if(!w) return;
@@ -978,20 +983,24 @@
     const d = new Date(h.date);
     openBigMap(routeOf(h), actInfo(h.type).n + ' · ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}));
   });
+  let histWeeks = 4, histIO = null; // semanas con actividad que se ven en el Historial (crece con "Ver más")
   function renderHistory(){
     const list = document.getElementById('histList');
     if(history.length===0){
       list.innerHTML = '<div class="empty"><img src="' + mascot('vacio') + '" alt="">Todavía no tienes actividades registradas.<br>¡Muévete hoy!</div>';
     } else {
-      // la más nueva arriba, agrupadas por semana (lunes a domingo) con su total
+      // la más nueva arriba, agrupadas por semana (lunes a domingo) con su total. Por partes: se muestran las
+      // primeras histWeeks semanas con actividad y "Ver más" agrega otras 4 (rápido aunque haya cientos)
       const sorted = history.slice().sort((a,b)=>a.date < b.date ? 1 : -1);
-      const wkOf = h=>dayKey(mondayOf(new Date(actRange(h)[0])));
-      let lastWk = null;
-      list.innerHTML = sorted.map((h,ri)=>{
-        const wk = wkOf(h), wkHead = wk !== lastWk ? histWeekHead(wk, sorted.filter(x=>wkOf(x) === wk)) : '';
-        lastWk = wk;
-        return wkHead + histCard(h, ri);
-      }).join('');
+      const weeks = [];
+      sorted.forEach((h,ri)=>{
+        const wk = dayKey(mondayOf(new Date(actRange(h)[0])));
+        if(!weeks.length || weeks[weeks.length - 1].wk !== wk) weeks.push({wk, items: []});
+        weeks[weeks.length - 1].items.push({h, ri});
+      });
+      const shown = weeks.slice(0, histWeeks), rest = weeks.slice(histWeeks).reduce((s,w)=>s + w.items.length, 0);
+      list.innerHTML = shown.map(w=>histWeekHead(w.wk, w.items.map(x=>x.h)) + w.items.map(x=>histCard(x.h, x.ri)).join('')).join('') +
+        (rest ? `<div class="btnRow"><button class="btn btn-ghost" id="histMore">Ver más (${rest} ${rest === 1 ? 'actividad' : 'actividades'})</button></div>` : '');
       function histCard(h, ri){
         const d = new Date(h.date);
         const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
@@ -1015,7 +1024,7 @@
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
           ${stepsOf(h) ? `<div class="histSteps">${stepsTxt(h)}</div>` : ''}
-          ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}"></canvas>
+          ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}" data-ri="${ri}"></canvas>
             <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
       }
@@ -1023,13 +1032,14 @@
       if(!(profile.height > 0) && history.some(h=>h.dist > 0 && (!h.type || h.type === 'correr' || h.type === 'caminar')))
         list.insertAdjacentHTML('afterbegin', '<div class="hint histStepsHint">Agrega tu estatura en Perfil para ver tus pasos</div>');
 
-      sorted.forEach((h,ri)=>{
-        const pts = routeOf(h);
-        if(pts.length > 1){
-          const c = document.getElementById('hist-route-'+ri);
-          if(c) drawRoute(c, pts, '#7cc4ff');
-        }
-      });
+      // cada mapa pequeño se dibuja cuando aparece en pantalla (no todos de una vez)
+      if(histIO) histIO.disconnect();
+      const draw = c=>{ const h = sorted[Number(c.dataset.ri)]; if(h) drawRoute(c, routeOf(h), '#7cc4ff'); };
+      const canvases = list.querySelectorAll('canvas[data-ri]');
+      if('IntersectionObserver' in window){
+        histIO = new IntersectionObserver(ents=>ents.forEach(e=>{ if(e.isIntersecting){ histIO.unobserve(e.target); draw(e.target); } }), {rootMargin: '300px 0px'});
+        canvases.forEach(c=>histIO.observe(c));
+      } else canvases.forEach(draw);
     }
     document.getElementById('totRuns').textContent = history.length;
     document.getElementById('totKm').textContent = toD(history.reduce((s,h)=>s+h.dist,0)).toFixed(1); // km o mi
