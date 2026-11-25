@@ -59,3 +59,10 @@ Ver docs/privado/NEGOCIO.md (local)
 - No se sube a GitHub (`.gitignore`). Telemetría apagada (`.impeccable/config.json`). Nunca usar el modo "Live".
 - El motor (`scripts/impeccable`) se descarga solo la primera vez que se corre: **no correrlo sin avisar al usuario**. Sin él, la skill se usa leyendo sus guías (`reference/`).
 - PRODUCT.md / DESIGN.md: sin nada de negocio; si llevan algo privado, a `.gitignore`.
+
+## Íconos de 1024 fuera del caché — 2026-11-25
+- `icon-1024.png` ("any") e `icon-1024-maskable.png` están en `manifest.json` pero **no** en `FILES_TO_CACHE` de `sw.js`
+  (excepción a la regla 3 de CLAUDE.md, pedida por el usuario): solo los usa Android al instalar; guardarlos en cada
+  teléfono costaría ~970 KB sin uso.
+- Maskable 1024: `img/icono-original.png` reducido a 820 px (80 %), centrado desde 102 px, relleno #011649 (el fondo del
+  original) con borde difuminado de 24 px. El logo queda dentro del círculo de la pantalla de inicio de Android 12+ (radio 1/3).
