@@ -154,6 +154,7 @@
       <button class="chip" data-gtype="caminar">🚶 Caminar</button>
       <button class="chip" data-gtype="bici">🚴 Bicicleta</button>
       </div>
+      <div class="phrase" id="runPhrase"></div>
     </div>
     <div class="btnRow">
       <button class="btn btn-start" id="btnStart">Iniciar</button>
@@ -178,10 +179,10 @@
       <label>Días de descanso cada semana (no rompen la racha, máximo 3)</label>
       <div class="hint" id="restNote" style="margin-bottom:8px;"></div>
       <div class="chips" id="restChips">
-        <button class="chip" data-wd="1">L</button><button class="chip" data-wd="2">M</button>
-        <button class="chip" data-wd="3">X</button><button class="chip" data-wd="4">J</button>
-        <button class="chip" data-wd="5">V</button><button class="chip" data-wd="6">S</button>
-        <button class="chip" data-wd="0">D</button>
+        <button class="chip" data-wd="1">Lu</button><button class="chip" data-wd="2">Ma</button>
+        <button class="chip" data-wd="3">Mi</button><button class="chip" data-wd="4">Ju</button>
+        <button class="chip" data-wd="5">Vi</button><button class="chip" data-wd="6">Sá</button>
+        <button class="chip" data-wd="0">Do</button>
       </div>
     </div>
     <div class="panel">
@@ -457,6 +458,15 @@
       <select id="profSounds">
         <option value="1">Encendidos</option>
         <option value="0">Apagados</option>
+      </select>
+    </div>
+    <div class="panel">
+      <h3>Frases motivacionales</h3>
+      <div class="hint">Cada día una frase nueva en Inicio, antes de salir con GPS y al cumplir tu meta.</div>
+      <label>Incluir frases de fe</label>
+      <select id="profFaith">
+        <option value="0">No</option>
+        <option value="1">Sí</option>
       </select>
     </div>
     <div class="panel">

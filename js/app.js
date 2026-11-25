@@ -27,6 +27,46 @@
     {k:'plancha', n:'Plancha'}, {k:'plancha_lateral', n:'Plancha lateral'}, {k:'sentadilla_pared', n:'Sentadilla en pared'},
     {k:'superman', n:'Superman'}, {k:'dominadas', n:'Dominadas'}];
   const RT_LIM = {routines:50, items:30, name:40, reps:[1,999], secs:[1,3600], sets:[1,20]};
+  // ---------- FRASES ----------
+  // Frases motivacionales por categoría (texto del usuario). Una frase por día y por lugar, la misma todo el día,
+  // sin repetir hasta agotar la categoría. 'fe' solo entra si profile.faith === true ("Incluir frases de fe", Perfil).
+  // Lugares: inicio = cualquier categoría (junto a la mascota), correr = GPS antes de salir,
+  // cortas = celebración de la meta, superacion = saludo al volver. Estado en mirun_phrases (no va en la copia).
+  const PHRASES = {
+    disciplina: ['La disciplina te lleva donde la motivación no alcanza.', 'No necesitas ser perfecto, necesitas ser constante.',
+      'Hazlo incluso cuando no tengas ganas.', 'Cada pequeño esfuerzo construye grandes resultados.',
+      'Tu compromiso debe ser más fuerte que tus excusas.', 'La constancia convierte lo imposible en realidad.',
+      'Los resultados se construyen, no se improvisan.', 'Tu mejor versión te espera.'],
+    superacion: ['Tu mayor competencia es quien eras ayer.', 'No entrenes para ser mejor que otros, entrena para superarte.',
+      'Cada paso cuenta, incluso el más pequeño.', 'Sé más fuerte que tus excusas.', 'Descubre de lo que eres capaz.',
+      'Que tu próximo logro sea superar tu propia marca.', 'No subestimes el poder de empezar de nuevo.'],
+    correr: ['Tu meta comienza con un paso.', 'Cada kilómetro cuenta una historia.', 'No importa el ritmo, importa seguir avanzando.',
+      'Corre por tus sueños, no por tus excusas.', 'Un kilómetro más, una excusa menos.', 'El camino también es parte de la victoria.',
+      'Hoy corres un poco más lejos que ayer.'],
+    cortas: ['Activa tu potencial.', 'Supera tus límites.', 'Conquista tu ritmo.', 'Haz que hoy cuente.', 'Construye tu mejor versión.',
+      'Avanza a tu manera.', 'Tu esfuerzo tiene recompensa.', 'Entrena con propósito.', 'Cree. Entrena. Supera.', 'Hoy es tu oportunidad.',
+      'Tu momento es ahora.', 'El progreso comienza contigo.'],
+    fe: ['Dios te dio la fuerza, tú pon la disciplina.', 'Entrena tu cuerpo, fortalece tu espíritu.', 'Avanza con fe y perseverancia.',
+      'Cuida el cuerpo que Dios te ha dado.', 'Todo lo puedo en Cristo que me fortalece.']
+  };
+  function phrasePool(slot){
+    if(slot !== 'inicio') return PHRASES[slot] || [];
+    return Object.keys(PHRASES).filter(k=>k !== 'fe' || profile.faith === true).reduce((a, k)=>a.concat(PHRASES[k]), []);
+  }
+  function dailyPhrase(slot){
+    const pool = phrasePool(slot); if(!pool.length) return '';
+    const today = dayKey(new Date());
+    let all = LS.get('mirun_phrases', {}); if(!all || typeof all !== 'object' || Array.isArray(all)) all = {};
+    const s = all[slot] && typeof all[slot] === 'object' ? all[slot] : {};
+    if(s.day === today && pool.includes(s.text)) return s.text; // la misma todo el día
+    let used = (Array.isArray(s.used) ? s.used : []).filter(t=>pool.includes(t));
+    let left = pool.filter(t=>!used.includes(t));
+    if(!left.length){ used = []; left = pool.filter(t=>t !== s.text); if(!left.length) left = pool.slice(); } // categoría agotada: otra vuelta
+    const text = left[Math.floor(Math.random() * left.length)];
+    used.push(text); all[slot] = {day: today, text, used}; LS.set('mirun_phrases', all);
+    return text;
+  }
+
   // limpia los ejercicios de una rutina (copias importadas): solo campos conocidos y valores en rango.
   // withDone = sesión guardada en el Historial (lleva cuántas series se hicieron, de 0 a sets)
   function cleanRtItems(items, withDone){
@@ -95,7 +135,8 @@
     nova:    {name:'Nova',   dir:'img/nova/',    poses: Object.assign({}, POSES_STD, {decidido:'03_corriendo'})},
     tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})},
     // Rayo (rojo) y Jade (verde): misma tabla que Zafira (cansado = 10_cansado, la pose meditando)
-    rayo:    {name:'Rayo',   dir:'img/rayo/',    poses: POSES_STD},
+    // Rayo: su dibujo de "tú puedes" no tiene pies, se usa "aprobacion" (pulgar arriba, cuerpo completo)
+    rayo:    {name:'Rayo',   dir:'img/rayo/',    poses: Object.assign({}, POSES_STD, {tu_puedes:'01_aprobacion'})},
     jade:    {name:'Jade',   dir:'img/jade/',    poses: POSES_STD}
   };
   const DEFAULT_CHAR = 'monster';
@@ -267,6 +308,7 @@
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
+    if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr'); }
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -342,6 +384,7 @@
     set('profLevel', profile.level || 'ligero');
     set('profVoice', profile.voice ? '1' : '0');
     set('profSounds', profile.sounds === false ? '0' : '1');
+    set('profFaith', profile.faith === true ? '1' : '0'); // frases de fe: sin campo = apagado
     set('profAutoPause', profile.autoPause === false ? '0' : '1'); // sin campo = encendida
     set('profMap', profile.mapMode);
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
@@ -449,6 +492,7 @@
       level: document.getElementById('profLevel').value,
       voice: document.getElementById('profVoice').value === '1',
       sounds: document.getElementById('profSounds').value === '1',
+      faith: document.getElementById('profFaith').value === '1', // "Incluir frases de fe"
       autoPause: document.getElementById('profAutoPause').value === '1', // pausa automática en GPS
       mapMode: document.getElementById('profMap').value
     });
@@ -2151,7 +2195,7 @@
       title = start.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
       title = title.charAt(0).toUpperCase() + title.slice(1);
     }
-    let html = ['L','M','X','J','V','S','D'].map(x=>`<div class="h">${x}</div>`).join('') + '<div class="d blank"></div>'.repeat(lead);
+    let html = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(x=>`<div class="h">${x}</div>`).join('') + '<div class="d blank"></div>'.repeat(lead);
     let done = 0, min = 0;
     for(let i=0; i<n; i++){
       const d = new Date(start); d.setDate(start.getDate()+i);
@@ -2224,7 +2268,8 @@
       else if(mk === 'rota') mascotReact(hm, 'mSad');
       lastHomeMk = mk;
     }
-    document.getElementById('homeMsg').textContent = msg;
+    const ph = dailyPhrase(mk === 'vuelta' ? 'superacion' : 'inicio'); // frase del día junto a la mascota
+    document.getElementById('homeMsg').innerHTML = esc(msg) + (ph ? '<span class="phrase">' + esc(ph) + '</span>' : '');
     renderCal(mins);
     const todays = history.filter(h=>dayKey(new Date(actRange(h)[0])) === tk);
     document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
@@ -2574,7 +2619,7 @@
       `--dx:${Math.round(Math.random()*80 - 40)}px;--r:${Math.round(Math.random()*720 - 360)}deg"></i>`).join('');
     const st = streakInfo(minutesByDay()).cur;
     layer.innerHTML = conf + `<div class="celebCard"><img class="mCheer" src="${mascot('meta')}" alt="">` +
-      `<b>¡Meta de hoy cumplida!</b><small>Racha: ${st} ${st === 1 ? 'día' : 'días'}</small></div>`;
+      `<b>¡Meta de hoy cumplida!</b><small>Racha: ${st} ${st === 1 ? 'día' : 'días'}</small><em class="phrase">${esc(dailyPhrase('cortas'))}</em></div>`;
     document.body.appendChild(layer);
     celebUntil = Date.now() + CELEB_MS;
     setTimeout(()=>layer.remove(), CELEB_MS);
@@ -2921,6 +2966,7 @@
           if(Array.isArray(p.measures)) ok.measures = MEASURES.map(m=>m.k).filter(k=>p.measures.includes(k));
           if(typeof p.voice === 'boolean') ok.voice = p.voice;
           if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
+          if(typeof p.faith === 'boolean') ok.faith = p.faith; // incluir frases de fe
           if(typeof p.autoPause === 'boolean') ok.autoPause = p.autoPause; // pausa automática en GPS
           if(typeof p.character === 'string' && Object.prototype.hasOwnProperty.call(CHARACTERS, p.character)) ok.character = p.character; // compañero elegido
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;

@@ -471,6 +471,7 @@
   .rtItem{background:var(--track2);border:1px solid var(--lane-line);border-radius:14px;padding:12px;margin-top:10px;}
   .rtItemTop{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .rtItemTop b{overflow-wrap:anywhere;}
+  .rtItem input[type=number]{text-align:center;} /* series, repeticiones y segundos centrados */
   .rtMove{display:flex;flex-shrink:0;}
   .rtMove .linkBtn{min-width:36px;min-height:36px;padding:0;font-size:17px;color:var(--text);}
   .rtMove .linkBtn[disabled]{opacity:.3;}
@@ -504,6 +505,11 @@
   .celebCard img{width:104px;height:104px;transform-origin:50% 100%;}
   .celebCard b{font-size:18px;color:var(--gold);}
   .celebCard small{font-size:13px;color:var(--sub);}
+  /* FRASES motivacionales (una por día) */
+  .bubble .phrase{display:block;margin-top:6px;font-size:12.5px;font-style:italic;color:var(--sub);font-weight:500;}
+  #runPhrase{margin-top:10px;font-size:13.5px;font-style:italic;color:var(--sub);text-align:center;}
+  #runPhrase:empty{display:none;}
+  .celebCard .phrase{display:block;margin-top:6px;font-size:13px;color:var(--text);}
   @keyframes celebIn{0%{opacity:0;transform:translateX(-50%) scale(.85);}10%{opacity:1;transform:translateX(-50%) scale(1);}
     85%{opacity:1;transform:translateX(-50%) scale(1);}100%{opacity:0;transform:translateX(-50%) scale(1);}}
   /* "reducir movimiento" del teléfono: sin animaciones (la pose sí cambia) */

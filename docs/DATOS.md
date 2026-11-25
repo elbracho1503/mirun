@@ -19,6 +19,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_welcomeBack` | `'AAAA-MM-DD'` | Día de la última actividad antes del último regreso ya saludado con "¡Qué bueno verte de vuelta!" (para mostrarlo una vez por regreso). No va en la copia |
 | `mirun_routines` | Array | Rutinas de fuerza de la persona: `{id, name, created, items:[{ex \| name, kind:'reps'\|'secs', amount, sets}]}` (`ex` = clave de `EXERCISES`; un ejercicio propio guarda `name`). Hasta 50 rutinas y 30 ejercicios por rutina. Va en la copia (ver más abajo) |
 | `mirun_session` | Objeto o ausente | Sesión de rutina en curso `{rid, name, items:[{…ejercicio, done}], start, startTime, elapsedBefore, paused, savedAt}`; se borra solo al guardar o descartar (nunca sola). Al abrir la app vuelve en pausa desde el último guardado; si pasaron más de 12 h se abre "Terminar" con la pregunta "¿Guardar lo hecho o descartar?" y se guarda `ask:true` hasta que se reanude, guarde o descarte. Si a la vez hay un `mirun_current`, la app abre en Correr y avisa de las dos. No va en la copia |
+| `mirun_phrases` | Objeto | Frase del día por lugar: `{inicio\|correr\|cortas\|superacion: {day:'AAAA-MM-DD', text, used:[textos ya mostrados en esta vuelta]}}`. Solo controla qué frase se muestra; no va en la copia |
 
 ## mirun_history — actividad
 ```js
@@ -80,7 +81,9 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   voice: true/false, mapMode: 'calles'|'linea',
   sounds: true/false,
   character: 'monster'|'zafira'|'nova'|'tizon'|'rayo'|'jade',
-  autoPause: true/false }  // 2026-11-18: pausa automática en GPS (sin campo = encendida). Va en la copia y en la importación  // 2026-11-09: compañero elegido (sin campo = Brío, 'monster'). Va en la copia; la importación solo acepta claves de CHARACTERS        // 2026-11-06: "Sonidos y vibración" de la celebración (sin campo = encendido). Va en la copia y en la importación
+  autoPause: true/false,
+  faith: true/false }  // 2026-11-24: "Incluir frases de fe" (sin campo = apagado). Va en la copia y en la importación
+  // 2026-11-18: pausa automática en GPS (sin campo = encendida). Va en la copia y en la importación  // 2026-11-09: compañero elegido (sin campo = Brío, 'monster'). Va en la copia; la importación solo acepta claves de CHARACTERS        // 2026-11-06: "Sonidos y vibración" de la celebración (sin campo = encendido). Va en la copia y en la importación
 ```
 `sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965), los pasos estimados y la silueta.
 Perfil nuevo (sin `mirun_profile` guardado): `sex: 'x'` por defecto (antes `'m'`; los perfiles ya guardados no cambian).

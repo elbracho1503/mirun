@@ -27,7 +27,7 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 ## Mascota: personajes y movimiento (2026-11-06)
 - Personajes en `CHARACTERS` (`js/app.js`, sección MASCOTA): **Brío** (clave interna `monster`, `img/mascota/`, el
   principal y por defecto), **Zafira** (`img/zafira/`), **Nova** (`img/nova/`), **Tizón** (`img/tizon/`), **Rayo** (`img/rayo/`, rojo) y **Jade** (`img/jade/`, verde). Mismos nombres de
-  archivo que Brío; Nova "decidido" usa su `03_corriendo` y Tizón "cansado" su `08_agotado`. Si a uno le falta una pose, se usa la de Brío.
+  archivo que Brío; Nova "decidido" usa su `03_corriendo`, Tizón "cansado" su `08_agotado` y Rayo "tu_puedes" su `01_aprobacion` (el dibujo original no tiene pies). Si a uno le falta una pose, se usa la de Brío.
   Zafira, Nova, Rayo y Jade "cansado" = la pose meditando (racha rota: calma para volver a empezar).
 - **Elige tu compañero** (Perfil, debajo de la foto): 4 opciones con la pose "aprobación" y el nombre; se guarda al tocar
   (`profile.character`, `setCharacter`) y cambia la mascota en toda la app.
