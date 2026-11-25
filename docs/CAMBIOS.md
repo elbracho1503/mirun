@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-24 | Rama `prueba/pulido`: Rayo usa su pose "aprobacion" para "tu_puedes" (su dibujo de "¡Tú puedes!" no tiene pies); caché v36 | `js/app.js`, `sw.js`, `docs/DISENO.md`, `docs/CAMBIOS.md` | ~10k tokens (con la revisión de las 90 poses) |
 | 2026-11-24 | Rama `prueba/pulido`, T4: frases motivacionales (5 categorías) una por día y por lugar sin repetir hasta agotar la categoría: Inicio junto a la mascota (cualquiera), GPS antes de salir (Para correr), celebración de la meta (Cortas y poderosas), saludo al volver (Superación personal); "Incluir frases de fe" en Perfil (apagado por defecto, va en la copia); `mirun_phrases`; caché v35 | `js/app.js`, `mirun.html`, `css/app.css`, `sw.js`, `docs/*`, `CLAUDE.md` | ~20k tokens |
 | 2026-11-24 | Rama `prueba/pulido`, T3: en el editor de Mis rutinas, los números de repeticiones, segundos y series van centrados en sus casillas | `css/app.css`, `docs/CAMBIOS.md` | ~1k tokens |
 | 2026-11-24 | Rama `prueba/pulido`, T2: días de la semana con 2 letras (Lu Ma Mi Ju Vi Sá Do) en el calendario de Inicio y en los días de descanso de Metas | `js/app.js`, `mirun.html`, `docs/CAMBIOS.md` | ~3k tokens |

@@ -135,7 +135,8 @@
     nova:    {name:'Nova',   dir:'img/nova/',    poses: Object.assign({}, POSES_STD, {decidido:'03_corriendo'})},
     tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})},
     // Rayo (rojo) y Jade (verde): misma tabla que Zafira (cansado = 10_cansado, la pose meditando)
-    rayo:    {name:'Rayo',   dir:'img/rayo/',    poses: POSES_STD},
+    // Rayo: su dibujo de "tú puedes" no tiene pies, se usa "aprobacion" (pulgar arriba, cuerpo completo)
+    rayo:    {name:'Rayo',   dir:'img/rayo/',    poses: Object.assign({}, POSES_STD, {tu_puedes:'01_aprobacion'})},
     jade:    {name:'Jade',   dir:'img/jade/',    poses: POSES_STD}
   };
   const DEFAULT_CHAR = 'monster';

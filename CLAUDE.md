@@ -32,7 +32,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", `icon-512-maskable.png` (imagen al 80 % para el círculo de Android), 180 para iPhone) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de **Brío**, la mascota principal (antes "MIRUN Monster"; PNG 256 px transparentes) |
-| `img/zafira/`, `img/nova/`, `img/tizon/`, `img/rayo/`, `img/jade/` | Poses de los otros personajes (PNG 256 px; Nova y Tizón tienen 14: una pose apunta a otro archivo, ver `CHARACTERS`) |
+| `img/zafira/`, `img/nova/`, `img/tizon/`, `img/rayo/`, `img/jade/` | Poses de los otros personajes (PNG 256 px; en Nova, Tizón y Rayo una pose apunta a otro archivo, ver `CHARACTERS`) |
 | `img/siluetas/` | Siluetas del cuerpo: masculina, femenina, neutra (PNG 640 px de alto, transparentes) |
 | `img/bienvenida.jpg` | Imagen de la pantalla de bienvenida (600 px, 80 KB, sí va al caché) |
 | `img/icono-original.png`, `img/siluetas-original.png`, `img/bienvenida-original.jpg` | Imágenes originales del usuario (no van al caché) |
