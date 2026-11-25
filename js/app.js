@@ -388,12 +388,11 @@
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
   });
-  // botones con data-goto="pantalla" (o "actForm": pantalla Registrar, formulario de actividad)
+  // botones con data-goto="pantalla"
   document.addEventListener('click', (ev)=>{
     const b = ev.target.closest('[data-goto]');
     if(!b) return;
-    if(b.dataset.goto === 'actForm'){ showTab('add'); document.getElementById('actForm').scrollIntoView({block:'start'}); }
-    else showTab(b.dataset.goto);
+    showTab(b.dataset.goto);
   });
   // botón "+": si hay una actividad GPS en curso va directo a ella; si no, abre el menú de opciones
   const plusSheet = document.getElementById('plusSheet');
