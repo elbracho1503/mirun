@@ -60,6 +60,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Formulario de actividad (HTML) | `id="actForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
+| Frases motivacionales (`PHRASES`, `dailyPhrase`: una por día y lugar, `mirun_phrases`; fe solo con `profile.faith`) | `// ---------- FRASES` (HTML Perfil: `id="profFaith"`, GPS: `id="runPhrase"`) |
 | Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
