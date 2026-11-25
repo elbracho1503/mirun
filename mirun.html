@@ -71,12 +71,9 @@
       <div class="gc"><div class="gt">Esta semana</div><div class="gv num" id="weekMin">0</div>
         <div class="gu" id="weekGoal">de 150 min</div><div class="pbar"><div id="weekBar"></div></div></div>
     </div>
-    <!-- registrar actividad e iniciar GPS: arriba, antes del calendario -->
+    <!-- un solo botón principal: abre las mismas opciones del "+" (GPS, rutina, registrar, carrera sin GPS) -->
     <div class="btnRow homeActions">
-      <button class="btn btn-start" data-goto="actForm">+ Registrar actividad</button>
-    </div>
-    <div class="btnRow" style="margin-top:10px;">
-      <button class="btn btn-ghost" data-goto="run">Salir con GPS (correr, caminar, bici)</button>
+      <button class="btn btn-start" id="btnHomeStart">Empezar actividad</button>
     </div>
     <div class="panel">
       <h3>Calendario de actividad <button class="linkBtn" data-goto="goal" style="float:right;">Metas y descanso</button></h3>
@@ -216,7 +213,7 @@
         <div id="rtResume"></div>
         <div id="rtList"></div>
         <div class="hint" id="rtSavedMsg" style="margin-top:8px;"></div>
-        <div class="btnRow"><button class="btn btn-start" id="btnRtNew">+ Crear rutina</button></div>
+        <div class="btnRow"><button class="btn btn-ghost" id="btnRtNew">+ Crear rutina</button></div>
       </div>
       <div class="panel" id="rtWeek">
         <h3>Mi semana</h3>

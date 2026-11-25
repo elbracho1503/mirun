@@ -87,3 +87,7 @@ Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al f
     (`#tab-add`), que se abre desde el "+" ("Registrar otra actividad" y la opción nueva "Carrera sin GPS"). Mismos
     campos, ids y código: guardan exactamente lo mismo.
   - La **copia de seguridad** (Guardar copia / Recuperar copia y el aviso de copia vieja) está al final de Perfil.
+- **Un botón principal por pantalla**: en Inicio queda solo "Empezar actividad" (`#btnHomeStart`, abre el mismo menú del
+  "+"); se quitaron "+ Registrar actividad" y "Salir con GPS". El "Empezar"/"Seguir" de "Hoy toca" pasó a secundario
+  (`btn-ghost`). En Mis rutinas "+ Crear rutina" es secundario. En el Historial, "Editar" y "Borrar" son botones de
+  40 px de alto, separados 8 px (Borrar en rojo suave).

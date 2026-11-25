@@ -133,13 +133,13 @@
     box.style.display = '';
     if(act && Array.isArray(act.items) && act.items.length){ // una sesión a medias manda: no se empieza otra encima
       box.innerHTML = `<div class="tpTxt">Tienes <b>${esc(act.name)}</b> a medias ${ico('biceps-flexed', 'tpIco')}</div>
-        <div class="btnRow"><button class="btn btn-start" id="btnPlanGo">Seguir</button></div>`; return; }
+        <div class="btnRow"><button class="btn btn-ghost" id="btnPlanGo">Seguir</button></div>`; return; }
     const done = history.some(h=>h.routine && dayKey(new Date(actRange(h)[0])) === tk && (h.routine.rid ? h.routine.rid === r.id : h.routine.name === r.name));
     if(done){ box.innerHTML = `<div class="tpTxt">Hoy tocaba <b>${esc(r.name)}</b>: ¡hecho! ${ico('circle-check', 'tpIco ok')}</div>`; return; }
     const m = routineAvgMin(r);
     box.innerHTML = `<div class="tpTxt">Hoy toca: <b>${esc(r.name)}</b> ${ico('biceps-flexed', 'tpIco')} ${m ? '¿Le sacamos ' + m + ' minutos?' : '¿Le sacamos un rato?'}</div>
       ${restDaysOn(today).includes(today.getDay()) ? '<div class="hint">Es tu día de descanso: solo si te animas.</div>' : ''}
-      <div class="btnRow"><button class="btn btn-start" id="btnPlanGo" data-rid="${esc(r.id)}">Empezar</button></div>`;
+      <div class="btnRow"><button class="btn btn-ghost" id="btnPlanGo" data-rid="${esc(r.id)}">Empezar</button></div>`;
   }
 
   // limpia los ejercicios de una rutina (copias importadas): solo campos conocidos y valores en rango.
@@ -401,6 +401,8 @@
     if(running){ showTab('run'); return; }
     plusSheet.classList.add('show');
   });
+  // Inicio: "Empezar actividad" hace lo mismo que el "+"
+  document.getElementById('btnHomeStart').addEventListener('click', ()=>document.getElementById('plusBtn').click());
   plusSheet.addEventListener('click', (ev)=>{
     const o = ev.target.closest('[data-plus]');
     plusSheet.classList.remove('show'); // tocar fuera también cierra
