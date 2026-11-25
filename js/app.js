@@ -388,14 +388,12 @@
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
   });
-  // botones con data-goto="pantalla" (o "actForm": historial y baja al formulario de actividad)
+  // botones con data-goto="pantalla" (o "actForm": pantalla Registrar, formulario de actividad)
   document.addEventListener('click', (ev)=>{
     const b = ev.target.closest('[data-goto]');
     if(!b) return;
-    if(b.dataset.goto === 'actForm'){
-      showTab('history');
-      document.getElementById('actForm').scrollIntoView({block:'start'});
-    } else showTab(b.dataset.goto);
+    if(b.dataset.goto === 'actForm'){ showTab('add'); document.getElementById('actForm').scrollIntoView({block:'start'}); }
+    else showTab(b.dataset.goto);
   });
   // botón "+": si hay una actividad GPS en curso va directo a ella; si no, abre el menú de opciones
   const plusSheet = document.getElementById('plusSheet');
@@ -408,8 +406,9 @@
     plusSheet.classList.remove('show'); // tocar fuera también cierra
     if(!o) return;
     if(o.dataset.plus === 'manual'){
-      showTab('history');
-      document.getElementById('actForm').scrollIntoView({block:'start'});
+      showTab('add'); document.getElementById('actForm').scrollIntoView({block:'start'}); // pantalla Registrar (#tab-add): actividad sin GPS arriba
+    } else if(o.dataset.plus === 'carrera'){
+      showTab('add'); document.getElementById('manForm').scrollIntoView({block:'start'}); // carrera sin GPS (a mano)
     } else if(o.dataset.plus === 'rutina'){
       showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
@@ -928,7 +927,16 @@
     if(history.length===0){
       list.innerHTML = '<div class="empty"><img src="' + mascot('vacio') + '" alt="">Todavía no tienes actividades registradas.<br>¡Muévete hoy!</div>';
     } else {
-      list.innerHTML = history.slice().reverse().map((h,ri)=>{
+      // la más nueva arriba, agrupadas por semana (lunes a domingo) con su total
+      const sorted = history.slice().sort((a,b)=>a.date < b.date ? 1 : -1);
+      const wkOf = h=>dayKey(mondayOf(new Date(actRange(h)[0])));
+      let lastWk = null;
+      list.innerHTML = sorted.map((h,ri)=>{
+        const wk = wkOf(h), wkHead = wk !== lastWk ? histWeekHead(wk, sorted.filter(x=>wkOf(x) === wk)) : '';
+        lastWk = wk;
+        return wkHead + histCard(h, ri);
+      }).join('');
+      function histCard(h, ri){
         const d = new Date(h.date);
         const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
                       d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
@@ -954,12 +962,12 @@
           ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}"></canvas>
             <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
-      }).join('');
+      }
       // pasos: un solo aviso si falta la estatura y hay caminatas o carreras con distancia
       if(!(profile.height > 0) && history.some(h=>h.dist > 0 && (!h.type || h.type === 'correr' || h.type === 'caminar')))
         list.insertAdjacentHTML('afterbegin', '<div class="hint histStepsHint">Agrega tu estatura en Perfil para ver tus pasos</div>');
 
-      history.slice().reverse().forEach((h,ri)=>{
+      sorted.forEach((h,ri)=>{
         if(h.path && h.path.length > 1){
           const c = document.getElementById('hist-route-'+ri);
           if(c) drawRoute(c, h.path, '#7cc4ff');
@@ -978,6 +986,17 @@
                                       : 'Tu última copia es de hace ' + daysB + ' días. Te recomendamos guardar una nueva.';
       bm.style.color = 'var(--amber)';
     }
+  }
+  // título de cada semana del Historial: "Esta semana", "Semana pasada" o "17 – 23 nov", con actividades, tiempo y distancia
+  function histWeekHead(wk, items){
+    const mon = new Date(wk + 'T12:00:00'), sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const now = dayKey(mondayOf(new Date())), prev = dayKey(mondayOf(new Date(Date.now() - 7 * 86400000)));
+    const dm = d=>d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}).replace('.', '');
+    const title = wk === now ? 'Esta semana' : wk === prev ? 'Semana pasada'
+      : (mon.getMonth() === sun.getMonth() ? mon.getDate() : dm(mon)) + ' – ' + dm(sun);
+    const min = Math.round(items.reduce((s,h)=>s + h.seconds, 0) / 60), km = items.reduce((s,h)=>s + (h.dist || 0), 0);
+    const t = min >= 60 ? Math.floor(min / 60) + ' h' + (min % 60 ? ' ' + (min % 60) + ' min' : '') : min + ' min';
+    return `<div class="histWeek"><b>${title}</b><span>${items.length} ${items.length === 1 ? 'actividad' : 'actividades'} · ${t}${km > 0 ? ' · ' + fmtD(km, 1) : ''}</span></div>`;
   }
   renderHistory();
 

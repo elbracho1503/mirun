@@ -81,3 +81,9 @@ Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al f
   `ico()`) y en `mirun.html`. Mismo trazo que el menú inferior (2 px, puntas redondas, `currentColor`). Actividades
   (`ACTIVITIES[].i`), medallas (`ACH[].i`), menú "+", tipo de GPS, candado, quitar (x), serie hecha (check) y "Hoy toca".
   Los emojis que quedan son parte de textos (frases), no íconos. Para agregar uno: copiar el `<path>` del SVG de Lucide a `ICONS`.
+- **Historial solo como lista**: la más nueva arriba, agrupada por semana (lunes a domingo) con un título "Esta semana",
+  "Semana pasada" o "17 – 23 nov" y su total (actividades, tiempo, distancia). Los formularios salieron de aquí:
+  - "Registrar actividad" y "Carrera sin GPS" (antes "Agregar carrera a mano") están en la pantalla **Registrar**
+    (`#tab-add`), que se abre desde el "+" ("Registrar otra actividad" y la opción nueva "Carrera sin GPS"). Mismos
+    campos, ids y código: guardan exactamente lo mismo.
+  - La **copia de seguridad** (Guardar copia / Recuperar copia y el aviso de copia vieja) está al final de Perfil.

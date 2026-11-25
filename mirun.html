@@ -254,9 +254,14 @@
       <div class="t"><div class="v num" id="totKm">0</div><div class="l"><span class="uDU">KM</span> TOTAL</div></div>
       <div class="t"><div class="v num" id="totCal">0</div><div class="l">KCAL TOTAL</div></div>
     </div>
+    <div id="histList"></div>
+  </div>
+
+  <!-- REGISTRAR (desde el "+"): actividad sin GPS y carrera a mano. Mismos campos e ids que antes estaban en Historial -->
+  <div class="screen" id="tab-add">
     <div class="panel" id="actForm">
       <h3>Registrar actividad</h3>
-      <div class="hint">Para correr, caminar o bici con distancia usa <b>GPS</b> o "Agregar carrera a mano" (abajo).</div>
+      <div class="hint">Para correr, caminar o bici con distancia usa <b>GPS</b> o "Carrera sin GPS" (abajo).</div>
       <div class="chips actChips" id="actChips"></div>
       <div class="row2">
         <div><label>Fecha</label><input type="date" id="actDate"></div>
@@ -273,9 +278,8 @@
       <div class="btnRow" style="margin-top:14px;"><button class="btn btn-start" id="btnAct">Guardar actividad</button></div>
       <div class="hint" id="actMsg" style="margin-top:8px;"></div>
     </div>
-    <div id="histList"></div>
-    <div class="panel">
-      <h3>Agregar carrera a mano</h3>
+    <div class="panel" id="manForm">
+      <h3>Carrera sin GPS</h3>
       <div class="hint">Para carreras que hiciste sin la app (por ejemplo en la caminadora del gym). Cuentan para tus récords.</div>
       <label>Fecha</label>
       <input type="date" id="manDate">
@@ -287,16 +291,6 @@
       </div>
       <div class="btnRow" style="margin-top:14px;"><button class="btn btn-ghost" id="btnManual">Agregar carrera</button></div>
       <div class="hint" id="manMsg" style="margin-top:8px;"></div>
-    </div>
-    <div class="panel">
-      <h3>Copia de seguridad</h3>
-      <div class="hint">Guarda tus actividades, medidas, perfil, metas y foto en un archivo. Tus datos viven solo en este teléfono: si se borran los datos de Chrome o cambias de teléfono, los recuperas con ese archivo.</div>
-      <div class="btnRow" style="margin-top:12px;">
-        <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
-        <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
-      </div>
-      <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
-      <div class="hint" id="backupMsg" style="margin-top:10px;color:var(--signal);"></div>
     </div>
   </div>
 
@@ -492,6 +486,17 @@
     </div>
     <div class="btnRow"><button class="btn btn-start" id="btnSaveProfile">Guardar perfil</button></div>
     <div class="btnRow" style="margin-top:10px;"><button class="btn btn-ghost" data-goto="goal">Mis metas y días de descanso</button></div>
+    <!-- copia de seguridad (antes en Historial; ver COPIA DE SEGURIDAD en js/app.js) -->
+    <div class="panel" id="backupPanel" style="margin-top:20px;">
+      <h3>Copia de seguridad</h3>
+      <div class="hint">Guarda tus actividades, medidas, perfil, metas y foto en un archivo. Tus datos viven solo en este teléfono: si se borran los datos de Chrome o cambias de teléfono, los recuperas con ese archivo.</div>
+      <div class="btnRow" style="margin-top:12px;">
+        <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
+        <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+      <div class="hint" id="backupMsg" style="margin-top:10px;color:var(--signal);"></div>
+    </div>
   </div>
 
 </div>
@@ -550,6 +555,7 @@
     <button class="sheetOpt" data-plus="bici"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg></span>Bicicleta con GPS</button>
     <button class="sheetOpt" data-plus="rutina"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg></span>Mi rutina de fuerza<small>Tus ejercicios, con series y repeticiones o segundos</small></button>
     <button class="sheetOpt" data-plus="manual"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span>Registrar otra actividad<small>Gimnasio, natación, baile, yoga…</small></button>
+    <button class="sheetOpt" data-plus="carrera"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg></span>Carrera sin GPS<small>Caminadora o una carrera que no registraste. Cuenta para tus récords</small></button>
   </div>
 </div>
 

@@ -57,8 +57,8 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | CSS del diseño azul (encima del base) | `DISEÑO v5` |
 | Cabecera (botón Perfil con engranaje y "Perfil") y menú inferior con "+" | `<header>`, `Menú inferior`, `id="plusSheet"` (CSS: `MENÚ CON "+"`, `BOTÓN PERFIL DE LA CABECERA`) |
 | CSS de Inicio, calendario, chips | `INICIO: racha` |
-| Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `RECORDS`, `BODY`, `PROFILE` |
-| Formulario de actividad (HTML) | `id="actForm"` |
+| Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `REGISTRAR` (`id="tab-add"`), `RECORDS`, `BODY`, `PROFILE` |
+| Formulario de actividad y carrera a mano (HTML): pantalla Registrar, se abre desde el "+" (`data-plus="manual"` / `"carrera"`) | `id="actForm"`, `id="manForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
 | Íconos SVG de Lucide (`ICONS`, `ico('nombre')`; licencia en `docs/LICENCIAS.md`). Nunca emojis como íconos | `// ---------- ÍCONOS` (CSS: `.ico` en `DISEÑO 2`) |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
@@ -71,7 +71,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
-| Historial (incluye "≈ N pasos" y el detalle de rutina `routineDetail`) | `// ---------- HISTORY` |
+| Historial: solo la lista, la más nueva arriba, agrupada por semana con su total (`histWeekHead`); incluye "≈ N pasos" y el detalle de rutina `routineDetail` | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
 | Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
@@ -90,7 +90,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
-| Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
+| Exportar / importar copia (botones en Perfil: `id="backupPanel"`) | `// ---------- COPIA DE SEGURIDAD` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |
 
 ## Publicar (GitHub Pages)

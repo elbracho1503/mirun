@@ -701,3 +701,8 @@
   .tpIco.ok{color:var(--good);}
   body:not(.gpsOn) #tab-run #gpsTypeRow .chip{display:flex;flex-direction:column;align-items:center;gap:6px;}
   body:not(.gpsOn) #tab-run #gpsTypeRow .chip .ico{width:26px;height:26px;margin:0;}
+  /* Historial: solo la lista, agrupada por semana (histWeekHead en js/app.js) */
+  .histWeek{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:24px 2px 6px;}
+  .histWeek:first-child, .histStepsHint + .histWeek{margin-top:14px;}
+  .histWeek b{font-size:16px;color:var(--text);}
+  .histWeek span{font-size:13px;color:var(--sub);}
