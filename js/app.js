@@ -2151,7 +2151,7 @@
       title = start.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
       title = title.charAt(0).toUpperCase() + title.slice(1);
     }
-    let html = ['L','M','X','J','V','S','D'].map(x=>`<div class="h">${x}</div>`).join('') + '<div class="d blank"></div>'.repeat(lead);
+    let html = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(x=>`<div class="h">${x}</div>`).join('') + '<div class="d blank"></div>'.repeat(lead);
     let done = 0, min = 0;
     for(let i=0; i<n; i++){
       const d = new Date(start); d.setDate(start.getDate()+i);

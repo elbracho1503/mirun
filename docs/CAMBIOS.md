@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-24 | Rama `prueba/pulido`, T2: días de la semana con 2 letras (Lu Ma Mi Ju Vi Sá Do) en el calendario de Inicio y en los días de descanso de Metas | `js/app.js`, `mirun.html`, `docs/CAMBIOS.md` | ~3k tokens |
 | 2026-11-24 | Rama `prueba/marca`: script `.claude/herramientas/cortar4x4.js` para recortar hojas 4x4 de futuros personajes (nota de uso en el encabezado; probado: da las mismas 15 poses de Rayo) | `.claude/herramientas/cortar4x4.js`, `CLAUDE.md`, `docs/CAMBIOS.md` | ~4k tokens |
 | 2026-11-24 | Rama `prueba/marca`, T2: personajes Rayo (rojo) y Jade (verde) en `CHARACTERS` y en "Elige tu compañero" (6 personajes, selector en 3 columnas); poses recortadas de sus hojas 4x4 con la tabla de Zafira (cansado = meditando; la celda 14 no se usa), 256 px; originales en `respaldo/personajes-original/`; `CHAR_DIRS` del Service Worker; caché v34 | `js/app.js`, `css/app.css`, `sw.js`, `img/rayo/`, `img/jade/`, `docs/*`, `CLAUDE.md` | ~30k tokens (con el recorte) |
 | 2026-11-24 | Rama `prueba/marca`, T1: ícono final (M blanca con rayo sobre azul marino): icon-192/512/180 y maskable (logo al 80 %, relleno #011649 del mismo fondo, 0 px fuera del círculo); `img/icono-original.png` reemplazado (el anterior en `respaldo/`) | `img/iconos/*`, `img/icono-original.png`, `docs/CAMBIOS.md` | ~8k tokens |
