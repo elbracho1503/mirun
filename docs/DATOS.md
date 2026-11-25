@@ -79,7 +79,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   sex: 'm'|'f'|'x',          // 'x' = prefiero no decir (v5)
   voice: true/false, mapMode: 'calles'|'linea',
   sounds: true/false,
-  character: 'monster'|'zafira'|'nova'|'tizon',
+  character: 'monster'|'zafira'|'nova'|'tizon'|'rayo'|'jade',
   autoPause: true/false }  // 2026-11-18: pausa automática en GPS (sin campo = encendida). Va en la copia y en la importación  // 2026-11-09: compañero elegido (sin campo = Brío, 'monster'). Va en la copia; la importación solo acepta claves de CHARACTERS        // 2026-11-06: "Sonidos y vibración" de la celebración (sin campo = encendido). Va en la copia y en la importación
 ```
 `sex` solo se usa en `metCalories` (m ×1.0, f ×0.93, x ×0.965), los pasos estimados y la silueta.
