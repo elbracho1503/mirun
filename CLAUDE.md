@@ -90,7 +90,8 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
-| Exportar / importar copia (botones en Perfil: `id="backupPanel"`) | `// ---------- COPIA DE SEGURIDAD` |
+| Exportar / importar copia (botones en Perfil: `id="backupPanel"`), "Espacio usado" (`renderSpace`, `spaceCheck`), `navigator.storage.persist()` | `// ---------- COPIA DE SEGURIDAD` |
+| Carreras que no cupieron en la memoria: guardadas aparte en IndexedDB `mirun_rescue` (`saveRunToHistory`, `rescueSave`, `rescueAll`) | `// ---------- RESCATE` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |
 
 ## Publicar (GitHub Pages)
