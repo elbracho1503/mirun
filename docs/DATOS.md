@@ -129,3 +129,4 @@ series en rango; lo inválido se descarta). El `routine` de una actividad se lim
   con Douglas-Peucker a 2 m) y `path: []`. Las viejas NO se convierten: siguen en `path`. `routeOf(h)` lee los dos formatos.
   Distancia, ritmo, splits, calorías y récords se calculan durante la carrera con todos los puntos, antes de simplificar.
   La copia exporta los dos formatos y la importación acepta los dos (route: solo pares de números válidos, máx. 50.000).
+- `favorite: true` (opcional, desde 2026-11-25): actividad marcada con la estrella del Historial; sin el campo = no favorita. Va en la copia y la importación solo acepta `true`.

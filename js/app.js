@@ -971,6 +971,15 @@
     const rows = r.items.map(it=>`<li><b>${esc(exN(it))}</b> · ${Number(it.done) || 0} de ${it.sets} series × ${it.amount}${it.kind === 'secs' ? ' s' : ''}</li>`).join('');
     return `<details class="rtHist"><summary>Rutina «${esc(r.name || 'Sin nombre')}» · ${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'} · ${done} de ${total} series</summary><ul>${rows}</ul></details>`;
   }
+  // estrella: marcar o desmarcar favorita (campo favorite: true; sin campo = no favorita)
+  document.getElementById('histList').addEventListener('click', ev=>{
+    const b = ev.target.closest('[data-fav]'); if(!b) return;
+    const h = history.find(x=>x.date === decodeURIComponent(b.dataset.fav)); if(!h) return;
+    const was = !!h.favorite;
+    if(was) delete h.favorite; else h.favorite = true;
+    if(!LS.set('mirun_history', history)){ if(was) h.favorite = true; else delete h.favorite; return; } // no cupo: queda como estaba
+    const y = window.scrollY, bs = document.body.scrollTop; renderHistory(); window.scrollTo(0, y); document.body.scrollTop = bs;
+  });
   // "Ver más": otras 4 semanas
   document.getElementById('histList').addEventListener('click', ev=>{
     if(!ev.target.closest('#histMore')) return;
@@ -1008,7 +1017,7 @@
         const hasRoute = routeOf(h).length > 1;
         const a = actInfo(h.type);
         const head = `<div class="top"><span>${ico(a.i)} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}${h.edited ? '<span class="tag">editada</span>' : ''}</span>
-            <span class="histBtns"><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
+            <span class="histBtns"><button class="linkBtn favBtn${h.favorite ? ' on' : ''}" data-fav="${encodeURIComponent(h.date)}" aria-pressed="${!!h.favorite}" aria-label="${h.favorite ? 'Quitar de favoritas' : 'Marcar como favorita'}">${ico('star')}</button><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
         if(!(h.dist > 0)){ // actividad sin distancia (gimnasio, natación, etc.)
           return `<div class="histItem">${head}<div class="stats">
             <div><div class="num">${Math.round(h.seconds/60)}</div><small>min</small></div>
@@ -3285,6 +3294,7 @@
             splits: Array.isArray(h.splits) ? h.splits.filter(s=>s&&isFinite(s.km)&&isFinite(s.seconds))
                     .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
             manual: !!h.manual,
+            ...(h.favorite === true ? {favorite: true} : {}), // favorita (estrella del Historial)
             // campos de v5 (actividades): solo valores conocidos
             ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
             ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {}),
