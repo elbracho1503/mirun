@@ -489,6 +489,21 @@
     color:var(--text);font:700 15px 'Inter',sans-serif;}
   .setBtn.on{background:var(--good);border-color:var(--good);color:#04241a;}
   .rtCdBtn{width:100%;margin-top:12px;padding:13px;}
+  /* modo guiado: un ejercicio a la vez */
+  #rtMode{margin-top:4px;}
+  .rtGuide{text-align:center;}
+  .rtGuideName{font-size:28px;font-weight:800;line-height:1.15;overflow-wrap:anywhere;}
+  .rtGuideSub{font-size:17px;color:var(--sub);margin:8px 0 16px;}
+  .rtGuideLbl{font-size:15px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.6px;}
+  .rtRestTime{font-size:56px;font-weight:800;line-height:1.1;margin:6px 0 10px;}
+  .rtBigBtn{width:100%;padding:22px;font-size:20px;margin-top:6px;}
+  .rtGuideNext{margin-top:14px;}
+  /* planeador de la semana */
+  .rtWeekRow{display:flex;align-items:center;gap:12px;margin-top:8px;}
+  .rtWeekRow b{width:30px;flex-shrink:0;}
+  .rtWeekRow select{flex:1;margin:0;}
+  #todayPlan .tpTxt{font-size:15.5px;line-height:1.4;overflow-wrap:anywhere;}
+  #todayPlan .btnRow{margin-top:12px;}
   .rtCdBtn[disabled]{opacity:.45;}
   .rtCd{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(77,155,255,.12);}
   .rtCd span{flex:1;color:var(--sub);font-size:13px;}
