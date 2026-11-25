@@ -410,7 +410,7 @@
   .mascotSide{float:right;width:80px;height:80px;margin:-38px -4px 0 0;}
 
   /* ==== ELIGE TU COMPAÑERO (Perfil) ==== */
-  .charPick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+  .charPick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
   .charOpt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 10px;border-radius:16px;
     background:var(--track2);border:1.5px solid var(--lane-line);color:var(--sub);font-family:'Inter',sans-serif;
     font-size:13px;font-weight:700;-webkit-tap-highlight-color:transparent;}

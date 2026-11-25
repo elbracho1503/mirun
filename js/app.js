@@ -93,7 +93,10 @@
     monster: {name:'Brío',   dir:'img/mascota/', poses: POSES_STD},
     zafira:  {name:'Zafira', dir:'img/zafira/',  poses: POSES_STD},
     nova:    {name:'Nova',   dir:'img/nova/',    poses: Object.assign({}, POSES_STD, {decidido:'03_corriendo'})},
-    tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})}
+    tizon:   {name:'Tizón',  dir:'img/tizon/',   poses: Object.assign({}, POSES_STD, {cansado:'08_agotado'})},
+    // Rayo (rojo) y Jade (verde): misma tabla que Zafira (cansado = 10_cansado, la pose meditando)
+    rayo:    {name:'Rayo',   dir:'img/rayo/',    poses: POSES_STD},
+    jade:    {name:'Jade',   dir:'img/jade/',    poses: POSES_STD}
   };
   const DEFAULT_CHAR = 'monster';
   // personaje elegido en Perfil ("Elige tu compañero", profile.character). Esta sección corre antes que PROFILE,

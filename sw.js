@@ -1,7 +1,7 @@
 // Service Worker de MiRun - garantiza funcionamiento sin internet
 // una vez que la app se cargo la primera vez.
 // IMPORTANTE: si se cambia mirun.html, css/app.css o js/app.js, subir el numero de CACHE_NAME.
-const CACHE_NAME = 'mirun-cache-v33';
+const CACHE_NAME = 'mirun-cache-v34';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -45,7 +45,7 @@ self.addEventListener('activate', (event) => {
 
 // Mascota: la app manda {type:'mascota', keep:[rutas del compañero elegido], spare:[muestras del selector]}.
 // Se descargan las de keep y se borran del caché las de los otros personajes (menos las de spare ya guardadas).
-const CHAR_DIRS = ['/img/mascota/', '/img/zafira/', '/img/nova/', '/img/tizon/'];
+const CHAR_DIRS = ['/img/mascota/', '/img/zafira/', '/img/nova/', '/img/tizon/', '/img/rayo/', '/img/jade/'];
 self.addEventListener('message', (event) => {
   const d = event.data || {};
   if (d.type !== 'mascota' || !Array.isArray(d.keep)) return;

@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-24 | Rama `prueba/marca`, T2: personajes Rayo (rojo) y Jade (verde) en `CHARACTERS` y en "Elige tu compañero" (6 personajes, selector en 3 columnas); poses recortadas de sus hojas 4x4 con la tabla de Zafira (cansado = meditando; la celda 14 no se usa), 256 px; originales en `respaldo/personajes-original/`; `CHAR_DIRS` del Service Worker; caché v34 | `js/app.js`, `css/app.css`, `sw.js`, `img/rayo/`, `img/jade/`, `docs/*`, `CLAUDE.md` | ~30k tokens (con el recorte) |
 | 2026-11-24 | Rama `prueba/marca`, T1: ícono final (M blanca con rayo sobre azul marino): icon-192/512/180 y maskable (logo al 80 %, relleno #011649 del mismo fondo, 0 px fuera del círculo); `img/icono-original.png` reemplazado (el anterior en `respaldo/`) | `img/iconos/*`, `img/icono-original.png`, `docs/CAMBIOS.md` | ~8k tokens |
 | 2026-11-24 | Solo plan: pendientes 24 (corredor fantasma) y 25 (desafío por código) y futuro F7 (carrera en vivo con amigos); punto 23 marcado como unido a main | `docs/PLAN.md`, `docs/CAMBIOS.md` | ~3k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`: una carrera GPS sin terminar de más de 6 h ya no se borra sola (aviso en la caja; sin pausa, el rato con la app cerrada no cuenta al seguir ni al guardarla así); "Borrarla" pide confirmación; pendiente 23b en PLAN; caché v33 | `js/app.js`, `sw.js`, `docs/DATOS.md`, `docs/PLAN.md`, `docs/CAMBIOS.md` | ~15k tokens |
