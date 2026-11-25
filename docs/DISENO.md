@@ -71,3 +71,9 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - **Avatar sin foto** (cabecera y Perfil): iniciales del nombre (primera y última palabra) en blanco sobre `--grad`; sin nombre, ícono de persona.
 - **Inicio, regreso**: sin actividad hoy ni los 3 días anteriores (que no sean todos de descanso), la mascota (Cariño) dice "¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?", una vez por regreso.
 - **Medidas**: si se sigue Cintura o Abdomen, el formulario muestra un torso en SVG con la línea de la cintura (azul, lo más angosto) y la del abdomen (dorada, el ombligo).
+
+## Diseño 2 (rama `prueba/diseno2`, 2026-11-25)
+Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al final de `css/app.css`.
+- **GPS antes de salir** (sin `body.gpsOn`): solo la mascota, el tipo (Correr, Caminar, Bici) en 3 botones iguales y un
+  botón grande "Empezar" abajo, encima del menú (la pantalla es una columna de alto completo y el tipo se empuja
+  hacia abajo). El 0.00, tiempo/ritmo/calorías y las metas se ven solo con `body.gpsOn`. El aviso de GPS bloqueado sigue arriba.

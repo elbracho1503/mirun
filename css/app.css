@@ -667,3 +667,14 @@
   .welBox .btnRow{margin-top:10px;}
   .welBox .btnRow .btn{padding:15px;}
   .welSkip{margin-top:0;}
+
+  /* ==== DISEÑO 2 (rama prueba/diseno2) ==== */
+  /* GPS antes de salir (sin body.gpsOn): solo el tipo y un botón grande abajo, encima del menú.
+     El 0.00, tiempo/ritmo/calorías y las metas se ven solo durante la actividad. */
+  body:not(.gpsOn) #tab-run .clock, body:not(.gpsOn) #tab-run .lanes, body:not(.gpsOn) #tab-run .goalStrip{display:none;}
+  body:not(.gpsOn) #tab-run.active{display:flex;flex-direction:column;min-height:calc(100dvh - 92px);}
+  body:not(.gpsOn) #tab-run #gpsTypeRow{margin-top:auto !important;gap:14px;}
+  body:not(.gpsOn) #tab-run .mascotInline{width:132px;height:132px;}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chip{padding:14px 4px;font-size:15px;font-weight:600;text-align:center;}
+  #startRow .btn{padding:22px;font-size:19px;font-weight:700;}
