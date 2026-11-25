@@ -49,6 +49,8 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 23b | Pendiente pequeño: si queda una rutina sin terminar y se cierra la caja del GPS, mostrar un aviso de la rutina en Inicio | ⬜ |
 | 24 | (mediano) Corredor fantasma: correr contra una carrera propia anterior; punto fantasma en el mapa y aviso por voz de la diferencia (ej. "vas 20 m adelante"). Solo usa datos del propio teléfono | ⬜ |
 | 25 | (mediano) Desafío por código: al terminar una carrera, generar un código con distancia, tiempo y nombre (NUNCA la ruta GPS ni la ubicación); un amigo lo ingresa, corre la misma distancia y la app compara. Desafío de confianza, sin servidor | ⬜ |
+| 26 | Mis rutinas en modo guiado (un ejercicio a la vez, "Serie lista", descanso que pone la persona, por ejercicio o circuito, ¿Guardar esta sesión?) | ✅ 2026-11-24 (rama `prueba/rutinas2`) |
+| 27 | Planeador de la semana: rutina por día en "Mi semana" y "Hoy toca" en Inicio con minutos promedio y Empezar | ✅ 2026-11-24 (rama `prueba/rutinas2`) |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial
@@ -83,7 +85,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 |---|---|---|
 | F1 | **Cuentas y respaldo en la nube** | Servidor (ej. Firebase o Supabase), inicio de sesión. Base para todo lo siguiente. La copia manual deja de ser necesaria. |
 | F2 | **Comunidad de amigos** | Elegir amigos y ver entre ustedes logros, rachas y metas. Requiere F1 y reglas de privacidad. |
-| F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. |
+| F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. Incluye el aviso "Hoy toca: [rutina]" del planeador de la semana (ver docs/NATIVA.md). |
 | F7 | **Carrera en vivo con amigos** | Ver la posición de los demás durante la carrera. Después de la app nativa (F4) y de servidor y cuentas (F1). Requiere permiso explícito, solo visible para invitados y borrado al terminar. |
 
 Ver docs/privado/NEGOCIO.md (local)

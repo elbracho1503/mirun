@@ -498,6 +498,12 @@
   .rtRestTime{font-size:56px;font-weight:800;line-height:1.1;margin:6px 0 10px;}
   .rtBigBtn{width:100%;padding:22px;font-size:20px;margin-top:6px;}
   .rtGuideNext{margin-top:14px;}
+  /* planeador de la semana */
+  .rtWeekRow{display:flex;align-items:center;gap:12px;margin-top:8px;}
+  .rtWeekRow b{width:30px;flex-shrink:0;}
+  .rtWeekRow select{flex:1;margin:0;}
+  #todayPlan .tpTxt{font-size:15.5px;line-height:1.4;overflow-wrap:anywhere;}
+  #todayPlan .btnRow{margin-top:12px;}
   .rtCdBtn[disabled]{opacity:.45;}
   .rtCd{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(77,155,255,.12);}
   .rtCd span{flex:1;color:var(--sub);font-size:13px;}

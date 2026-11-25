@@ -20,6 +20,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
 | `mirun_routines` | Array | Rutinas de fuerza de la persona: `{id, name, created, items:[{ex \| name, kind:'reps'\|'secs', amount, sets}]}` (`ex` = clave de `EXERCISES`; un ejercicio propio guarda `name`). Hasta 50 rutinas y 30 ejercicios por rutina. Desde 2026-11-24 (modo guiado): `mode: 'ejercicio'|'circuito'` (sin campo = por ejercicio) y `rest` = segundos de descanso entre series, 1 a 600 (sin campo = sin descanso). Va en la copia (ver más abajo) |
 | `mirun_session` | Objeto o ausente | Sesión de rutina en curso `{rid, name, items:[{…ejercicio, done}], start, startTime, elapsedBefore, paused, savedAt}`; modo guiado (desde 2026-11-24) agrega `guided:true, mode, rest, order:[{i, s}], pos`, y `restEndsAt` (descanso corriendo) o `restLeft` (ms de descanso en pausa). Una sesión sin `guided` (versión anterior) se retoma en la vista de lista; se borra solo al guardar o descartar (nunca sola). Al abrir la app vuelve en pausa desde el último guardado; si pasaron más de 12 h se abre "Terminar" con la pregunta "¿Guardar lo hecho o descartar?" y se guarda `ask:true` hasta que se reanude, guarde o descarte. Si a la vez hay un `mirun_current`, la app abre en Correr y avisa de las dos. No va en la copia |
 | `mirun_phrases` | Objeto | Frase del día por lugar: `{inicio\|correr\|cortas\|superacion: {day:'AAAA-MM-DD', text, used:[textos ya mostrados en esta vuelta]}}`. Solo controla qué frase se muestra; no va en la copia |
+| `mirun_weekplan` | Objeto | Planeador de la semana: `{"0".."6": id de rutina}` (0 = domingo). Al borrar una rutina, su día queda libre. Va en la copia (`weekplan`): la importación solo acepta días 0 a 6 con rutinas que existen y solo completa días vacíos |
 
 ## mirun_history — actividad
 ```js
@@ -61,7 +62,7 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   `good` = 1 si subir es bueno, -1 si bajar es bueno. La importación usa esta misma lista.
 - **Sesiones de rutina** (desde 2026-11-18): actividad `type:'ejercicios'`, `manual:true` (`date` = inicio), `seconds` = tiempo del
   cronómetro sin pausas, y `routine: {name, items:[{ex | name, kind:'reps'|'secs', amount, sets, done}]}` con lo que se marcó.
-  El detalle no se edita (Editar solo cambia fecha, duración e intensidad; el tipo queda fijo). Una sesión guiada agrega `routine.mode`.
+  El detalle no se edita (Editar solo cambia fecha, duración e intensidad; el tipo queda fijo). Una sesión guiada agrega `routine.mode`; desde 2026-11-24 también `routine.rid` (id de la rutina, para el promedio de minutos de "Hoy toca"; las viejas sin `rid` se buscan por nombre).
 - **Actividades con GPS y pausa automática** (desde 2026-11-18): `seconds` es el tiempo EN MOVIMIENTO (sin pausas manuales ni
   automáticas); si hubo pausas automáticas se agregan `autoPausedSeconds` (tiempo quieta descontado) y `autoPauses` (cuántas).
   Las actividades anteriores no cambian. Editar una actividad no toca `autoPausedSeconds`. La importación acepta los dos campos.

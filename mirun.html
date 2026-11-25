@@ -57,6 +57,8 @@
   <div class="screen active" id="tab-home">
     <!-- Mascota con mensaje del día (pose y texto en renderHome) -->
     <div class="mascotCard"><img id="homeMascot" class="mIdle" alt="La mascota (tócala)"><div class="bubble" id="homeMsg"></div></div>
+    <!-- "Hoy toca": rutina del planeador de la semana (renderTodayPlan, sección PLANEADOR DE LA SEMANA) -->
+    <div class="panel" id="todayPlan" style="display:none;"></div>
     <div class="streakCard">
       <div class="flame"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3-1-3 0-6 1-9.5z"/></svg></div>
       <div class="sv num" id="streakVal">0</div>
@@ -215,6 +217,11 @@
         <div id="rtList"></div>
         <div class="hint" id="rtSavedMsg" style="margin-top:8px;"></div>
         <div class="btnRow"><button class="btn btn-start" id="btnRtNew">+ Crear rutina</button></div>
+      </div>
+      <div class="panel" id="rtWeek">
+        <h3>Mi semana</h3>
+        <div class="hint">Elige qué rutina toca cada día. En Inicio verás la de hoy.</div>
+        <div id="rtWeekRows"></div>
       </div>
     </div>
     <div id="rtEditView" style="display:none;">

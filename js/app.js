@@ -74,6 +74,33 @@
     return text;
   }
 
+  // ---------- PLANEADOR DE LA SEMANA ----------
+  // mirun_weekplan = {"0".."6": id de rutina} (0 = domingo). Mis rutinas -> "Mi semana" lo edita; Inicio muestra
+  // "Hoy toca". Esta parte corre antes que MIS RUTINAS, por eso lee las rutinas y la sesión directo de localStorage.
+  function weekPlan(){ const p = LS.get('mirun_weekplan', {}); return p && typeof p === 'object' && !Array.isArray(p) ? p : {}; }
+  const DAY2 = ['Do','Lu','Ma','Mi','Ju','Vi','Sá'];
+  // minutos de esa rutina: promedio de sus sesiones guardadas (por id; las viejas sin id, por nombre). null = sin sesiones
+  function routineAvgMin(r){
+    const s = history.filter(h=>h.routine && (h.routine.rid ? h.routine.rid === r.id : h.routine.name === r.name));
+    return s.length ? Math.max(1, Math.round(s.reduce((a, h)=>a + h.seconds, 0) / s.length / 60)) : null;
+  }
+  function renderTodayPlan(today, tk){
+    const box = document.getElementById('todayPlan'), list = LS.get('mirun_routines', []);
+    const r = Array.isArray(list) ? list.find(x=>x && x.id === weekPlan()[today.getDay()]) : null;
+    const act = LS.get('mirun_session', null);
+    if(!r && !(act && act.items)){ box.style.display = 'none'; return; }
+    box.style.display = '';
+    if(act && Array.isArray(act.items) && act.items.length){ // una sesión a medias manda: no se empieza otra encima
+      box.innerHTML = `<div class="tpTxt">Tienes <b>${esc(act.name)}</b> a medias 💪</div>
+        <div class="btnRow"><button class="btn btn-start" id="btnPlanGo">Seguir</button></div>`; return; }
+    const done = history.some(h=>h.routine && dayKey(new Date(actRange(h)[0])) === tk && (h.routine.rid ? h.routine.rid === r.id : h.routine.name === r.name));
+    if(done){ box.innerHTML = `<div class="tpTxt">Hoy tocaba <b>${esc(r.name)}</b>: ¡hecho! ✅</div>`; return; }
+    const m = routineAvgMin(r);
+    box.innerHTML = `<div class="tpTxt">Hoy toca: <b>${esc(r.name)}</b> 💪 ${m ? '¿Le sacamos ' + m + ' minutos?' : '¿Le sacamos un rato?'}</div>
+      ${restDaysOn(today).includes(today.getDay()) ? '<div class="hint">Es tu día de descanso: solo si te animas.</div>' : ''}
+      <div class="btnRow"><button class="btn btn-start" id="btnPlanGo" data-rid="${esc(r.id)}">Empezar</button></div>`;
+  }
+
   // limpia los ejercicios de una rutina (copias importadas): solo campos conocidos y valores en rango.
   // withDone = sesión guardada en el Historial (lleva cuántas series se hicieron, de 0 a sets)
   function cleanRtItems(items, withDone){
@@ -2277,6 +2304,7 @@
     }
     const ph = dailyPhrase(mk === 'vuelta' ? 'superacion' : 'inicio'); // frase del día junto a la mascota
     document.getElementById('homeMsg').innerHTML = esc(msg) + (ph ? '<span class="phrase">' + esc(ph) + '</span>' : '');
+    renderTodayPlan(today, tk);
     renderCal(mins);
     const todays = history.filter(h=>dayKey(new Date(actRange(h)[0])) === tk);
     document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
@@ -2356,7 +2384,26 @@
           <button class="btn btn-ghost" data-rt-edit="${esc(r.id)}">Editar</button></div>
         <button class="linkBtn rtDel" data-rt-del="${esc(r.id)}">Borrar rutina</button></div>`).join('')
       : `<div class="empty"><img src="${mascot('vacio')}" alt="">Todavía no tienes rutinas.<br>Crea la primera con tus ejercicios.</div>`;
+    renderWeek();
   }
+  // "Mi semana": una rutina por día (o ninguna); se guarda al cambiar
+  function renderWeek(){
+    const plan = weekPlan(), box = document.getElementById('rtWeekRows');
+    document.getElementById('rtWeek').style.display = routines.length ? '' : 'none';
+    box.innerHTML = [1,2,3,4,5,6,0].map(d=>`<div class="rtWeekRow"><b>${DAY2[d]}</b>
+      <select data-wday="${d}"><option value="">Sin rutina</option>${routines.map(r=>`<option value="${esc(r.id)}"${plan[d] === r.id ? ' selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>`).join('');
+  }
+  document.getElementById('rtWeekRows').addEventListener('change', ev=>{
+    const s = ev.target.closest('[data-wday]'); if(!s) return;
+    const plan = weekPlan(); if(s.value) plan[s.dataset.wday] = s.value; else delete plan[s.dataset.wday];
+    LS.set('mirun_weekplan', plan); showSaved();
+  });
+  document.getElementById('todayPlan').addEventListener('click', ev=>{
+    const b = ev.target.closest('#btnPlanGo'); if(!b) return;
+    if(rtSessionActive()){ showTab('rutinas'); return; } // ya hay una sesión: se sigue esa
+    const r = routines.find(x=>x.id === b.dataset.rid); if(!r) return;
+    showTab('rutinas'); startSession(r);
+  });
   document.getElementById('rtList').addEventListener('click', ev=>{
     const g = ev.target.closest('[data-rt-go]'), e = ev.target.closest('[data-rt-edit]'), d = ev.target.closest('[data-rt-del]');
     const find = id=>routines.find(r=>r.id === id);
@@ -2364,7 +2411,9 @@
     else if(e){ const r = find(e.dataset.rtEdit); if(r) openRoutineEditor(r); }
     else if(d){ const r = find(d.dataset.rtDel); if(!r) return;
       if(!confirm('¿Borrar la rutina "' + r.name + '"? Las sesiones que ya guardaste no se borran.')) return;
-      routines = routines.filter(x=>x !== r); saveRoutines(); renderRoutines(); }
+      routines = routines.filter(x=>x !== r); saveRoutines();
+      const plan = weekPlan(); Object.keys(plan).forEach(k=>{ if(plan[k] === r.id) delete plan[k]; }); LS.set('mirun_weekplan', plan); // su día queda libre
+      renderRoutines(); }
   });
   document.getElementById('btnRtNew').addEventListener('click', ()=>{
     if(routines.length >= RT_LIM.routines){ alert('Puedes tener hasta ' + RT_LIM.routines + ' rutinas.'); return; }
@@ -2639,8 +2688,9 @@
     history.push({date: iso, type, intensity, seconds,
       cal: metCalories(actInfo(type).met[INTENSITY.indexOf(intensity)], seconds),
       dist: 0, pace: '--:--', path: [], splits: [], manual: true,
-      routine: Object.assign({name: ses.name, items: ses.items.map(it=>Object.assign(it.ex ? {ex: it.ex} : {name: it.name}, {kind: it.kind, amount: it.amount, sets: it.sets, done: it.done}))},
+      routine: Object.assign({name: ses.name, rid: ses.rid, items: ses.items.map(it=>Object.assign(it.ex ? {ex: it.ex} : {name: it.name}, {kind: it.kind, amount: it.amount, sets: it.sets, done: it.done}))},
         ses.guided ? {mode: ses.mode} : {})});
+    if(!ses.rid) delete history[history.length - 1].routine.rid;
     history.sort((a,b)=>a.date < b.date ? -1 : 1);
     LS.set('mirun_history', history);
     const mins = Math.round(seconds / 60);
@@ -2974,7 +3024,7 @@
   document.getElementById('btnExport').addEventListener('click', ()=>{
     LS.set('mirun_lastBackup', new Date().toISOString());
     const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
-                                 profile, goal, history, body, routines});
+                                 profile, goal, history, body, routines, weekplan: weekPlan()});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
     const d = new Date();
@@ -3021,6 +3071,7 @@
             // sesión de rutina: nombre y ejercicios con las series hechas
             ...(h.routine && typeof h.routine === 'object' && cleanRtItems(h.routine.items, true).length ?
                 {routine: Object.assign({name: String(h.routine.name || 'Rutina').slice(0, RT_LIM.name), items: cleanRtItems(h.routine.items, true)},
+                  typeof h.routine.rid === 'string' && /^[\w-]{1,40}$/.test(h.routine.rid) ? {rid: h.routine.rid} : {},
                   cleanRtMeta(h.routine).mode ? {mode: cleanRtMeta(h.routine).mode} : {})} : {})
           }));
         // teléfono "nuevo" (sin datos): la copia restaura perfil, metas y foto completos;
@@ -3061,6 +3112,13 @@
             routines.push(c); haveR.add(id); nuevasRt++;
           });
           if(nuevasRt) saveRoutines();
+        }
+        // semana (copias nuevas): solo días 0 a 6 con rutinas que existen; completa días vacíos, no pisa
+        if(data.weekplan && typeof data.weekplan === 'object' && !Array.isArray(data.weekplan)){
+          const plan = weekPlan(); let ch = false;
+          Object.keys(data.weekplan).forEach(k=>{ const v = data.weekplan[k];
+            if(/^[0-6]$/.test(k) && typeof v === 'string' && routines.some(x=>x.id === v) && !plan[k]){ plan[k] = v; ch = true; } });
+          if(ch) LS.set('mirun_weekplan', plan);
         }
         // perfil, metas y foto (copias de v5 en adelante): solo campos conocidos y valores válidos
         let perfil = false;

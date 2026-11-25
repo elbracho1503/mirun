@@ -166,6 +166,11 @@ o con su propia app del teléfono. MiRun los **lee** desde ahí, con el mismo ca
 Kotlin y no en Capacitor. Por ejemplo, para iniciar o pausar una carrera y ver tiempo y ritmo en la muñeca.
 No se planea mientras no haya pedidos reales.
 
+## 5c. Aviso "Hoy toca" con la app cerrada
+- El planeador de la semana (`mirun_weekplan`) ya dice qué rutina toca cada día; en la PWA solo se ve al abrir Inicio.
+- En la app nativa: notificación local diaria (plugin de notificaciones locales de Capacitor) a una hora que elige la
+  persona, con el texto "Hoy toca: [rutina] 💪". No necesita servidor. Se reprograma al cambiar "Mi semana".
+
 ## 6. Riesgos
 
 | Riesgo | Cómo se evita |
