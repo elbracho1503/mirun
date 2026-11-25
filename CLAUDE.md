@@ -37,7 +37,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `img/bienvenida.jpg` | Imagen de la pantalla de bienvenida (600 px, 80 KB, sí va al caché) |
 | `img/icono-original.png`, `img/siluetas-original.png`, `img/bienvenida-original.jpg` | Imágenes originales del usuario (no van al caché) |
 | `.gitignore` | Excluye `respaldo/` de GitHub |
-| `.claude/herramientas/` | Scripts Node sin dependencias: `png_lib.js` (leer/escribir PNG), `recortar.js` (cortar hoja de poses) |
+| `.claude/herramientas/` | Scripts Node sin dependencias: `png_lib.js` (leer/escribir PNG), `recortar.js` (cortar hoja de poses 3x5), `cortar4x4.js` (hoja 4x4 con la tabla de Zafira; uso en su encabezado) |
 | `respaldo/` | Copias de versiones anteriores de `mirun.html` antes de cambios grandes. También `respaldo/personajes-original/`: hojas de poses originales de Zafira, Nova, Tizón, Rayo y Jade (no se suben a GitHub) |
 | `docs/DATOS.md` | Esquema de datos en `localStorage` |
 | `docs/DISENO.md` | Colores, componentes y reglas visuales |
