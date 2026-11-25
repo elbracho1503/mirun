@@ -68,6 +68,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
 | Perfil: saludo, foto (`mirun_photo`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
+| Ruta liviana para carreras nuevas (`lightRoute`, `routeOf` lee `route` nuevo y `path` viejo) | `// ---------- RUTA LIVIANA` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |

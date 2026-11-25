@@ -696,6 +696,37 @@
   });
 
   // ---------- ROUTE DRAWING (canvas, no internet needed) ----------
+  // ---------- RUTA LIVIANA ----------
+  // Rutas NUEVAS (desde 2026-11-25): campo route = [[lat, lon], ...] con 5 decimales (1,1 m) y sin los puntos que no
+  // cambian la forma (Douglas-Peucker, 2 m), y path = []. Las rutas viejas siguen en path = [{lat, lon}] sin cambios.
+  // Distancia, ritmo, splits y récords se calculan DURANTE la carrera con todos los puntos: la ruta guardada solo dibuja.
+  const ROUTE_TOL_M = 2;
+  function lightRoute(pts){
+    const n = pts.length; if(n < 2) return pts.map(p=>[Math.round(p.lat * 1e5) / 1e5, Math.round(p.lon * 1e5) / 1e5]);
+    const lat0 = pts[0].lat * Math.PI / 180, mx = 111320 * Math.cos(lat0), my = 110540;
+    const keep = new Uint8Array(n); keep[0] = keep[n - 1] = 1;
+    const stack = [[0, n - 1]];
+    while(stack.length){
+      const [a, b] = stack.pop(); if(b - a < 2) continue;
+      const ax = pts[a].lon * mx, ay = pts[a].lat * my, bx = pts[b].lon * mx - ax, by = pts[b].lat * my - ay, len = Math.hypot(bx, by);
+      let far = -1, fd = 0;
+      for(let i = a + 1; i < b; i++){
+        const px = pts[i].lon * mx - ax, py = pts[i].lat * my - ay;
+        const d = len ? Math.abs(px * by - py * bx) / len : Math.hypot(px, py);
+        if(d > fd){ fd = d; far = i; }
+      }
+      if(fd > ROUTE_TOL_M){ keep[far] = 1; stack.push([a, far], [far, b]); }
+    }
+    const out = [];
+    for(let i = 0; i < n; i++) if(keep[i]) out.push([Math.round(pts[i].lat * 1e5) / 1e5, Math.round(pts[i].lon * 1e5) / 1e5]);
+    return out;
+  }
+  // puntos para dibujar una actividad, en cualquiera de los dos formatos: [{lat, lon}]
+  function routeOf(h){
+    if(h && Array.isArray(h.route) && h.route.length) return h.route.map(p=>({lat: p[0], lon: p[1]}));
+    return h && Array.isArray(h.path) ? h.path : [];
+  }
+
   function drawRoute(canvas, points, color){
     if(!canvas || !points || points.length < 2) {
       if(canvas){
@@ -945,7 +976,7 @@
     const w = ev.target.closest('[data-map]'); if(!w) return;
     const h = history.find(x=>x.date === decodeURIComponent(w.dataset.map)); if(!h) return;
     const d = new Date(h.date);
-    openBigMap(h.path, actInfo(h.type).n + ' · ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}));
+    openBigMap(routeOf(h), actInfo(h.type).n + ' · ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}));
   });
   function renderHistory(){
     const list = document.getElementById('histList');
@@ -965,7 +996,7 @@
         const d = new Date(h.date);
         const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
                       d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-        const hasRoute = h.path && h.path.length > 1;
+        const hasRoute = routeOf(h).length > 1;
         const a = actInfo(h.type);
         const head = `<div class="top"><span>${ico(a.i)} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}${h.edited ? '<span class="tag">editada</span>' : ''}</span>
             <span class="histBtns"><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
@@ -993,9 +1024,10 @@
         list.insertAdjacentHTML('afterbegin', '<div class="hint histStepsHint">Agrega tu estatura en Perfil para ver tus pasos</div>');
 
       sorted.forEach((h,ri)=>{
-        if(h.path && h.path.length > 1){
+        const pts = routeOf(h);
+        if(pts.length > 1){
           const c = document.getElementById('hist-route-'+ri);
-          if(c) drawRoute(c, h.path, '#7cc4ff');
+          if(c) drawRoute(c, pts, '#7cc4ff');
         }
       });
     }
@@ -2189,7 +2221,7 @@
         seconds: sec,
         pace: paceStr,
         cal: cal,
-        path: path.map(p=>({lat:p.lat, lon:p.lon})),
+        path: [], route: lightRoute(path), // ruta liviana (ver RUTA LIVIANA); los números ya se calcularon con todos los puntos
         splits: splits,
         type: runType,
         ...autoInfo // pausa automática (solo si hubo)
@@ -3223,6 +3255,9 @@
             cal: Math.round(Number(h.cal)||0),
             path: Array.isArray(h.path) ? h.path.filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon))
                     .map(p=>({lat:Number(p.lat), lon:Number(p.lon)})) : [],
+            // ruta liviana (formato nuevo): [[lat, lon], ...] con números válidos
+            ...(Array.isArray(h.route) ? {route: h.route.filter(p=>Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1]) &&
+                    Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180).slice(0, 50000).map(p=>[Number(p[0]), Number(p[1])])} : {}),
             splits: Array.isArray(h.splits) ? h.splits.filter(s=>s&&isFinite(s.km)&&isFinite(s.seconds))
                     .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
             manual: !!h.manual,

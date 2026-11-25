@@ -30,7 +30,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   seconds: 1800,
   pace: '05:58',       // texto min/km; '--:--' si no aplica
   cal: 350,
-  path: [{lat, lon}],  // vacío si es a mano
+  path: [{lat, lon}],  // vacío si es a mano. Desde 2026-11-25 las rutas NUEVAS van en route y path = []
+  route: [[lat, lon]], // opcional (rutas nuevas): 5 decimales, sin puntos que no cambian la forma (RUTA LIVIANA)
   splits: [{km, seconds, partial?}],
   manual: true,        // opcional: registrada a mano
   intensity: 'media',  // v5, solo actividades sin GPS: baja | media | alta
@@ -124,3 +125,7 @@ series en rango; lo inválido se descarta). El `routine` de una actividad se lim
   clave `date`, mismo formato que el historial). Al abrir la app vuelve al Historial y se borra de allá cuando ya quedó
   en `mirun_history`. Mientras tanto "Guardar copia" la incluye.
 - `navigator.storage.persist()` se pide al abrir (sin insistir si el navegador no lo da).
+- **Rutas livianas** (desde 2026-11-25): las carreras nuevas guardan `route` (`[[lat, lon]]`, 5 decimales = 1,1 m, simplificada
+  con Douglas-Peucker a 2 m) y `path: []`. Las viejas NO se convierten: siguen en `path`. `routeOf(h)` lee los dos formatos.
+  Distancia, ritmo, splits, calorías y récords se calculan durante la carrera con todos los puntos, antes de simplificar.
+  La copia exporta los dos formatos y la importación acepta los dos (route: solo pares de números válidos, máx. 50.000).
