@@ -471,6 +471,7 @@
   .rtItem{background:var(--track2);border:1px solid var(--lane-line);border-radius:14px;padding:12px;margin-top:10px;}
   .rtItemTop{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .rtItemTop b{overflow-wrap:anywhere;}
+  .rtItem input[type=number]{text-align:center;} /* series, repeticiones y segundos centrados */
   .rtMove{display:flex;flex-shrink:0;}
   .rtMove .linkBtn{min-width:36px;min-height:36px;padding:0;font-size:17px;color:var(--text);}
   .rtMove .linkBtn[disabled]{opacity:.3;}
