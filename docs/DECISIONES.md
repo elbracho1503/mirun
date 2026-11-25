@@ -53,3 +53,9 @@
 - Un commit quedó con un correo personal del usuario como autor (error de la IA); se corrigió el
   historial el 2026-11-02 (ver CAMBIOS). Los commits usan el correo privado "noreply" de GitHub.
 Ver docs/privado/NEGOCIO.md (local)
+
+## Impeccable (skill de diseño) — 2026-11-25
+- Instalada solo en este proyecto copiando `.claude/skills/impeccable/` del repositorio oficial. Sin hooks (no hay `.claude/settings.json`), sin subagentes y sin el instalador `npx`.
+- No se sube a GitHub (`.gitignore`). Telemetría apagada (`.impeccable/config.json`). Nunca usar el modo "Live".
+- El motor (`scripts/impeccable`) se descarga solo la primera vez que se corre: **no correrlo sin avisar al usuario**. Sin él, la skill se usa leyendo sus guías (`reference/`).
+- PRODUCT.md / DESIGN.md: sin nada de negocio; si llevan algo privado, a `.gitignore`.
