@@ -667,3 +667,49 @@
   .welBox .btnRow{margin-top:10px;}
   .welBox .btnRow .btn{padding:15px;}
   .welSkip{margin-top:0;}
+
+  /* ==== DISEÑO 2 (rama prueba/diseno2) ==== */
+  /* GPS antes de salir (sin body.gpsOn): solo el tipo y un botón grande abajo, encima del menú.
+     El 0.00, tiempo/ritmo/calorías y las metas se ven solo durante la actividad. */
+  body:not(.gpsOn) #tab-run .clock, body:not(.gpsOn) #tab-run .lanes, body:not(.gpsOn) #tab-run .goalStrip{display:none;}
+  body:not(.gpsOn) #tab-run.active{display:flex;flex-direction:column;min-height:calc(100dvh - 92px);}
+  body:not(.gpsOn) #tab-run #gpsTypeRow{margin-top:auto !important;gap:14px;}
+  body:not(.gpsOn) #tab-run .mascotInline{width:132px;height:132px;}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chip{padding:14px 4px;font-size:15px;font-weight:600;text-align:center;}
+  #startRow .btn{padding:22px;font-size:19px;font-weight:700;}
+  /* Íconos (Lucide, ver ICONOS en js/app.js): mismo trazo que el menú inferior */
+  .ico{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+    vertical-align:-.22em;flex-shrink:0;}
+  .chip .ico{margin-right:6px;color:var(--signal);}
+  .chip.on .ico{color:#fff;}
+  .actChips .chip .ico{width:24px;height:24px;margin:0 0 2px;}
+  .actRow .ic{color:var(--signal);}
+  .actRow .ic .ico{width:24px;height:24px;}
+  .sheetOpt span{color:var(--signal);display:flex;justify-content:center;}
+  .sheetOpt span .ico{width:24px;height:24px;}
+  .lockBtn .ico{margin-right:6px;}
+  .medal .ico{width:48%;height:48%;color:#fff;}
+  .ach.lock .medal .ico{color:var(--sub2);}
+  .ach.leg .medal .ico, .medal.big:not(.blue) .ico{color:#3a2400;}
+  .medal .lk{color:var(--sub);}
+  .medal .lk .ico{width:13px;height:13px;}
+  .nextAch .medal .ico{color:var(--gold);}
+  .setBtn .ico{width:20px;height:20px;stroke-width:2.5;}
+  .linkBtn .ico{width:18px;height:18px;}
+  .tpIco{color:var(--signal);}
+  .tpIco.ok{color:var(--good);}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chip{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  body:not(.gpsOn) #tab-run #gpsTypeRow .chip .ico{width:26px;height:26px;margin:0;}
+  /* Historial: solo la lista, agrupada por semana (histWeekHead en js/app.js) */
+  .histWeek{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:24px 2px 6px;}
+  .histWeek:first-child, .histStepsHint + .histWeek{margin-top:14px;}
+  .histWeek b{font-size:16px;color:var(--text);}
+  .histWeek span{font-size:13px;color:var(--sub);}
+  /* Historial: Editar y Borrar más grandes y separados (área de toque de 40 px) */
+  .histBtns{display:flex;gap:8px;flex-shrink:0;margin-left:10px;}
+  .histBtns .linkBtn{min-height:40px;padding:0 14px;border:1px solid var(--lane-line);border-radius:12px;
+    font-size:13.5px;font-weight:600;color:var(--text);background:var(--track2);}
+  .histBtns .linkBtn[data-del]{color:#ff8a8a;}
+  .histItem .top{align-items:flex-start;gap:6px;}
+  .histItem .top > span:first-child{padding-top:10px;}

@@ -29,7 +29,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `js/app.js` | Toda la lógica (secciones con marcadores `// ---------- NOMBRE`) |
 | `index.html` | Solo redirige a `mirun.html` |
 | `sw.js` | Service Worker (modo sin internet). `CACHE_NAME` = versión de caché. Las imágenes de la mascota NO están en `FILES_TO_CACHE`: la app manda el mensaje `mascota` (`syncCharacterCache`) y se guardan solo las del compañero elegido |
-| `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192 y 512 "any", `icon-512-maskable.png` (imagen al 80 % para el círculo de Android), 180 para iPhone) |
+| `manifest.json` | Instalación como app (íconos en `img/iconos/`: 192, 512 y 1024 "any", `icon-512-maskable.png` (imagen al 80 % para el círculo de Android), 180 para iPhone) |
 | `lib/leaflet.*` | Librería de mapas, copia local. No editar |
 | `img/mascota/` | 15 poses de **Brío**, la mascota principal (antes "MIRUN Monster"; PNG 256 px transparentes) |
 | `img/zafira/`, `img/nova/`, `img/tizon/`, `img/rayo/`, `img/jade/` | Poses de los otros personajes (PNG 256 px; en Nova, Tizón y Rayo una pose apunta a otro archivo, ver `CHARACTERS`) |
@@ -45,6 +45,7 @@ Publicada en GitHub Pages: https://elbracho1503.github.io/mirun/
 | `docs/PLAN.md` | Plan por etapas y estado |
 | `docs/CAMBIOS.md` | Registro de cambios con costo en tokens |
 | `docs/PROMPTS.md` | Prompts para generar imágenes (siluetas, ícono) y lecciones aprendidas |
+| `docs/LICENCIAS.md` | Licencias de terceros: Lucide (íconos, ISC) y Leaflet |
 | `docs/NATIVA.md` | Plan para la app nativa con Capacitor (F4): instalación, migración de datos, Health Connect, GPS con pantalla apagada |
 
 ## Mapa de mirun.html
@@ -56,9 +57,10 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | CSS del diseño azul (encima del base) | `DISEÑO v5` |
 | Cabecera (botón Perfil con engranaje y "Perfil") y menú inferior con "+" | `<header>`, `Menú inferior`, `id="plusSheet"` (CSS: `MENÚ CON "+"`, `BOTÓN PERFIL DE LA CABECERA`) |
 | CSS de Inicio, calendario, chips | `INICIO: racha` |
-| Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `RECORDS`, `BODY`, `PROFILE` |
-| Formulario de actividad (HTML) | `id="actForm"` |
+| Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `REGISTRAR` (`id="tab-add"`), `RECORDS`, `BODY`, `PROFILE` |
+| Formulario de actividad y carrera a mano (HTML): pantalla Registrar, se abre desde el "+" (`data-plus="manual"` / `"carrera"`) | `id="actForm"`, `id="manForm"` |
 | Resumen al terminar | `id="summaryOverlay"` |
+| Íconos SVG de Lucide (`ICONS`, `ico('nombre')`; licencia en `docs/LICENCIAS.md`). Nunca emojis como íconos | `// ---------- ÍCONOS` (CSS: `.ico` en `DISEÑO 2`) |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
 | Frases motivacionales (`PHRASES`, `dailyPhrase`: una por día y lugar, `mirun_phrases`; fe solo con `profile.faith`) | `// ---------- FRASES` (HTML Perfil: `id="profFaith"`, GPS: `id="runPhrase"`) |
 | Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |
@@ -69,7 +71,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
-| Historial (incluye "≈ N pasos" y el detalle de rutina `routineDetail`) | `// ---------- HISTORY` |
+| Historial: solo la lista, la más nueva arriba, agrupada por semana con su total (`histWeekHead`); incluye "≈ N pasos" y el detalle de rutina `routineDetail` | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
 | Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
@@ -88,7 +90,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
-| Exportar / importar copia | `// ---------- COPIA DE SEGURIDAD` |
+| Exportar / importar copia (botones en Perfil: `id="backupPanel"`) | `// ---------- COPIA DE SEGURIDAD` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |
 
 ## Publicar (GitHub Pages)

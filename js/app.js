@@ -2,6 +2,47 @@
 (function(){
   "use strict";
 
+  // ---------- ÍCONOS ----------
+  // Íconos de Lucide (https://lucide.dev, licencia ISC; ver docs/LICENCIAS.md), copiados aquí: nada se carga de internet.
+  // Mismo trazo que el menú inferior (2 px, puntas redondas). ico('nombre') da el <svg> listo para poner en el HTML.
+  const ICONS = {
+    'award': '<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>',
+    'badge-check': '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m16 9-5.5 5.5L8 12"/>',
+    'biceps-flexed': '<path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"/><path d="M15 14a5 5 0 0 0-7.584 2"/><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"/>',
+    'bike': '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
+    'check': '<path d="M20 6 9 17l-5-5"/>',
+    'circle-check': '<circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/>',
+    'circle-person-arms-spread': '<path d="m15 17-3-3"/><path d="M8 10s2 1 4 1 4-1 4-1"/><path d="m9 17 3-3v-3"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="7" r=".5" fill="currentColor"/>',
+    'compass': '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>',
+    'crown': '<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>',
+    'dumbbell': '<path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/>',
+    'flame': '<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/>',
+    'flower-2': '<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/>',
+    'footprints': '<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/>',
+    'gem': '<path d="M10.5 3 8 9l4 13 4-13-2.5-6"/><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z"/><path d="M2 9h20"/>',
+    'globe': '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    'hourglass': '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+    'lock': '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    'medal': '<path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/>',
+    'mountain-snow': '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M4.14 15.08c2.62-1.57 5.24-1.43 7.86.42 2.74 1.94 5.49 2 8.23.19"/>',
+    'pencil-line': '<path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+    'person-standing': '<circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/>',
+    'rocket': '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/>',
+    'route': '<path d="M9 5h8.5a1 1 0 010 7h-11a1 1 0 000 7H15"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="5" r="3"/>',
+    'shield-check': '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    'sparkles': '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
+    'sprout': '<path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/><path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/><path d="M5 21h14"/>',
+    'star': '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+    'target': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    'timer': '<line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>',
+    'trophy': '<path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/>',
+    'volleyball': '<path d="M11 7a16 16 20 0 1 10.98 4.362"/><path d="M12 12a13 13 0 0 1-8.66 5"/><path d="M16.83 13.634a16 16 0 0 1-9.267 7.328"/><path d="M20.66 17A13 13 0 0 0 12 12a13 13 0 0 1 0-10"/><path d="M8.17 15.366a16 16 0 0 1-1.713-11.69"/><circle cx="12" cy="12" r="10"/>',
+    'waves-horizontal': '<path d="M2 12q2.5 2 5 0t5 0 5 0 5 0"/><path d="M2 19q2.5 2 5 0t5 0 5 0 5 0"/><path d="M2 5q2.5 2 5 0t5 0 5 0 5 0"/>',
+    'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    'zap': '<path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/>'
+  };
+  function ico(k, cls){ return '<svg class="ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; }
+
   // ---------- STORAGE ----------
   const LS = {
     get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
@@ -91,14 +132,14 @@
     if(!r && !(act && act.items)){ box.style.display = 'none'; return; }
     box.style.display = '';
     if(act && Array.isArray(act.items) && act.items.length){ // una sesión a medias manda: no se empieza otra encima
-      box.innerHTML = `<div class="tpTxt">Tienes <b>${esc(act.name)}</b> a medias 💪</div>
-        <div class="btnRow"><button class="btn btn-start" id="btnPlanGo">Seguir</button></div>`; return; }
+      box.innerHTML = `<div class="tpTxt">Tienes <b>${esc(act.name)}</b> a medias ${ico('biceps-flexed', 'tpIco')}</div>
+        <div class="btnRow"><button class="btn btn-ghost" id="btnPlanGo">Seguir</button></div>`; return; }
     const done = history.some(h=>h.routine && dayKey(new Date(actRange(h)[0])) === tk && (h.routine.rid ? h.routine.rid === r.id : h.routine.name === r.name));
-    if(done){ box.innerHTML = `<div class="tpTxt">Hoy tocaba <b>${esc(r.name)}</b>: ¡hecho! ✅</div>`; return; }
+    if(done){ box.innerHTML = `<div class="tpTxt">Hoy tocaba <b>${esc(r.name)}</b>: ¡hecho! ${ico('circle-check', 'tpIco ok')}</div>`; return; }
     const m = routineAvgMin(r);
-    box.innerHTML = `<div class="tpTxt">Hoy toca: <b>${esc(r.name)}</b> 💪 ${m ? '¿Le sacamos ' + m + ' minutos?' : '¿Le sacamos un rato?'}</div>
+    box.innerHTML = `<div class="tpTxt">Hoy toca: <b>${esc(r.name)}</b> ${ico('biceps-flexed', 'tpIco')} ${m ? '¿Le sacamos ' + m + ' minutos?' : '¿Le sacamos un rato?'}</div>
       ${restDaysOn(today).includes(today.getDay()) ? '<div class="hint">Es tu día de descanso: solo si te animas.</div>' : ''}
-      <div class="btnRow"><button class="btn btn-start" id="btnPlanGo" data-rid="${esc(r.id)}">Empezar</button></div>`;
+      <div class="btnRow"><button class="btn btn-ghost" id="btnPlanGo" data-rid="${esc(r.id)}">Empezar</button></div>`;
   }
 
   // limpia los ejercicios de una rutina (copias importadas): solo campos conocidos y valores en rango.
@@ -293,16 +334,16 @@
   // k = valor guardado en history[].type (sin type = 'correr'). met = gasto [baja, media, alta].
   // gps:true = se registra con la pantalla GPS (su gasto sale de la velocidad, ver calcCalories)
   const ACTIVITIES = [
-    {k:'correr',     n:'Correr',              e:'🏃', gps:true},
-    {k:'caminar',    n:'Caminar',             e:'🚶', gps:true},
-    {k:'bici',       n:'Bicicleta',           e:'🚴', gps:true},
-    {k:'gimnasio',   n:'Gimnasio',            e:'🏋️', met:[3.5, 5.0, 6.0]},
-    {k:'ejercicios', n:'Flexiones, abdominales, burpees', e:'💪', met:[3.8, 5.0, 8.0]},
-    {k:'natacion',   n:'Natación',            e:'🏊', met:[5.8, 8.0, 10.0]},
-    {k:'deportes',   n:'Deportes',            e:'⚽', met:[5.0, 7.0, 9.0]},
-    {k:'baile',      n:'Baile',               e:'💃', met:[4.5, 5.5, 7.8]},
-    {k:'yoga',       n:'Yoga / estiramiento', e:'🧘', met:[2.5, 3.0, 4.0]},
-    {k:'otros',      n:'Otra actividad',      e:'✨', met:[3.0, 4.5, 6.0]}
+    {k:'correr',     n:'Correr',              i:'footprints', gps:true},
+    {k:'caminar',    n:'Caminar',             i:'person-standing', gps:true},
+    {k:'bici',       n:'Bicicleta',           i:'bike', gps:true},
+    {k:'gimnasio',   n:'Gimnasio',            i:'dumbbell', met:[3.5, 5.0, 6.0]},
+    {k:'ejercicios', n:'Flexiones, abdominales, burpees', i:'biceps-flexed', met:[3.8, 5.0, 8.0]},
+    {k:'natacion',   n:'Natación',            i:'waves-horizontal', met:[5.8, 8.0, 10.0]},
+    {k:'deportes',   n:'Deportes',            i:'volleyball', met:[5.0, 7.0, 9.0]},
+    {k:'baile',      n:'Baile',               i:'circle-person-arms-spread', met:[4.5, 5.5, 7.8]},
+    {k:'yoga',       n:'Yoga / estiramiento', i:'flower-2', met:[2.5, 3.0, 4.0]},
+    {k:'otros',      n:'Otra actividad',      i:'sparkles', met:[3.0, 4.5, 6.0]}
   ];
   const INTENSITY = ['baja', 'media', 'alta'];
   function actInfo(k){ return ACTIVITIES.find(a=>a.k === (k || 'correr')) || ACTIVITIES[ACTIVITIES.length-1]; }
@@ -347,14 +388,11 @@
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
   });
-  // botones con data-goto="pantalla" (o "actForm": historial y baja al formulario de actividad)
+  // botones con data-goto="pantalla"
   document.addEventListener('click', (ev)=>{
     const b = ev.target.closest('[data-goto]');
     if(!b) return;
-    if(b.dataset.goto === 'actForm'){
-      showTab('history');
-      document.getElementById('actForm').scrollIntoView({block:'start'});
-    } else showTab(b.dataset.goto);
+    showTab(b.dataset.goto);
   });
   // botón "+": si hay una actividad GPS en curso va directo a ella; si no, abre el menú de opciones
   const plusSheet = document.getElementById('plusSheet');
@@ -362,13 +400,16 @@
     if(running){ showTab('run'); return; }
     plusSheet.classList.add('show');
   });
+  // Inicio: "Empezar actividad" hace lo mismo que el "+"
+  document.getElementById('btnHomeStart').addEventListener('click', ()=>document.getElementById('plusBtn').click());
   plusSheet.addEventListener('click', (ev)=>{
     const o = ev.target.closest('[data-plus]');
     plusSheet.classList.remove('show'); // tocar fuera también cierra
     if(!o) return;
     if(o.dataset.plus === 'manual'){
-      showTab('history');
-      document.getElementById('actForm').scrollIntoView({block:'start'});
+      showTab('add'); document.getElementById('actForm').scrollIntoView({block:'start'}); // pantalla Registrar (#tab-add): actividad sin GPS arriba
+    } else if(o.dataset.plus === 'carrera'){
+      showTab('add'); document.getElementById('manForm').scrollIntoView({block:'start'}); // carrera sin GPS (a mano)
     } else if(o.dataset.plus === 'rutina'){
       showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
@@ -887,13 +928,22 @@
     if(history.length===0){
       list.innerHTML = '<div class="empty"><img src="' + mascot('vacio') + '" alt="">Todavía no tienes actividades registradas.<br>¡Muévete hoy!</div>';
     } else {
-      list.innerHTML = history.slice().reverse().map((h,ri)=>{
+      // la más nueva arriba, agrupadas por semana (lunes a domingo) con su total
+      const sorted = history.slice().sort((a,b)=>a.date < b.date ? 1 : -1);
+      const wkOf = h=>dayKey(mondayOf(new Date(actRange(h)[0])));
+      let lastWk = null;
+      list.innerHTML = sorted.map((h,ri)=>{
+        const wk = wkOf(h), wkHead = wk !== lastWk ? histWeekHead(wk, sorted.filter(x=>wkOf(x) === wk)) : '';
+        lastWk = wk;
+        return wkHead + histCard(h, ri);
+      }).join('');
+      function histCard(h, ri){
         const d = new Date(h.date);
         const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
                       d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
         const hasRoute = h.path && h.path.length > 1;
         const a = actInfo(h.type);
-        const head = `<div class="top"><span>${a.e} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}${h.edited ? '<span class="tag">editada</span>' : ''}</span>
+        const head = `<div class="top"><span>${ico(a.i)} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}${h.edited ? '<span class="tag">editada</span>' : ''}</span>
             <span class="histBtns"><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
         if(!(h.dist > 0)){ // actividad sin distancia (gimnasio, natación, etc.)
           return `<div class="histItem">${head}<div class="stats">
@@ -913,12 +963,12 @@
           ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}"></canvas>
             <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
-      }).join('');
+      }
       // pasos: un solo aviso si falta la estatura y hay caminatas o carreras con distancia
       if(!(profile.height > 0) && history.some(h=>h.dist > 0 && (!h.type || h.type === 'correr' || h.type === 'caminar')))
         list.insertAdjacentHTML('afterbegin', '<div class="hint histStepsHint">Agrega tu estatura en Perfil para ver tus pasos</div>');
 
-      history.slice().reverse().forEach((h,ri)=>{
+      sorted.forEach((h,ri)=>{
         if(h.path && h.path.length > 1){
           const c = document.getElementById('hist-route-'+ri);
           if(c) drawRoute(c, h.path, '#7cc4ff');
@@ -937,6 +987,17 @@
                                       : 'Tu última copia es de hace ' + daysB + ' días. Te recomendamos guardar una nueva.';
       bm.style.color = 'var(--amber)';
     }
+  }
+  // título de cada semana del Historial: "Esta semana", "Semana pasada" o "17 – 23 nov", con actividades, tiempo y distancia
+  function histWeekHead(wk, items){
+    const mon = new Date(wk + 'T12:00:00'), sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const now = dayKey(mondayOf(new Date())), prev = dayKey(mondayOf(new Date(Date.now() - 7 * 86400000)));
+    const dm = d=>d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}).replace('.', '');
+    const title = wk === now ? 'Esta semana' : wk === prev ? 'Semana pasada'
+      : (mon.getMonth() === sun.getMonth() ? mon.getDate() : dm(mon)) + ' – ' + dm(sun);
+    const min = Math.round(items.reduce((s,h)=>s + h.seconds, 0) / 60), km = items.reduce((s,h)=>s + (h.dist || 0), 0);
+    const t = min >= 60 ? Math.floor(min / 60) + ' h' + (min % 60 ? ' ' + (min % 60) + ' min' : '') : min + ' min';
+    return `<div class="histWeek"><b>${title}</b><span>${items.length} ${items.length === 1 ? 'actividad' : 'actividades'} · ${t}${km > 0 ? ' · ' + fmtD(km, 1) : ''}</span></div>`;
   }
   renderHistory();
 
@@ -960,7 +1021,7 @@
   // de copias viejas no la duplique. edited = fecha ISO de la última edición. "Deshacer" ~8 s.
   const editSheet = document.getElementById('editSheet');
   const edChips = document.getElementById('edChips'), edInt = document.getElementById('edInt');
-  edChips.innerHTML = ACTIVITIES.map(a=>`<button class="chip" data-act="${a.k}"><span>${a.e}</span>${a.n}</button>`).join('');
+  edChips.innerHTML = ACTIVITIES.map(a=>`<button class="chip" data-act="${a.k}">${ico(a.i)}${a.n}</button>`).join('');
   let edTarget = null, edInit = null, undoPrev = null, undoObj = null, undoTimer = null;
   function edType(){ return edChips.querySelector('.chip.on').dataset.act; }
   function edShowFields(){ // distancia solo en tipos con GPS; intensidad solo en tipos sin GPS
@@ -2309,7 +2370,7 @@
     const todays = history.filter(h=>dayKey(new Date(actRange(h)[0])) === tk);
     document.getElementById('todayList').innerHTML = todays.length ? todays.map(h=>{
       const a = actInfo(h.type);
-      return `<div class="actRow"><div class="ic">${a.e}</div><div class="an">${a.n}
+      return `<div class="actRow"><div class="ic">${ico(a.i)}</div><div class="an">${a.n}
         <small>${Math.round(h.seconds/60)} min${h.dist > 0 ? ' · ' + fmtD(h.dist) : ''}${stepsOf(h) ? ' · ' + stepsTxt(h) : ''}${h.intensity ? ' · intensidad ' + h.intensity : ''}</small></div>
         <div class="num">${h.cal} kcal</div></div>`;
     }).join('') : '<div class="hint">Todavía no registras actividad hoy.</div>';
@@ -2323,7 +2384,7 @@
   const actChips = document.getElementById('actChips'), actInt = document.getElementById('actInt');
   const gpsTypeRow = document.getElementById('gpsTypeRow');
   actChips.innerHTML = ACTIVITIES.filter(a=>!a.gps).map((a,i)=>
-    `<button class="chip${i === 0 ? ' on' : ''}" data-act="${a.k}"><span>${a.e}</span>${a.n}</button>`).join('');
+    `<button class="chip${i === 0 ? ' on' : ''}" data-act="${a.k}">${ico(a.i)}${a.n}</button>`).join('');
   actChips.addEventListener('click', ev=>pickOne(actChips, ev));
   actInt.addEventListener('click', ev=>pickOne(actInt, ev));
   gpsTypeRow.addEventListener('click', ev=>pickOne(gpsTypeRow, ev));
@@ -2462,7 +2523,7 @@
         <div class="rtItemTop"><b>${esc(exName(it))}</b>
           <span class="rtMove"><button class="linkBtn" data-mv="${i}" data-d="-1" aria-label="Subir"${i ? '' : ' disabled'}>↑</button>
           <button class="linkBtn" data-mv="${i}" data-d="1" aria-label="Bajar"${i < rtDraft.items.length - 1 ? '' : ' disabled'}>↓</button>
-          <button class="linkBtn" data-rm="${i}" aria-label="Quitar">✕</button></span></div>
+          <button class="linkBtn" data-rm="${i}" aria-label="Quitar">${ico('x')}</button></span></div>
         <div class="chips rtKind"><button class="chip${it.kind === 'reps' ? ' on' : ''}" data-kind="reps" data-i="${i}">Repeticiones</button>
           <button class="chip${it.kind === 'secs' ? ' on' : ''}" data-kind="secs" data-i="${i}">Segundos</button></div>
         <div class="row2"><div><label>${it.kind === 'secs' ? 'Segundos' : 'Repeticiones'}</label><input type="number" inputmode="numeric" data-f="amount" data-i="${i}" value="${it.amount}"></div>
@@ -2634,7 +2695,7 @@
         const cd = sesCd && sesCd.i === i, left = it.done < it.sets;
         return `<div class="panel rtSesItem${it.done >= it.sets ? ' full' : ''}">
           <div class="rtItemTop"><b>${esc(exName(it))}</b><span class="hint">${itemTxt(it)}</span></div>
-          <div class="rtSets">${Array.from({length: it.sets}, (_, j)=>`<button class="setBtn${j < it.done ? ' on' : ''}" data-set="${j}" data-i="${i}" aria-pressed="${j < it.done}" aria-label="Serie ${j + 1}">${j < it.done ? '✓' : j + 1}</button>`).join('')}</div>
+          <div class="rtSets">${Array.from({length: it.sets}, (_, j)=>`<button class="setBtn${j < it.done ? ' on' : ''}" data-set="${j}" data-i="${i}" aria-pressed="${j < it.done}" aria-label="Serie ${j + 1}">${j < it.done ? ico('check') : j + 1}</button>`).join('')}</div>
           ${it.kind === 'secs' && left ? (cd
             ? `<div class="rtCd"><span>Cuenta regresiva</span><b class="num" id="rtCdLeft">${Math.max(0, Math.ceil((sesCd.endsAt - Date.now()) / 1000))} s</b><button class="btn btn-ghost" data-cd-stop="1">Detener</button></div>`
             : `<button class="btn btn-ghost rtCdBtn" data-cd="${i}"${ses.paused ? ' disabled' : ''}>▶ Cuenta regresiva: ${it.amount} s (serie ${it.done + 1})</button>`) : ''}
@@ -2792,25 +2853,25 @@
   const ACH_CATS = ['Actividades', 'Constancia y rachas', 'Metas semanales', 'Tiempo de entrenamiento',
                     'Distancia acumulada', 'Distancia en una carrera', 'Variedad'];
   const ACH = [
-    {id:'first',   c:0, e:'🐣', n:'Primer paso',         d:'Completa 1 actividad',          g:1,   v:s=>s.count},
-    {id:'act10',   c:0, e:'🥉', n:'Explorador',          d:'Completa 10 actividades',       g:10,  v:s=>s.count},
-    {id:'act50',   c:0, e:'🥈', n:'Aventurero',          d:'Completa 50 actividades',       g:50,  v:s=>s.count},
-    {id:'act100',  c:0, e:'🥇', n:'Veterano',            d:'Completa 100 actividades',      g:100, v:s=>s.count, leg:true},
-    {id:'st3',     c:1, e:'🔥', n:'En llamas',           d:'3 días seguidos',               g:3,   v:s=>s.best},
-    {id:'st7',     c:1, e:'⚡', n:'Semana eléctrica',    d:'7 días seguidos',               g:7,   v:s=>s.best},
-    {id:'st15',    c:1, e:'💥', n:'Disciplina total',    d:'15 días seguidos',              g:15,  v:s=>s.best},
-    {id:'st30',    c:1, e:'💎', n:'Diamante',            d:'30 días seguidos',              g:30,  v:s=>s.best},
-    {id:'st60',    c:1, e:'🚀', n:'Imparable',           d:'60 días seguidos',              g:60,  v:s=>s.best},
-    {id:'st100',   c:1, e:'👑', n:'Leyenda',             d:'100 días seguidos',             g:100, v:s=>s.best, leg:true},
-    {id:'week',    c:2, e:'🎯', n:'Objetivo cumplido',   d:'Alcanza tu meta semanal',       g:1,   v:s=>s.bestWeek >= weekMin() ? 1 : 0},
-    {id:'h10',     c:3, e:'⏳', n:'Tiempo inicial',      d:'10 horas acumuladas',           g:600, v:s=>s.totalMin},
-    {id:'h50',     c:3, e:'⌛', n:'Maestro del tiempo',  d:'50 horas acumuladas',           g:3000,v:s=>s.totalMin, leg:true},
-    {id:'km50',    c:4, e:'🛤️', n:'Primer recorrido',    get d(){ return fmtD(50, 0) + (imp() ? ' acumuladas' : ' acumulados'); }, g:50,  v:s=>s.totalKm},
-    {id:'km250',   c:4, e:'🌍', n:'Conquistador',        get d(){ return fmtD(250, 0) + (imp() ? ' acumuladas' : ' acumulados'); }, g:250, v:s=>s.totalKm, leg:true},
-    {id:'run5',    c:5, e:'🏃', n:'Primeros kilómetros', get d(){ return 'Corre ' + raceTxt(5) + ' de una vez'; }, g:5,   v:s=>s.longRun},
-    {id:'run10',   c:5, e:'🏅', n:'Corredor de 10K',     get d(){ return 'Corre ' + raceTxt(10) + ' de una vez'; }, g:10,  v:s=>s.longRun},
-    {id:'run21',   c:5, e:'🏆', n:'Media maratón',       get d(){ return 'Corre ' + raceTxt(21.1) + ' de una vez'; }, g:21.1,v:s=>s.longRun, leg:true},
-    {id:'variety', c:6, e:'🚙', n:'Todoterreno',         d:'Prueba 4 tipos de actividad',   g:4,   v:s=>s.types}
+    {id:'first',   c:0, i:'sprout', n:'Primer paso',         d:'Completa 1 actividad',          g:1,   v:s=>s.count},
+    {id:'act10',   c:0, i:'star', n:'Explorador',          d:'Completa 10 actividades',       g:10,  v:s=>s.count},
+    {id:'act50',   c:0, i:'award', n:'Aventurero',          d:'Completa 50 actividades',       g:50,  v:s=>s.count},
+    {id:'act100',  c:0, i:'badge-check', n:'Veterano',            d:'Completa 100 actividades',      g:100, v:s=>s.count, leg:true},
+    {id:'st3',     c:1, i:'flame', n:'En llamas',           d:'3 días seguidos',               g:3,   v:s=>s.best},
+    {id:'st7',     c:1, i:'zap', n:'Semana eléctrica',    d:'7 días seguidos',               g:7,   v:s=>s.best},
+    {id:'st15',    c:1, i:'shield-check', n:'Disciplina total',    d:'15 días seguidos',              g:15,  v:s=>s.best},
+    {id:'st30',    c:1, i:'gem', n:'Diamante',            d:'30 días seguidos',              g:30,  v:s=>s.best},
+    {id:'st60',    c:1, i:'rocket', n:'Imparable',           d:'60 días seguidos',              g:60,  v:s=>s.best},
+    {id:'st100',   c:1, i:'crown', n:'Leyenda',             d:'100 días seguidos',             g:100, v:s=>s.best, leg:true},
+    {id:'week',    c:2, i:'target', n:'Objetivo cumplido',   d:'Alcanza tu meta semanal',       g:1,   v:s=>s.bestWeek >= weekMin() ? 1 : 0},
+    {id:'h10',     c:3, i:'hourglass', n:'Tiempo inicial',      d:'10 horas acumuladas',           g:600, v:s=>s.totalMin},
+    {id:'h50',     c:3, i:'timer', n:'Maestro del tiempo',  d:'50 horas acumuladas',           g:3000,v:s=>s.totalMin, leg:true},
+    {id:'km50',    c:4, i:'route', n:'Primer recorrido',    get d(){ return fmtD(50, 0) + (imp() ? ' acumuladas' : ' acumulados'); }, g:50,  v:s=>s.totalKm},
+    {id:'km250',   c:4, i:'globe', n:'Conquistador',        get d(){ return fmtD(250, 0) + (imp() ? ' acumuladas' : ' acumulados'); }, g:250, v:s=>s.totalKm, leg:true},
+    {id:'run5',    c:5, i:'footprints', n:'Primeros kilómetros', get d(){ return 'Corre ' + raceTxt(5) + ' de una vez'; }, g:5,   v:s=>s.longRun},
+    {id:'run10',   c:5, i:'medal', n:'Corredor de 10K',     get d(){ return 'Corre ' + raceTxt(10) + ' de una vez'; }, g:10,  v:s=>s.longRun},
+    {id:'run21',   c:5, i:'mountain-snow', n:'Media maratón',       get d(){ return 'Corre ' + raceTxt(21.1) + ' de una vez'; }, g:21.1,v:s=>s.longRun, leg:true},
+    {id:'variety', c:6, i:'compass', n:'Todoterreno',         d:'Prueba 4 tipos de actividad',   g:4,   v:s=>s.types}
   ];
 
   function achStats(){
@@ -2860,9 +2921,9 @@
     // arriba: el logro más cercano a desbloquear
     const nx = nextAchievement(s), nb = document.getElementById('nextAch');
     nb.innerHTML = nx
-      ? `<div class="medal">${nx.a.e}</div><div class="nxT"><small>Tu próximo logro</small><b></b>
+      ? `<div class="medal">${ico(nx.a.i)}</div><div class="nxT"><small>Tu próximo logro</small><b></b>
           <div class="pbar"><div style="width:${Math.round(nx.ratio * 100)}%"></div></div></div>`
-      : `<div class="medal">🏆</div><div class="nxT"><small>Tus logros</small><b>¡Tienes todos los logros!</b></div>`;
+      : `<div class="medal">${ico('trophy')}</div><div class="nxT"><small>Tus logros</small><b>¡Tienes todos los logros!</b></div>`;
     if(nx) nb.querySelector('b').textContent = nx.txt;
     let on = 0;
     // tres estados: bloqueado (gris + candado), desbloqueado (azul), legendario (dorado)
@@ -2870,7 +2931,7 @@
       const v = a.v(s), ok = v >= a.g; if(ok) on++;
       const pct = Math.min(100, v / a.g * 100);
       const st = !ok ? 'lock' : a.leg ? 'leg' : 'on';
-      return `<div class="ach ${st}"><div class="medal">${a.e}${ok ? '' : '<i class="lk">🔒</i>'}</div>
+      return `<div class="ach ${st}"><div class="medal">${ico(a.i)}${ok ? '' : '<i class="lk">' + ico('lock') + '</i>'}</div>
         <div class="an2">${a.n}</div><div class="ad">${a.d}</div>
         ${ok || a.g === 1 ? '' : `<div class="pbar"><div style="width:${pct}%"></div></div>`}</div>`;
     };
@@ -2900,7 +2961,7 @@
     if(document.getElementById('achOverlay').classList.contains('show')) return; // ya hay uno: sigue al tocar Continuar
     const id = achQueue.shift(); if(!id) return;
     const a = ACH.find(x=>x.id === id);
-    document.getElementById('achMedal').textContent = a.e;
+    document.getElementById('achMedal').innerHTML = ico(a.i);
     document.getElementById('achMedal').classList.toggle('blue', !a.leg); // legendario = dorado
     document.querySelector('#achOverlay .achTitle').textContent = a.leg ? '¡Logro legendario!' : '¡Nuevo logro!';
     document.getElementById('achName').textContent = a.n;

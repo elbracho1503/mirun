@@ -71,3 +71,25 @@ y sobrescribe lo necesario. Para cambiar colores, editar solo las variables de `
 - **Avatar sin foto** (cabecera y Perfil): iniciales del nombre (primera y última palabra) en blanco sobre `--grad`; sin nombre, ícono de persona.
 - **Inicio, regreso**: sin actividad hoy ni los 3 días anteriores (que no sean todos de descanso), la mascota (Cariño) dice "¡Qué bueno verte de vuelta! ¿Empezamos con 10 minutos?", una vez por regreso.
 - **Medidas**: si se sigue Cintura o Abdomen, el formulario muestra un torso en SVG con la línea de la cintura (azul, lo más angosto) y la del abdomen (dorada, el ombligo).
+
+## Diseño 2 (rama `prueba/diseno2`, 2026-11-25)
+Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al final de `css/app.css`.
+- **GPS antes de salir** (sin `body.gpsOn`): solo la mascota, el tipo (Correr, Caminar, Bici) en 3 botones iguales y un
+  botón grande "Empezar" abajo, encima del menú (la pantalla es una columna de alto completo y el tipo se empuja
+  hacia abajo). El 0.00, tiempo/ritmo/calorías y las metas se ven solo con `body.gpsOn`. El aviso de GPS bloqueado sigue arriba.
+- **Íconos en lugar de emojis**: 34 íconos de Lucide (ISC, `docs/LICENCIAS.md`) guardados como SVG en `js/app.js` (`ICONS`,
+  `ico()`) y en `mirun.html`. Mismo trazo que el menú inferior (2 px, puntas redondas, `currentColor`). Actividades
+  (`ACTIVITIES[].i`), medallas (`ACH[].i`), menú "+", tipo de GPS, candado, quitar (x), serie hecha (check) y "Hoy toca".
+  Los emojis que quedan son parte de textos (frases), no íconos. Para agregar uno: copiar el `<path>` del SVG de Lucide a `ICONS`.
+- **Historial solo como lista**: la más nueva arriba, agrupada por semana (lunes a domingo) con un título "Esta semana",
+  "Semana pasada" o "17 – 23 nov" y su total (actividades, tiempo, distancia). Los formularios salieron de aquí:
+  - "Registrar actividad" y "Carrera sin GPS" (antes "Agregar carrera a mano") están en la pantalla **Registrar**
+    (`#tab-add`), que se abre desde el "+" ("Registrar otra actividad" y la opción nueva "Carrera sin GPS"). Mismos
+    campos, ids y código: guardan exactamente lo mismo.
+  - La **copia de seguridad** (Guardar copia / Recuperar copia y el aviso de copia vieja) está al final de Perfil.
+- **Un botón principal por pantalla**: en Inicio queda solo "Empezar actividad" (`#btnHomeStart`, abre el mismo menú del
+  "+"); se quitaron "+ Registrar actividad" y "Salir con GPS". El "Empezar"/"Seguir" de "Hoy toca" pasó a secundario
+  (`btn-ghost`). En Mis rutinas "+ Crear rutina" es secundario. En el Historial, "Editar" y "Borrar" son botones de
+  40 px de alto, separados 8 px (Borrar en rojo suave).
+- **Pantalla de inicio (al abrir)**: `background_color` y `theme_color` de `manifest.json` y `<meta name="theme-color">`
+  = `#001548`, el azul marino del fondo del logo del rayo (`img/iconos/`). El fondo de la app sigue en `--bg` `#070d1f`.
