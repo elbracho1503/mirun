@@ -5,6 +5,7 @@ Una línea por cambio, el más nuevo arriba.
 
 | Fecha | Cambio | Archivos | Costo aprox. |
 |---|---|---|---|
+| 2026-11-24 | Solo plan: pendientes 24 (corredor fantasma) y 25 (desafío por código) y futuro F7 (carrera en vivo con amigos); punto 23 marcado como unido a main | `docs/PLAN.md`, `docs/CAMBIOS.md` | ~3k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`: una carrera GPS sin terminar de más de 6 h ya no se borra sola (aviso en la caja; sin pausa, el rato con la app cerrada no cuenta al seguir ni al guardarla así); "Borrarla" pide confirmación; pendiente 23b en PLAN; caché v33 | `js/app.js`, `sw.js`, `docs/DATOS.md`, `docs/PLAN.md`, `docs/CAMBIOS.md` | ~15k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, ajustes del auditor: una sesión de más de 12 h ya no se borra sola (pregunta guardar o descartar, y sigue preguntando hasta responder); con una carrera GPS y una rutina sin terminar a la vez, la app avisa de las dos (botones "Ver la rutina" / "Ver la actividad") y no se pierde ninguna; caché v32 | `js/app.js`, `mirun.html`, `sw.js`, `docs/DATOS.md`, `docs/CAMBIOS.md` | ~20k tokens |
 | 2026-11-18 | Rama `prueba/rutinas`, parte 5: caché v31 y plan (punto 23 hecho) | `sw.js`, `docs/PLAN.md`, `docs/CAMBIOS.md` | ~2k tokens |

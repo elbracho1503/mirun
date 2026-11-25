@@ -45,8 +45,10 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 21 | Pasada de alineación: centrar títulos, números grandes, tarjetas cortas y pantallas vacías; listas y formularios siguen a la izquierda | ⬜ |
 | 22 | Pausa automática y tiempo en movimiento en actividades con GPS (2 min / 25 m; sigue sola a 15 m; pregunta a los 10 min; interruptor en Perfil) | ✅ 2026-11-18 (rama `prueba/autopausa`) |
 | 22b | Los entrenos por intervalos (futuro) deben desactivar la pausa automática | ⬜ |
-| 23 | Mis rutinas: crear/editar/borrar rutinas de fuerza (menú "+"), sesión con series, cuenta regresiva y pausa (retoma si se cierra la app), guardar como actividad "Flexiones, abdominales, burpees" con el detalle (visible en Historial, no editable) y rutinas en la copia | ✅ 2026-11-18 (rama `prueba/rutinas`, sin merge) |
+| 23 | Mis rutinas: crear/editar/borrar rutinas de fuerza (menú "+"), sesión con series, cuenta regresiva y pausa (retoma si se cierra la app), guardar como actividad "Flexiones, abdominales, burpees" con el detalle (visible en Historial, no editable) y rutinas en la copia | ✅ 2026-11-18 (rama `prueba/rutinas`, merge a main) |
 | 23b | Pendiente pequeño: si queda una rutina sin terminar y se cierra la caja del GPS, mostrar un aviso de la rutina en Inicio | ⬜ |
+| 24 | (mediano) Corredor fantasma: correr contra una carrera propia anterior; punto fantasma en el mapa y aviso por voz de la diferencia (ej. "vas 20 m adelante"). Solo usa datos del propio teléfono | ⬜ |
+| 25 | (mediano) Desafío por código: al terminar una carrera, generar un código con distancia, tiempo y nombre (NUNCA la ruta GPS ni la ubicación); un amigo lo ingresa, corre la misma distancia y la app compara. Desafío de confianza, sin servidor | ⬜ |
 
 ## Hecho — rama `prueba/actividades` (2026-11-04). Sin merge ni push hasta que el usuario apruebe
 - Pasos estimados (`// ---------- PASOS`, no se guardan): resumen GPS, "Tu actividad de hoy" e Historial
@@ -82,6 +84,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | F1 | **Cuentas y respaldo en la nube** | Servidor (ej. Firebase o Supabase), inicio de sesión. Base para todo lo siguiente. La copia manual deja de ser necesaria. |
 | F2 | **Comunidad de amigos** | Elegir amigos y ver entre ustedes logros, rachas y metas. Requiere F1 y reglas de privacidad. |
 | F6 | **Recordatorios** ("¡no pierdas tu racha!") con la app cerrada | Requiere servidor de notificaciones o app nativa. |
+| F7 | **Carrera en vivo con amigos** | Ver la posición de los demás durante la carrera. Después de la app nativa (F4) y de servidor y cuentas (F1). Requiere permiso explícito, solo visible para invitados y borrado al terminar. |
 
 Ver docs/privado/NEGOCIO.md (local)
 
