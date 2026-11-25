@@ -1824,7 +1824,7 @@
     // no cabe: se guarda aparte (IndexedDB, otro espacio del navegador). Si eso también falla, vuelve el respaldo.
     LS.runUnsaved = run.date;
     rescueSave(run).then(ok=>{
-      if(ok) LS.rescue.add(run.date);
+      if(ok){ if(history.some(h=>h.date === run.date)) LS.rescue.add(run.date); else rescueDelete(run.date); } // ya descartada
       else{ try{ if(cur) localStorage.setItem('mirun_current', cur); }catch(e){} }
       document.querySelector('#summaryOverlay h2').textContent = typeName(run.type) +
         (ok ? ': guardada aparte (memoria llena)' : ': NO se pudo guardar (memoria llena)');
@@ -2201,6 +2201,7 @@
   document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && stopConfirm.classList.contains('show')) closeStopConfirm(); });
 
   let sumPath = []; // ruta del último resumen, para el mapa grande
+  let sumRunDate = null; // la carrera del resumen (ya guardada): "Descartar" la quita
   document.getElementById('btnSumBigMap').addEventListener('click', ()=>openBigMap(sumPath, 'Tu ruta'));
   function finishRun(){
     if(!running) return;
@@ -2236,10 +2237,12 @@
         type: runType,
         ...autoInfo // pausa automática (solo si hubo)
       });
+      sumRunDate = history[history.length - 1].date;
       runSaved = saveRunToHistory(history[history.length - 1]);
-    } else clearCurrentRun(); // tan corta que no se guarda
+    } else { sumRunDate = null; clearCurrentRun(); } // tan corta que no se guarda
+    document.getElementById('sumDiscardRow').style.display = sumRunDate ? '' : 'none';
 
-    document.querySelector('#summaryOverlay h2').textContent = typeName(runType) + (runSaved ? ': guardado' : ': NO se pudo guardar (memoria llena)');
+    document.querySelector('#summaryOverlay h2').textContent = runSaved ? '¡Terminaste! ' + typeName(runType) : typeName(runType) + ': NO se pudo guardar (memoria llena)'; // guardada; "Descartar" la quita
     document.getElementById('gpsTypeRow').style.display = 'flex';
     document.getElementById('btnStart').style.display='block';
     document.getElementById('activeBtns').style.display='none';
@@ -2320,6 +2323,17 @@
   document.getElementById('btnCloseSummary').addEventListener('click', ()=>{
     document.getElementById('summaryOverlay').classList.remove('show');
     renderHistory(); checkAchievements();
+  });
+  // "Descartar": la carrera ya estaba guardada (por si la app se cierra antes de elegir); aquí se quita
+  document.getElementById('btnSumDiscard').addEventListener('click', ()=>{
+    if(!sumRunDate || !confirm('¿Descartar esta carrera? No se guarda nada.')) return;
+    const d = sumRunDate; sumRunDate = null;
+    history = history.filter(h=>h.date !== d);
+    LS.set('mirun_history', history);
+    if(LS.runUnsaved === d){ LS.runUnsaved = null; clearCurrentRun(); }
+    if(LS.rescue.has(d)){ LS.rescue.delete(d); rescueDelete(d); }
+    document.getElementById('summaryOverlay').classList.remove('show');
+    renderHistory();
   });
 
   // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------

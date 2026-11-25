@@ -59,7 +59,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | CSS de Inicio, calendario, chips | `INICIO: racha` |
 | Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `REGISTRAR` (`id="tab-add"`), `RECORDS`, `BODY`, `PROFILE` |
 | Formulario de actividad y carrera a mano (HTML): pantalla Registrar, se abre desde el "+" (`data-plus="manual"` / `"carrera"`) | `id="actForm"`, `id="manForm"` |
-| Resumen al terminar | `id="summaryOverlay"` |
+| Resumen al terminar: la carrera ya quedó guardada; "Guardar" cierra y "Descartar" la quita con confirmación (`btnSumDiscard`, `sumRunDate`) | `id="summaryOverlay"` |
 | Íconos SVG de Lucide (`ICONS`, `ico('nombre')`; licencia en `docs/LICENCIAS.md`). Nunca emojis como íconos | `// ---------- ÍCONOS` (CSS: `.ico` en `DISEÑO 2`) |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
 | Frases motivacionales (`PHRASES`, `dailyPhrase`: una por día y lugar, `mirun_phrases`; fe solo con `profile.faith`) | `// ---------- FRASES` (HTML Perfil: `id="profFaith"`, GPS: `id="runPhrase"`) |
