@@ -91,3 +91,5 @@ Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al f
   "+"); se quitaron "+ Registrar actividad" y "Salir con GPS". El "Empezar"/"Seguir" de "Hoy toca" pasó a secundario
   (`btn-ghost`). En Mis rutinas "+ Crear rutina" es secundario. En el Historial, "Editar" y "Borrar" son botones de
   40 px de alto, separados 8 px (Borrar en rojo suave).
+- **Pantalla de inicio (al abrir)**: `background_color` y `theme_color` de `manifest.json` y `<meta name="theme-color">`
+  = `#001548`, el azul marino del fondo del logo del rayo (`img/iconos/`). El fondo de la app sigue en `--bg` `#070d1f`.

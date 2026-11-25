@@ -171,6 +171,18 @@ No se planea mientras no haya pedidos reales.
 - En la app nativa: notificación local diaria (plugin de notificaciones locales de Capacitor) a una hora que elige la
   persona, con el texto "Hoy toca: [rutina] 💪". No necesita servidor. Se reprograma al cambiar "Mi semana".
 
+## 5d. Pantalla de inicio (al abrir la app)
+- **Pantalla de inicio propia con animación corta del logo, solo mientras carga de verdad.** Nada de barras de carga
+  falsas ni esperas agregadas: si la app ya cargó, la pantalla se va enseguida.
+- Fondo = azul marino del logo `#001548` (el mismo de `background_color` y `theme_color` en `manifest.json` desde 2026-11-25).
+- En Capacitor: plugin oficial `@capacitor/splash-screen` con `launchAutoHide: false` y `SplashScreen.hide()` cuando la
+  app termina de dibujar Inicio; la animación del logo (el rayo) dura menos de 1 s.
+- Hoy (PWA): Android arma la pantalla de inicio solo, con `background_color` + el ícono de `manifest.json`; no se puede animar.
+- Medición 2026-11-25 (Chrome sin ventana, procesador 4 veces más lento, como un teléfono medio): con caché abre en
+  0,3 a 1,4 s hasta el primer dibujo; el código de la app tarda 25 a 90 ms. Lo que más pesa: el Service Worker
+  "despertando" (hasta ~1 s la primera vez), Leaflet (144 KB) cargado en el `<head>` antes de dibujar aunque solo lo usan
+  el GPS y los mapas, y 5 imágenes de pantallas ocultas (bienvenida y 4 poses) que se piden al abrir.
+
 ## 6. Riesgos
 
 | Riesgo | Cómo se evita |

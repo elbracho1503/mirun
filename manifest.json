@@ -6,8 +6,8 @@
   "start_url": "./mirun.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#070d1f",
-  "theme_color": "#070d1f",
+  "background_color": "#001548",
+  "theme_color": "#001548",
   "orientation": "portrait",
   "icons": [
     {
