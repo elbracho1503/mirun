@@ -1823,8 +1823,8 @@
   }
   function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
   // guarda en el historial la carrera recién terminada. Si no cabe, prueba quitando su respaldo (mirun_current, casi del
-  // mismo tamaño). Si igual no cabe, el respaldo vuelve a su lugar: al abrir la app se ofrece "Guardarla así", y
-  // "Guardar copia" la incluye mientras la app siga abierta. Nunca queda sin ningún guardado.
+  // mismo tamaño). Si igual no cabe, la guarda aparte en IndexedDB (RESCATE); solo si eso también falla, el respaldo
+  // vuelve a su lugar y al abrir la app se ofrece "Guardarla así". "Guardar copia" la incluye mientras la app siga abierta.
   function saveRunToHistory(run){
     if(LS.set('mirun_history', history, 'quiet')){ clearCurrentRun(); return true; }
     let cur = null; try{ cur = localStorage.getItem('mirun_current'); }catch(e){}
