@@ -111,3 +111,7 @@ CSS en los bloques `DISEÑO 3` de `css/app.css`.
   fondo, tarjeta y campo); los ejemplos de los campos en `#7c8bab` (4,7 a 1 o más) y escritos "ej. 170". Sin etiquetas en
   MAYÚSCULAS ("Meta de distancia", "km en total", "Mejor tiempo"…) y ninguna de menos de 12 px. Al tocar un campo:
   contorno azul de 2 px; los botones con teclado también lo muestran (`:focus-visible`).
+- **Perfil en secciones** (bloque `DISEÑO 3: PERFIL EN SECCIONES`): Tú (foto, nombre, unidades, sexo, peso, edad,
+  estatura, objetivo, nivel y "Mis metas y días de descanso"), Compañero, Avisos (voz, sonidos y vibración, frases de fe,
+  pausa automática: interruptores), Mapa y Mis datos (copia, espacio usado, liberar espacio). Sin botón "Guardar perfil":
+  cada ajuste se guarda al cambiar (`saveProfile`), con los mismos campos y reglas de antes.

@@ -459,7 +459,7 @@
     if(LS.failNow) return; // algo no se pudo guardar: ya avisó storageFullAlert
     const bar = document.getElementById('savedBar');
     bar.classList.add('show');
-    setTimeout(()=>bar.classList.remove('show'), 1500);
+    clearTimeout(showSaved.t); showSaved.t = setTimeout(()=>bar.classList.remove('show'), 1500); // varios cambios seguidos: se ve hasta el último
   }
 
   // ---------- PROFILE ----------
@@ -481,10 +481,11 @@
     set('profSex', profile.sex);
     set('profGoalType', profile.goalType || 'salud');
     set('profLevel', profile.level || 'ligero');
-    set('profVoice', profile.voice ? '1' : '0');
-    set('profSounds', profile.sounds === false ? '0' : '1');
-    set('profFaith', profile.faith === true ? '1' : '0'); // frases de fe: sin campo = apagado
-    set('profAutoPause', profile.autoPause === false ? '0' : '1'); // sin campo = encendida
+    const on = (id, v)=>{ document.getElementById(id).checked = v; }; // interruptores
+    on('profVoice', !!profile.voice);
+    on('profSounds', profile.sounds !== false);
+    on('profFaith', profile.faith === true); // frases de fe: sin campo = apagado
+    on('profAutoPause', profile.autoPause !== false); // sin campo = encendida
     set('profMap', profile.mapMode);
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
@@ -573,7 +574,11 @@
     document.querySelectorAll('#tab-profile .uW').forEach(e=>{ e.textContent = to === 'imperial' ? 'lb' : 'kg'; });
   });
 
-  document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
+  // Perfil: se guarda al cambiar cualquier ajuste (sin botón "Guardar perfil"); mismos campos y reglas que antes
+  const PROF_FIELDS = ['profName','profUnits','profWeight','profAge','profHeight','profSex','profGoalType','profLevel',
+                       'profVoice','profSounds','profFaith','profAutoPause','profMap'];
+  document.getElementById('tab-profile').addEventListener('change', ev=>{ if(PROF_FIELDS.includes(ev.target.id)) saveProfile(); });
+  function saveProfile(){
     const units = profUnits.value, wIn = parseFloat(document.getElementById('profWeight').value);
     const wKg = wIn > 0 ? (units === 'imperial' ? wIn / KG_LB : wIn) : 70; // el peso se guarda en kg
     // si el número que se ve es el mismo que había (solo se cambió la unidad), se conserva el peso exacto
@@ -589,10 +594,10 @@
       sex: document.getElementById('profSex').value,
       goalType: document.getElementById('profGoalType').value,
       level: document.getElementById('profLevel').value,
-      voice: document.getElementById('profVoice').value === '1',
-      sounds: document.getElementById('profSounds').value === '1',
-      faith: document.getElementById('profFaith').value === '1', // "Incluir frases de fe"
-      autoPause: document.getElementById('profAutoPause').value === '1', // pausa automática en GPS
+      voice: document.getElementById('profVoice').checked,
+      sounds: document.getElementById('profSounds').checked,
+      faith: document.getElementById('profFaith').checked, // "Frases de fe"
+      autoPause: document.getElementById('profAutoPause').checked, // pausa automática en GPS
       mapMode: document.getElementById('profMap').value
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
@@ -602,7 +607,7 @@
     fillProfileForm(); profUnits.dataset.prev = profUnits.value;
     loadGoalForm(); refreshGoalLabels(); buildBodyForm();
     showSaved();
-  });
+  }
 
   // ---------- GOAL ----------
   // la meta se guarda en km y min/km; aquí se muestra en la unidad elegida (ver UNIDADES)

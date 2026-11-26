@@ -385,117 +385,96 @@
 
   <!-- PROFILE SCREEN -->
   <div class="screen" id="tab-profile">
+    <!-- Perfil en secciones: Tú, Compañero, Avisos, Mapa y Mis datos. Todo se guarda al cambiar, sin botón
+         (saveProfile en js/app.js, sección PROFILE); la foto y el compañero ya se guardaban así. -->
+    <h2 class="secTitle">Tú</h2>
     <!-- Foto de perfil: se guarda reducida (256 px) en mirun_photo; ver PROFILE en js/app.js -->
-    <div class="panel photoPanel">
+    <div class="profTop photoPanel">
       <div class="avatar big" id="profAvatar"></div>
-      <div class="btnRow" style="margin-top:12px;">
+      <div class="profTopBtns">
         <button class="btn btn-ghost" id="btnPhoto">Cambiar foto</button>
         <button class="btn btn-ghost" id="btnPhotoDel">Quitar</button>
       </div>
       <input type="file" id="photoFile" accept="image/*" style="display:none;">
     </div>
+    <label for="profName">Tu nombre (opcional)</label>
+    <input type="text" id="profName" maxlength="30" placeholder="Para saludarte">
+    <div class="row2">
+      <div><label for="profUnits">Unidades</label>
+        <select id="profUnits">
+          <option value="metric">Kilómetros y kilos (km, kg)</option>
+          <option value="imperial">Millas y libras (mi, lb)</option>
+        </select></div>
+      <div><label for="profSex">Sexo</label>
+        <select id="profSex">
+          <option value="m">Masculino</option>
+          <option value="f">Femenino</option>
+          <option value="x">Prefiero no decir</option>
+        </select></div>
+    </div>
+    <div class="row3">
+      <div><label for="profWeight">Peso (<span class="uW">kg</span>)</label><input type="number" id="profWeight" step="0.1" placeholder="ej. 70"></div>
+      <div><label for="profAge">Edad</label><input type="number" id="profAge" step="1" placeholder="ej. 30"></div>
+      <div><label for="profHeight">Estatura (cm)</label><input type="number" id="profHeight" step="1" placeholder="ej. 170"></div>
+    </div>
+    <div class="hint" style="margin-top:6px;">Peso, edad y sexo sirven para calcular las calorías; la estatura, para tu IMC y tus pasos.</div>
+    <label for="profGoalType">¿Qué buscas principalmente?</label>
+    <select id="profGoalType">
+      <option value="salud">Salud y bienestar general</option>
+      <option value="bajar">Bajar de peso</option>
+      <option value="musculo">Ganar músculo</option>
+      <option value="mantener">Mantener mi peso</option>
+      <option value="resistencia">Mejorar mi resistencia</option>
+    </select>
+    <div class="hint" style="margin-top:6px;">Con esto la app sabe si una medida que sube o baja es un avance para ti.</div>
+    <label for="profLevel">Nivel de actividad actual</label>
+    <select id="profLevel">
+      <option value="sedentario">Sedentario (casi no hago ejercicio)</option>
+      <option value="ligero">Ligero (1–2 días por semana)</option>
+      <option value="moderado">Moderado (3–4 días por semana)</option>
+      <option value="activo">Activo (5–6 días por semana)</option>
+      <option value="muy">Muy activo (todos los días)</option>
+    </select>
+    <div class="hint" id="levelHint" style="margin-top:6px;"></div>
+    <div class="btnRow" style="margin-top:14px;"><button class="btn btn-ghost" data-goto="goal">Mis metas y días de descanso</button></div>
+
     <!-- "Elige tu compañero": la mascota de toda la app (renderCharPick en js/app.js, sección PROFILE) -->
-    <div class="panel">
-      <h3>Elige tu compañero</h3>
-      <div class="hint">Te acompaña en Inicio, en tus logros y en tus mensajes. Puedes cambiarlo cuando quieras.</div>
-      <div class="charPick" id="charPick"></div>
-    </div>
-    <div class="panel">
-      <h3>Tu objetivo</h3>
-      <label>¿Qué buscas principalmente?</label>
-      <select id="profGoalType">
-        <option value="salud">Salud y bienestar general</option>
-        <option value="bajar">Bajar de peso</option>
-        <option value="musculo">Ganar músculo</option>
-        <option value="mantener">Mantener mi peso</option>
-        <option value="resistencia">Mejorar mi resistencia</option>
-      </select>
-      <div class="hint" style="margin-top:6px;">Con esto la app sabe si una medida que sube o baja es un avance para ti.</div>
-      <label>Nivel de actividad actual</label>
-      <select id="profLevel">
-        <option value="sedentario">Sedentario (casi no hago ejercicio)</option>
-        <option value="ligero">Ligero (1–2 días por semana)</option>
-        <option value="moderado">Moderado (3–4 días por semana)</option>
-        <option value="activo">Activo (5–6 días por semana)</option>
-        <option value="muy">Muy activo (todos los días)</option>
-      </select>
-      <div class="hint" id="levelHint" style="margin-top:6px;"></div>
-    </div>
-    <div class="panel">
-      <h3>Tus datos (para calorías)</h3>
-      <label>Tu nombre (opcional)</label>
-      <input type="text" id="profName" maxlength="30" placeholder="Para saludarte">
-      <label>Unidades</label>
-      <select id="profUnits">
-        <option value="metric">Kilómetros y kilos (km, kg)</option>
-        <option value="imperial">Millas y libras (mi, lb)</option>
-      </select>
-      <label>Peso (<span class="uW">kg</span>)</label>
-      <input type="number" id="profWeight" step="0.1" placeholder="ej. 70">
-      <label>Edad</label>
-      <input type="number" id="profAge" step="1" placeholder="ej. 30">
-      <label>Estatura (cm) — para tu IMC</label>
-      <input type="number" id="profHeight" step="1" placeholder="ej. 170">
-      <label>Sexo</label>
-      <select id="profSex">
-        <option value="m">Masculino</option>
-        <option value="f">Femenino</option>
-        <option value="x">Prefiero no decir</option>
-      </select>
-    </div>
-    <div class="panel">
-      <h3>Aviso por voz</h3>
-      <div class="hint">En cada kilómetro te dice el tiempo de ese kilómetro y el tiempo total. Funciona sin internet.</div>
-      <label>Avisos</label>
-      <select id="profVoice">
-        <option value="1">Sí, avisarme</option>
-        <option value="0">No</option>
-      </select>
-    </div>
-    <div class="panel">
-      <h3>Pausa automática (GPS)</h3>
-      <div class="hint">Si llevas 2 minutos sin moverte, la actividad se pausa sola y sigue cuando vuelves a moverte. Solo cuenta el tiempo en movimiento.</div>
-      <label>Pausa automática</label>
-      <select id="profAutoPause">
-        <option value="1">Encendida</option>
-        <option value="0">Apagada</option>
-      </select>
-    </div>
-    <div class="panel">
-      <h3>Sonidos y vibración</h3>
-      <div class="hint">Un sonido corto y alegre y una vibración suave cuando cumples tu meta del día.</div>
-      <label>Sonidos y vibración</label>
-      <select id="profSounds">
-        <option value="1">Encendidos</option>
-        <option value="0">Apagados</option>
-      </select>
-    </div>
-    <div class="panel">
-      <h3>Frases motivacionales</h3>
-      <div class="hint">Cada día una frase nueva en Inicio, antes de salir con GPS y al cumplir tu meta.</div>
-      <label>Incluir frases de fe</label>
-      <select id="profFaith">
-        <option value="0">No</option>
-        <option value="1">Sí</option>
-      </select>
-    </div>
-    <div class="panel">
-      <h3>Mapa de la ruta</h3>
-      <div class="hint">Con calles se ve el mapa real, pero gasta un poco de datos. Sin señal pasa solo a la línea. La distancia y el tiempo se miden igual en los dos casos.</div>
-      <label>Mostrar</label>
-      <select id="profMap">
-        <option value="calles">Mapa con calles (usa datos)</option>
-        <option value="linea">Solo la línea (sin datos)</option>
-      </select>
-    </div>
-    <div class="btnRow"><button class="btn btn-start" id="btnSaveProfile">Guardar perfil</button></div>
-    <div class="btnRow" style="margin-top:10px;"><button class="btn btn-ghost" data-goto="goal">Mis metas y días de descanso</button></div>
+    <h2 class="secTitle">Compañero</h2>
+    <div class="hint">Te acompaña en Inicio, en tus logros y en tus mensajes. Puedes cambiarlo cuando quieras.</div>
+    <div class="charPick" id="charPick"></div>
+
+    <h2 class="secTitle">Avisos</h2>
+    <label class="setRow" for="profVoice"><span><b>Aviso por voz</b><small>En cada kilómetro te dice el tiempo de ese kilómetro y el total. Funciona sin internet.</small></span>
+      <span class="switch"><input type="checkbox" id="profVoice" role="switch"><i aria-hidden="true"></i></span></label>
+    <label class="setRow" for="profSounds"><span><b>Sonidos y vibración</b><small>Un sonido corto y una vibración suave cuando cumples tu meta del día.</small></span>
+      <span class="switch"><input type="checkbox" id="profSounds" role="switch"><i aria-hidden="true"></i></span></label>
+    <label class="setRow" for="profFaith"><span><b>Frases de fe</b><small>Incluir frases de fe entre las frases del día (Inicio, GPS y meta cumplida).</small></span>
+      <span class="switch"><input type="checkbox" id="profFaith" role="switch"><i aria-hidden="true"></i></span></label>
+    <label class="setRow" for="profAutoPause"><span><b>Pausa automática (GPS)</b><small>Si llevas 2 minutos sin moverte, la actividad se pausa sola y sigue cuando vuelves a moverte.</small></span>
+      <span class="switch"><input type="checkbox" id="profAutoPause" role="switch"><i aria-hidden="true"></i></span></label>
+
+    <h2 class="secTitle">Mapa</h2>
+    <label for="profMap">Mostrar la ruta</label>
+    <select id="profMap">
+      <option value="calles">Mapa con calles (usa datos)</option>
+      <option value="linea">Solo la línea (sin datos)</option>
+    </select>
+    <div class="hint" style="margin-top:6px;">Sin señal pasa solo a la línea. La distancia y el tiempo se miden igual en los dos casos.</div>
+
+    <h2 class="secTitle">Mis datos</h2>
     <!-- copia de seguridad (antes en Historial; ver COPIA DE SEGURIDAD en js/app.js) -->
-    <div class="panel" id="backupPanel" style="margin-top:20px;">
+    <div class="panel" id="backupPanel" style="margin-top:8px;">
       <h3>Copia de seguridad</h3>
       <div class="hint" id="spaceInfo" style="margin-bottom:6px;"></div>
+      <div class="hint">Guarda tus actividades, medidas, perfil, metas y foto en un archivo. Tus datos viven solo en este teléfono: si se borran los datos de Chrome o cambias de teléfono, los recuperas con ese archivo.</div>
+      <div class="btnRow" style="margin-top:12px;">
+        <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
+        <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+      <div class="hint" id="backupMsg" style="margin-top:10px;color:var(--signal);"></div>
       <!-- Liberar espacio: borra SOLO los mapas (rutas) de actividades viejas que no son favoritas (LIBERAR ESPACIO en js/app.js) -->
-      <div id="freeBox">
+      <div id="freeBox" style="margin-top:22px;">
         <label for="freeMonths">Liberar espacio: borrar los mapas de actividades de hace más de</label>
         <div class="row2">
           <select id="freeMonths"><option value="6">6 meses</option><option value="12" selected>12 meses</option><option value="24">24 meses</option></select>
@@ -504,13 +483,6 @@
         <div class="hint">Se conservan distancia, tiempo, ritmo, splits y todo lo demás. Nunca se borran los mapas de tus favoritas.</div>
         <div class="hint" id="freeMsg" style="margin-top:6px;"></div>
       </div>
-      <div class="hint">Guarda tus actividades, medidas, perfil, metas y foto en un archivo. Tus datos viven solo en este teléfono: si se borran los datos de Chrome o cambias de teléfono, los recuperas con ese archivo.</div>
-      <div class="btnRow" style="margin-top:12px;">
-        <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
-        <button class="btn btn-ghost" id="btnImport">Recuperar copia</button>
-      </div>
-      <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
-      <div class="hint" id="backupMsg" style="margin-top:10px;color:var(--signal);"></div>
     </div>
   </div>
 
