@@ -59,7 +59,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | CSS de Inicio, calendario, chips | `INICIO: racha` |
 | Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `REGISTRAR` (`id="tab-add"`), `RECORDS`, `BODY`, `PROFILE` |
 | Formulario de actividad y carrera a mano (HTML): pantalla Registrar, se abre desde el "+" (`data-plus="manual"` / `"carrera"`) | `id="actForm"`, `id="manForm"` |
-| Resumen al terminar | `id="summaryOverlay"` |
+| Resumen al terminar: la carrera ya quedó guardada; "Guardar" cierra y "Descartar" la quita con confirmación (`btnSumDiscard`, `sumRunDate`) | `id="summaryOverlay"` |
 | Íconos SVG de Lucide (`ICONS`, `ico('nombre')`; licencia en `docs/LICENCIAS.md`). Nunca emojis como íconos | `// ---------- ÍCONOS` (CSS: `.ico` en `DISEÑO 2`) |
 | Lectura/escritura de datos, versión `SCHEMA` | `// ---------- STORAGE` |
 | Frases motivacionales (`PHRASES`, `dailyPhrase`: una por día y lugar, `mirun_phrases`; fe solo con `profile.faith`) | `// ---------- FRASES` (HTML Perfil: `id="profFaith"`, GPS: `id="runPhrase"`) |
@@ -68,10 +68,11 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
 | Perfil: saludo, foto (`mirun_photo`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
+| Ruta liviana para carreras nuevas (`lightRoute`, `routeOf` lee `route` nuevo y `path` viejo) | `// ---------- RUTA LIVIANA` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
 | Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
-| Historial: solo la lista, la más nueva arriba, agrupada por semana con su total (`histWeekHead`); incluye "≈ N pasos" y el detalle de rutina `routineDetail` | `// ---------- HISTORY` |
+| Historial: solo la lista, la más nueva arriba, agrupada por semana con su total (`histWeekHead`); por partes: 4 semanas con actividad y "Ver más" (`histWeeks`), mapas pequeños dibujados al verse (`histIO`); incluye "≈ N pasos" y el detalle de rutina `routineDetail` | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
 | Editar actividad (hoja, `origDate`, `edited`) y barra "Deshacer" | `// ---------- EDITAR ACTIVIDAD` (HTML: `id="editSheet"`, `id="undoBar"`; CSS: `EDITAR ACTIVIDAD`) |
 | Carrera a mano | `// ---------- CARRERA A MANO` |
@@ -90,7 +91,9 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
-| Exportar / importar copia (botones en Perfil: `id="backupPanel"`) | `// ---------- COPIA DE SEGURIDAD` |
+| Exportar / importar copia (botones en Perfil: `id="backupPanel"`), "Espacio usado" (`renderSpace`, `spaceCheck`), `navigator.storage.persist()` | `// ---------- COPIA DE SEGURIDAD` |
+| Liberar espacio en Perfil: borra solo mapas de actividades viejas no favoritas (`freeCandidates`, `btnFreeSpace`) | `// ---------- LIBERAR ESPACIO` (HTML: `id="freeBox"`) |
+| Carreras que no cupieron en la memoria: guardadas aparte en IndexedDB `mirun_rescue` (`saveRunToHistory`, `rescueSave`, `rescueAll`) | `// ---------- RESCATE` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |
 
 ## Publicar (GitHub Pages)

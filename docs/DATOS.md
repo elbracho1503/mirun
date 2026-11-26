@@ -30,7 +30,8 @@ Todo se lee/escribe con `LS.get` / `LS.set` (sección `// ---------- STORAGE`).
   seconds: 1800,
   pace: '05:58',       // texto min/km; '--:--' si no aplica
   cal: 350,
-  path: [{lat, lon}],  // vacío si es a mano
+  path: [{lat, lon}],  // vacío si es a mano. Desde 2026-11-25 las rutas NUEVAS van en route y path = []
+  route: [[lat, lon]], // opcional (rutas nuevas): 5 decimales, sin puntos que no cambian la forma (RUTA LIVIANA)
   splits: [{km, seconds, partial?}],
   manual: true,        // opcional: registrada a mano
   intensity: 'media',  // v5, solo actividades sin GPS: baja | media | alta
@@ -112,3 +113,21 @@ restauran completos; si ya hay datos, solo completan lo que falta. Si se agregan
 Rutinas: se agregan las que faltan (mismo `id` = ya está; sin `id` válido se le crea uno), sin pasar de 50; cada
 ejercicio se limpia con `cleanRtItems` (y `mode`/`rest` con `cleanRtMeta`: valores inválidos se descartan) (clave de `EXERCISES` o nombre propio de 1 a 40, `kind` reps/secs, cantidad y
 series en rango; lo inválido se descarta). El `routine` de una actividad se limpia igual y `done` queda entre 0 y `sets`.
+
+## Memoria llena y espacio (desde 2026-11-25, rama `prueba/almacenamiento`)
+- Límite medido en Chrome: 5.242.880 caracteres (clave + valor) por sitio (`LS_LIMIT`). Perfil muestra "Espacio usado: X %".
+- `LS.set(k, v, mode)` devuelve false si no cabe y avisa CADA vez (salvo `mode` 'quiet' para datos que la app rehace
+  sola, y 'once' para los respaldos automáticos `mirun_current` / `mirun_session`: un aviso por carrera o sesión).
+  Si algo falló, la app nunca dice "guardado" (`LS.failNow`, mensajes con `NOT_SAVED`).
+- `mirun_spaceWarned` = día (`AAAA-MM-DD`) del último aviso de "memoria al 80 % o más" (uno por día). No va en la copia.
+- Al terminar una carrera con GPS, su respaldo `mirun_current` se borra solo después de quedar en `mirun_history`.
+  Si no cabe ni quitando el respaldo, la carrera se guarda **aparte** en IndexedDB `mirun_rescue` (almacén `runs`,
+  clave `date`, mismo formato que el historial). Al abrir la app vuelve al Historial y se borra de allá cuando ya quedó
+  en `mirun_history`. Mientras tanto "Guardar copia" la incluye.
+- `navigator.storage.persist()` se pide al abrir (sin insistir si el navegador no lo da).
+- **Rutas livianas** (desde 2026-11-25): las carreras nuevas guardan `route` (`[[lat, lon]]`, 5 decimales = 1,1 m, simplificada
+  con Douglas-Peucker a 2 m) y `path: []`. Las viejas NO se convierten: siguen en `path`. `routeOf(h)` lee los dos formatos.
+  Distancia, ritmo, splits, calorías y récords se calculan durante la carrera con todos los puntos, antes de simplificar.
+  La copia exporta los dos formatos y la importación acepta los dos (route: solo pares de números válidos, máx. 50.000).
+- `favorite: true` (opcional, desde 2026-11-25): actividad marcada con la estrella del Historial; sin el campo = no favorita. Va en la copia y la importación solo acepta `true`.
+- **Liberar espacio** (Perfil, desde 2026-11-25): borra SOLO la ruta (`path = []` y sin `route`) de actividades que terminaron hace más de 6, 12 o 24 meses (lo elige la persona) y no son favoritas. Todo lo demás queda igual; antes dice cuánto libera y cuántas actividades toca, recomienda "Guardar copia" y pide confirmación. Es la única acción que borra rutas, y solo la hace la persona.

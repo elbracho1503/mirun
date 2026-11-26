@@ -44,18 +44,40 @@
   function ico(k, cls){ return '<svg class="ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; }
 
   // ---------- STORAGE ----------
+  const LS_LIMIT = 5242880; // caracteres (clave + valor) que Chrome deja guardar por sitio; medido el 2026-11-25
   const LS = {
     get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
-    // devuelve true si se guardó; si el teléfono no tiene espacio avisa (una vez por sesión)
-    set(k, v){
-      try{ localStorage.setItem(k, JSON.stringify(v)); return true; }
+    fails: 0, failNow: false, warned: {}, runUnsaved: null, persisted: false, rescue: new Set(),
+    // devuelve true si se guardó. Sin espacio: avisa CADA vez (mode 'quiet' = sin aviso, para datos que la app rehace
+    // sola; 'once' = una vez por carrera o sesión, para los respaldos automáticos cada pocos segundos).
+    // failNow queda en true hasta terminar lo que se está haciendo: showSaved no dice "Guardado" si algo falló.
+    set(k, v, mode){
+      try{ localStorage.setItem(k, JSON.stringify(v)); }
       catch(e){
-        if(!LS.warned){ LS.warned = true;
-          alert('No se pudo guardar: la memoria de la app está llena. Ve a Historial → "Guardar copia" para no perder tus datos.'); }
+        LS.fails++; LS.failNow = true; setTimeout(()=>{ LS.failNow = false; });
+        if(mode !== 'quiet' && !(mode === 'once' && LS.warned[k])){ LS.warned[k] = true; storageFullAlert(); }
         return false;
       }
+      if(k === 'mirun_history' && Array.isArray(v)){
+        // una carrera que no cupo al terminar quedó en su respaldo (mirun_current) o guardada aparte (RESCATE):
+        // cuando ya entró al historial, se quitan
+        if(LS.runUnsaved && v.some(h=>h && h.date === LS.runUnsaved)){ LS.runUnsaved = null; clearCurrentRun(); }
+        LS.rescue.forEach(d=>{ if(v.some(h=>h && h.date === d)){ LS.rescue.delete(d); rescueDelete(d); } });
+        setTimeout(spaceCheck);
+      }
+      return true;
+    },
+    // parte del límite usada (0 a 1)
+    used(){
+      let n = 0;
+      try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); n += k.length + (localStorage.getItem(k) || '').length; } }catch(e){}
+      return n / LS_LIMIT;
     }
   };
+  const NOT_SAVED = 'No se pudo guardar: la memoria está llena. Ve a Perfil → "Guardar copia".';
+  function storageFullAlert(){
+    alert('No se pudo guardar: la memoria de la app está llena.\n\nVe a Perfil → "Guardar copia" ahora: la copia incluye lo que no se pudo guardar (mientras no cierres la app).');
+  }
 
   // texto de la persona dentro de HTML (nombres de rutinas y ejercicios propios): siempre escapado
   const esc = t=>String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -111,7 +133,7 @@
     let left = pool.filter(t=>!used.includes(t));
     if(!left.length){ used = []; left = pool.filter(t=>t !== s.text); if(!left.length) left = pool.slice(); } // categoría agotada: otra vuelta
     const text = left[Math.floor(Math.random() * left.length)];
-    used.push(text); all[slot] = {day: today, text, used}; LS.set('mirun_phrases', all);
+    used.push(text); all[slot] = {day: today, text, used}; LS.set('mirun_phrases', all, 'quiet');
     return text;
   }
 
@@ -166,7 +188,7 @@
 
   // Versión del formato de datos. Las migraciones SOLO agregan campos, nunca borran.
   const SCHEMA = 5;
-  if(LS.get('mirun_schema', 0) < SCHEMA) LS.set('mirun_schema', SCHEMA);
+  if(LS.get('mirun_schema', 0) < SCHEMA) LS.set('mirun_schema', SCHEMA, 'quiet');
 
   // ---------- UNIDADES ----------
   // Los datos se guardan SIEMPRE en km, kg y ritmo en segundos por km. Esto solo convierte al MOSTRAR
@@ -379,10 +401,11 @@
     document.body.dataset.tab = tab; // el CSS muestra el estado del GPS solo en la pantalla GPS
     window.scrollTo(0, 0);
     if(tab==='home') renderHome();
-    if(tab==='history') renderHistory();
+    if(tab==='history'){ histWeeks = 4; renderHistory(); }
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
+    if(tab==='profile') renderSpace();
     if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr'); }
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
@@ -433,6 +456,7 @@
   }
 
   function showSaved(){
+    if(LS.failNow) return; // algo no se pudo guardar: ya avisó storageFullAlert
     const bar = document.getElementById('savedBar');
     bar.classList.add('show');
     setTimeout(()=>bar.classList.remove('show'), 1500);
@@ -672,6 +696,37 @@
   });
 
   // ---------- ROUTE DRAWING (canvas, no internet needed) ----------
+  // ---------- RUTA LIVIANA ----------
+  // Rutas NUEVAS (desde 2026-11-25): campo route = [[lat, lon], ...] con 5 decimales (1,1 m) y sin los puntos que no
+  // cambian la forma (Douglas-Peucker, 2 m), y path = []. Las rutas viejas siguen en path = [{lat, lon}] sin cambios.
+  // Distancia, ritmo, splits y récords se calculan DURANTE la carrera con todos los puntos: la ruta guardada solo dibuja.
+  const ROUTE_TOL_M = 2;
+  function lightRoute(pts){
+    const n = pts.length; if(n < 2) return pts.map(p=>[Math.round(p.lat * 1e5) / 1e5, Math.round(p.lon * 1e5) / 1e5]);
+    const lat0 = pts[0].lat * Math.PI / 180, mx = 111320 * Math.cos(lat0), my = 110540;
+    const keep = new Uint8Array(n); keep[0] = keep[n - 1] = 1;
+    const stack = [[0, n - 1]];
+    while(stack.length){
+      const [a, b] = stack.pop(); if(b - a < 2) continue;
+      const ax = pts[a].lon * mx, ay = pts[a].lat * my, bx = pts[b].lon * mx - ax, by = pts[b].lat * my - ay, len = Math.hypot(bx, by);
+      let far = -1, fd = 0;
+      for(let i = a + 1; i < b; i++){
+        const px = pts[i].lon * mx - ax, py = pts[i].lat * my - ay;
+        const d = len ? Math.abs(px * by - py * bx) / len : Math.hypot(px, py);
+        if(d > fd){ fd = d; far = i; }
+      }
+      if(fd > ROUTE_TOL_M){ keep[far] = 1; stack.push([a, far], [far, b]); }
+    }
+    const out = [];
+    for(let i = 0; i < n; i++) if(keep[i]) out.push([Math.round(pts[i].lat * 1e5) / 1e5, Math.round(pts[i].lon * 1e5) / 1e5]);
+    return out;
+  }
+  // puntos para dibujar una actividad, en cualquiera de los dos formatos: [{lat, lon}]
+  function routeOf(h){
+    if(h && Array.isArray(h.route) && h.route.length) return h.route.map(p=>({lat: p[0], lon: p[1]}));
+    return h && Array.isArray(h.path) ? h.path : [];
+  }
+
   function drawRoute(canvas, points, color){
     if(!canvas || !points || points.length < 2) {
       if(canvas){
@@ -916,35 +971,53 @@
     const rows = r.items.map(it=>`<li><b>${esc(exN(it))}</b> · ${Number(it.done) || 0} de ${it.sets} series × ${it.amount}${it.kind === 'secs' ? ' s' : ''}</li>`).join('');
     return `<details class="rtHist"><summary>Rutina «${esc(r.name || 'Sin nombre')}» · ${r.items.length} ${r.items.length === 1 ? 'ejercicio' : 'ejercicios'} · ${done} de ${total} series</summary><ul>${rows}</ul></details>`;
   }
+  // estrella: marcar o desmarcar favorita (campo favorite: true; sin campo = no favorita)
+  document.getElementById('histList').addEventListener('click', ev=>{
+    const b = ev.target.closest('[data-fav]'); if(!b) return;
+    const h = history.find(x=>x.date === decodeURIComponent(b.dataset.fav)); if(!h) return;
+    const was = !!h.favorite;
+    if(was) delete h.favorite; else h.favorite = true;
+    if(!LS.set('mirun_history', history)){ if(was) h.favorite = true; else delete h.favorite; return; } // no cupo: queda como estaba
+    const y = window.scrollY, bs = document.body.scrollTop; renderHistory(); window.scrollTo(0, y); document.body.scrollTop = bs;
+  });
+  // "Ver más": otras 4 semanas
+  document.getElementById('histList').addEventListener('click', ev=>{
+    if(!ev.target.closest('#histMore')) return;
+    const y = window.scrollY, b = document.body.scrollTop; histWeeks += 4; renderHistory(); window.scrollTo(0, y); document.body.scrollTop = b;
+  });
   // "Ver mapa" (o tocar la ruta pequeña) abre el mapa grande de esa actividad
   document.getElementById('histList').addEventListener('click', ev=>{
     const w = ev.target.closest('[data-map]'); if(!w) return;
     const h = history.find(x=>x.date === decodeURIComponent(w.dataset.map)); if(!h) return;
     const d = new Date(h.date);
-    openBigMap(h.path, actInfo(h.type).n + ' · ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}));
+    openBigMap(routeOf(h), actInfo(h.type).n + ' · ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}));
   });
+  let histWeeks = 4, histIO = null; // semanas con actividad que se ven en el Historial (crece con "Ver más")
   function renderHistory(){
     const list = document.getElementById('histList');
     if(history.length===0){
       list.innerHTML = '<div class="empty"><img src="' + mascot('vacio') + '" alt="">Todavía no tienes actividades registradas.<br>¡Muévete hoy!</div>';
     } else {
-      // la más nueva arriba, agrupadas por semana (lunes a domingo) con su total
+      // la más nueva arriba, agrupadas por semana (lunes a domingo) con su total. Por partes: se muestran las
+      // primeras histWeeks semanas con actividad y "Ver más" agrega otras 4 (rápido aunque haya cientos)
       const sorted = history.slice().sort((a,b)=>a.date < b.date ? 1 : -1);
-      const wkOf = h=>dayKey(mondayOf(new Date(actRange(h)[0])));
-      let lastWk = null;
-      list.innerHTML = sorted.map((h,ri)=>{
-        const wk = wkOf(h), wkHead = wk !== lastWk ? histWeekHead(wk, sorted.filter(x=>wkOf(x) === wk)) : '';
-        lastWk = wk;
-        return wkHead + histCard(h, ri);
-      }).join('');
+      const weeks = [];
+      sorted.forEach((h,ri)=>{
+        const wk = dayKey(mondayOf(new Date(actRange(h)[0])));
+        if(!weeks.length || weeks[weeks.length - 1].wk !== wk) weeks.push({wk, items: []});
+        weeks[weeks.length - 1].items.push({h, ri});
+      });
+      const shown = weeks.slice(0, histWeeks), rest = weeks.slice(histWeeks).reduce((s,w)=>s + w.items.length, 0);
+      list.innerHTML = shown.map(w=>histWeekHead(w.wk, w.items.map(x=>x.h)) + w.items.map(x=>histCard(x.h, x.ri)).join('')).join('') +
+        (rest ? `<div class="btnRow"><button class="btn btn-ghost" id="histMore">Ver más (${rest} ${rest === 1 ? 'actividad' : 'actividades'})</button></div>` : '');
       function histCard(h, ri){
         const d = new Date(h.date);
         const fecha = d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' +
                       d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-        const hasRoute = h.path && h.path.length > 1;
+        const hasRoute = routeOf(h).length > 1;
         const a = actInfo(h.type);
         const head = `<div class="top"><span>${ico(a.i)} <b style="color:var(--text);">${a.n}</b> · ${fecha}${h.manual && h.dist > 0 ? '<span class="tag">a mano</span>' : ''}${h.edited ? '<span class="tag">editada</span>' : ''}</span>
-            <span class="histBtns"><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
+            <span class="histBtns"><button class="linkBtn favBtn${h.favorite ? ' on' : ''}" data-fav="${encodeURIComponent(h.date)}" aria-pressed="${!!h.favorite}" aria-label="${h.favorite ? 'Quitar de favoritas' : 'Marcar como favorita'}">${ico('star')}</button><button class="linkBtn" data-edit="${encodeURIComponent(h.date)}">Editar</button><button class="linkBtn" data-del="${encodeURIComponent(h.date)}">Borrar</button></span></div>`;
         if(!(h.dist > 0)){ // actividad sin distancia (gimnasio, natación, etc.)
           return `<div class="histItem">${head}<div class="stats">
             <div><div class="num">${Math.round(h.seconds/60)}</div><small>min</small></div>
@@ -960,7 +1033,7 @@
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
           ${stepsOf(h) ? `<div class="histSteps">${stepsTxt(h)}</div>` : ''}
-          ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}"></canvas>
+          ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}" data-ri="${ri}"></canvas>
             <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
       }
@@ -968,12 +1041,14 @@
       if(!(profile.height > 0) && history.some(h=>h.dist > 0 && (!h.type || h.type === 'correr' || h.type === 'caminar')))
         list.insertAdjacentHTML('afterbegin', '<div class="hint histStepsHint">Agrega tu estatura en Perfil para ver tus pasos</div>');
 
-      sorted.forEach((h,ri)=>{
-        if(h.path && h.path.length > 1){
-          const c = document.getElementById('hist-route-'+ri);
-          if(c) drawRoute(c, h.path, '#7cc4ff');
-        }
-      });
+      // cada mapa pequeño se dibuja cuando aparece en pantalla (no todos de una vez)
+      if(histIO) histIO.disconnect();
+      const draw = c=>{ const h = sorted[Number(c.dataset.ri)]; if(h) drawRoute(c, routeOf(h), '#7cc4ff'); };
+      const canvases = list.querySelectorAll('canvas[data-ri]');
+      if('IntersectionObserver' in window){
+        histIO = new IntersectionObserver(ents=>ents.forEach(e=>{ if(e.isIntersecting){ histIO.unobserve(e.target); draw(e.target); } }), {rootMargin: '300px 0px'});
+        canvases.forEach(c=>histIO.observe(c));
+      } else canvases.forEach(draw);
     }
     document.getElementById('totRuns').textContent = history.length;
     document.getElementById('totKm').textContent = toD(history.reduce((s,h)=>s+h.dist,0)).toFixed(1); // km o mi
@@ -1118,10 +1193,10 @@
     n.edited = new Date().toISOString();
     history[idx] = n;
     history.sort((a,b)=>a.date < b.date ? -1 : 1);
-    LS.set('mirun_history', history);
+    const ok = LS.set('mirun_history', history);
     closeEdit();
     renderHistory(); checkAchievements();
-    showUndo(prev, n);
+    if(ok) showUndo(prev, n);
   });
 
   // barra "Deshacer": vuelve a poner la versión anterior exacta de la actividad editada
@@ -1167,10 +1242,10 @@
     history.push({date: iso, dist: km, seconds: total, pace: fmtPace(total/km),
                   cal: calcCalories(km, total), path: [], splits: [], manual: true});
     history.sort((a,b)=>a.date < b.date ? -1 : 1);
-    LS.set('mirun_history', history);
+    const ok = LS.set('mirun_history', history);
     const news = newRecords(before, computeRecords(history));
-    msg.style.color = 'var(--signal)';
-    msg.textContent = 'Carrera agregada.' + (news.length ? ' ¡Nuevo récord en ' + news.map(n=>raceTxt(n.k)).join(', ') + '!' : '');
+    msg.style.color = ok ? 'var(--signal)' : 'var(--amber)';
+    msg.textContent = !ok ? NOT_SAVED : 'Carrera agregada.' + (news.length ? ' ¡Nuevo récord en ' + news.map(n=>raceTxt(n.k)).join(', ') + '!' : '');
     document.getElementById('manKm').value = '';
     document.getElementById('manMin').value = '';
     document.getElementById('manSec').value = '';
@@ -1735,7 +1810,7 @@
 
   // ---------- CARRERA EN CURSO (se guarda por si se cierra la app) ----------
   let lastSaveAt = 0;
-  function saveCurrentRun(force){
+  function saveCurrentRun(force, mode){
     if(!running) return;
     if(!force && Date.now() - lastSaveAt < 5000) return;
     lastSaveAt = Date.now();
@@ -1744,9 +1819,52 @@
       lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime,
       autoPaused, pauseAt, pauseStartedAt, autoPausedMs, autoPauses, autoAsked, // pausa automática (se agregan)
       savedAt: Date.now()
-    });
+    }, mode || 'once');
   }
   function clearCurrentRun(){ try{ localStorage.removeItem('mirun_current'); }catch(e){} }
+  // guarda en el historial la carrera recién terminada. Si no cabe, prueba quitando su respaldo (mirun_current, casi del
+  // mismo tamaño). Si igual no cabe, la guarda aparte en IndexedDB (RESCATE); solo si eso también falla, el respaldo
+  // vuelve a su lugar y al abrir la app se ofrece "Guardarla así". "Guardar copia" la incluye mientras la app siga abierta.
+  function saveRunToHistory(run){
+    if(LS.set('mirun_history', history, 'quiet')){ clearCurrentRun(); return true; }
+    let cur = null; try{ cur = localStorage.getItem('mirun_current'); }catch(e){}
+    clearCurrentRun();
+    if(LS.set('mirun_history', history, 'quiet')) return true;
+    // no cabe: se guarda aparte (IndexedDB, otro espacio del navegador). Si eso también falla, vuelve el respaldo.
+    LS.runUnsaved = run.date;
+    rescueSave(run).then(ok=>{
+      if(ok){ if(history.some(h=>h.date === run.date)) LS.rescue.add(run.date); else rescueDelete(run.date); } // ya descartada
+      else{ try{ if(cur) localStorage.setItem('mirun_current', cur); }catch(e){} }
+      document.querySelector('#summaryOverlay h2').textContent = typeName(run.type) +
+        (ok ? ': guardada aparte (memoria llena)' : ': NO se pudo guardar (memoria llena)');
+      if(ok) alert('La memoria de la app está llena: tu carrera quedó guardada aparte y la verás en el Historial.\n\nVe a Perfil → "Guardar copia" para tenerla a salvo.');
+      else storageFullAlert();
+    });
+    return false;
+  }
+
+  // ---------- RESCATE ----------
+  // Carreras que no cupieron en localStorage: base IndexedDB "mirun_rescue" (almacén "runs", clave = date).
+  // Al abrir la app vuelven al Historial; se borran de aquí cuando ya quedaron en mirun_history.
+  function rescueDB(){
+    return new Promise((res, rej)=>{
+      try{
+        const r = indexedDB.open('mirun_rescue', 1);
+        r.onupgradeneeded = ()=>r.result.createObjectStore('runs', {keyPath: 'date'});
+        r.onsuccess = ()=>res(r.result); r.onerror = ()=>rej(r.error);
+      }catch(e){ rej(e); }
+    });
+  }
+  function rescueTx(mode, fn){
+    return rescueDB().then(db=>new Promise(res=>{
+      const tx = db.transaction('runs', mode), out = fn(tx.objectStore('runs'));
+      tx.oncomplete = ()=>{ db.close(); res(out && 'result' in out ? out.result : true); };
+      tx.onerror = tx.onabort = ()=>{ db.close(); res(false); };
+    })).catch(()=>false);
+  }
+  function rescueSave(run){ return rescueTx('readwrite', st=>{ st.put(JSON.parse(JSON.stringify(run))); }); }
+  function rescueDelete(date){ return rescueTx('readwrite', st=>{ st.delete(date); }); }
+  function rescueAll(){ return rescueTx('readonly', st=>st.getAll()).then(r=>Array.isArray(r) ? r : []); }
 
   function updateDisplay(){
     autoPauseTick(Date.now()); // antes de leer el tiempo: la pausa automática lo descuenta
@@ -1983,6 +2101,7 @@
   startGps();
 
   function beginRun(state){
+    LS.warned.mirun_current = false; // si la memoria se llena durante esta carrera, se avisa una vez
     running = true;
     paused = !!(state && state.paused);
     startTime = state ? state.startTime : Date.now();
@@ -2091,6 +2210,7 @@
   document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && stopConfirm.classList.contains('show')) closeStopConfirm(); });
 
   let sumPath = []; // ruta del último resumen, para el mapa grande
+  let sumRunDate = null; // la carrera del resumen (ya guardada): "Descartar" la quita
   document.getElementById('btnSumBigMap').addEventListener('click', ()=>openBigMap(sumPath, 'Tu ruta'));
   function finishRun(){
     if(!running) return;
@@ -2098,10 +2218,10 @@
     const sec = currentElapsedSec();
     if(autoPaused) autoPausedMs += Date.now() - pauseStartedAt; // terminó estando en pausa automática
     const autoInfo = autoPauses ? {autoPausedSeconds: Math.round(autoPausedMs / 1000), autoPauses} : {};
+    saveCurrentRun(true, 'quiet'); // respaldo al día: se borra solo cuando la carrera ya quedó en el historial
     running = false;
     clearInterval(timerInterval);
     releaseScreen();
-    clearCurrentRun();
     runNote.style.display = 'none';
     const cal = calcCalories(totalDist, sec, runType);
     const paceMinPerKm = totalDist > 0.02 ? sec/60/totalDist : 0;
@@ -2113,6 +2233,7 @@
     }
 
     const recBefore = computeRecords(history);
+    let runSaved = true;
     if(totalDist > 0.01){
       history.push({
         date: new Date().toISOString(),
@@ -2120,15 +2241,17 @@
         seconds: sec,
         pace: paceStr,
         cal: cal,
-        path: path.map(p=>({lat:p.lat, lon:p.lon})),
+        path: [], route: lightRoute(path), // ruta liviana (ver RUTA LIVIANA); los números ya se calcularon con todos los puntos
         splits: splits,
         type: runType,
         ...autoInfo // pausa automática (solo si hubo)
       });
-      LS.set('mirun_history', history);
-    }
+      sumRunDate = history[history.length - 1].date;
+      runSaved = saveRunToHistory(history[history.length - 1]);
+    } else { sumRunDate = null; clearCurrentRun(); } // tan corta que no se guarda
+    document.getElementById('sumDiscardRow').style.display = sumRunDate ? '' : 'none';
 
-    document.querySelector('#summaryOverlay h2').textContent = typeName(runType) + ': guardado';
+    document.querySelector('#summaryOverlay h2').textContent = runSaved ? '¡Terminaste! ' + typeName(runType) : typeName(runType) + ': NO se pudo guardar (memoria llena)'; // guardada; "Descartar" la quita
     document.getElementById('gpsTypeRow').style.display = 'flex';
     document.getElementById('btnStart').style.display='block';
     document.getElementById('activeBtns').style.display='none';
@@ -2209,6 +2332,17 @@
   document.getElementById('btnCloseSummary').addEventListener('click', ()=>{
     document.getElementById('summaryOverlay').classList.remove('show');
     renderHistory(); checkAchievements();
+  });
+  // "Descartar": la carrera ya estaba guardada (por si la app se cierra antes de elegir); aquí se quita
+  document.getElementById('btnSumDiscard').addEventListener('click', ()=>{
+    if(!sumRunDate || !confirm('¿Descartar esta carrera? No se guarda nada.')) return;
+    const d = sumRunDate; sumRunDate = null;
+    history = history.filter(h=>h.date !== d);
+    LS.set('mirun_history', history);
+    if(LS.runUnsaved === d){ LS.runUnsaved = null; clearCurrentRun(); }
+    if(LS.rescue.has(d)){ LS.rescue.delete(d); rescueDelete(d); }
+    document.getElementById('summaryOverlay').classList.remove('show');
+    renderHistory();
   });
 
   // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------
@@ -2327,7 +2461,7 @@
     if(allRest) return false;
     if(welcomeBackFor === last) return true;               // ya se mostró en esta sesión: se mantiene
     if(LS.get('mirun_welcomeBack', null) === last) return false; // ya se mostró antes para este regreso
-    welcomeBackFor = last; LS.set('mirun_welcomeBack', last);
+    welcomeBackFor = last; LS.set('mirun_welcomeBack', last, 'quiet');
     return true;
   }
   function renderHome(){
@@ -2410,10 +2544,11 @@
                   cal: metCalories(actInfo(type).met[INTENSITY.indexOf(intensity)], seconds),
                   dist: 0, pace: '--:--', path: [], splits: [], manual: true});
     history.sort((a,b)=>a.date < b.date ? -1 : 1);
-    LS.set('mirun_history', history);
+    const ok = LS.set('mirun_history', history);
     document.getElementById('actMin').value = '';
     const st = streakInfo(minutesByDay());
-    mascotMsg(msg, mins >= 60 ? 'guardadoLargo' : 'guardado', typeName(type) + ' guardado. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
+    if(!ok){ msg.textContent = NOT_SAVED; msg.style.color = 'var(--amber)'; }
+    else mascotMsg(msg, mins >= 60 ? 'guardadoLargo' : 'guardado', typeName(type) + ' guardado. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
     renderHistory(); checkAchievements();
   });
 
@@ -2577,7 +2712,7 @@
   let ses = null, sesTimer = null, sesCd = null, sesSaveAt = 0, sesClosedNote = false, sesFinishing = false;
   function rtSessionActive(){ return !!ses; }
   function sesElapsed(){ return ses ? ses.elapsedBefore + (ses.paused ? 0 : Date.now() - ses.startTime) : 0; }
-  function saveSession(){ if(ses){ ses.savedAt = Date.now(); LS.set('mirun_session', ses); sesSaveAt = ses.savedAt; } }
+  function saveSession(){ if(ses){ ses.savedAt = Date.now(); LS.set('mirun_session', ses, 'once'); sesSaveAt = ses.savedAt; } }
   function clearSession(){ ses = null; sesCd = null; sesFinishing = false; sesClosedNote = false; clearInterval(sesTimer); sesTimer = null; try{ localStorage.removeItem('mirun_session'); }catch(e){} }
   // modo guiado: order = lista de pasos {i: ejercicio, s: número de serie}; pos = paso actual.
   // 'ejercicio': todas las series de uno y luego el siguiente; 'circuito': una serie de cada uno y se repite la vuelta.
@@ -2589,6 +2724,7 @@
     return o;
   }
   function startSession(r){
+    LS.warned.mirun_session = false;
     const now = Date.now(), mode = r.mode === 'circuito' ? 'circuito' : 'ejercicio';
     ses = {rid: r.id, name: r.name, items: r.items.map(i=>Object.assign({}, i, {done: 0})),
            start: new Date(now).toISOString(), startTime: now, elapsedBefore: 0, paused: false, savedAt: now,
@@ -2753,11 +2889,12 @@
         ses.guided ? {mode: ses.mode} : {})});
     if(!ses.rid) delete history[history.length - 1].routine.rid;
     history.sort((a,b)=>a.date < b.date ? -1 : 1);
-    LS.set('mirun_history', history);
+    const ok = LS.set('mirun_history', history);
     const mins = Math.round(seconds / 60);
     clearSession(); renderRoutines();
     const st = streakInfo(minutesByDay());
-    mascotMsg(document.getElementById('rtSavedMsg'), mins >= 60 ? 'guardadoLargo' : 'guardado',
+    if(!ok){ const m = document.getElementById('rtSavedMsg'); m.textContent = NOT_SAVED; m.style.color = 'var(--amber)'; }
+    else mascotMsg(document.getElementById('rtSavedMsg'), mins >= 60 ? 'guardadoLargo' : 'guardado',
       'Rutina guardada: ' + mins + ' min. Racha: ' + st.cur + (st.cur === 1 ? ' día.' : ' días.'), 'var(--good)');
     renderHistory(); checkAchievements();
   }
@@ -2802,7 +2939,7 @@
     const was = celebBase ? (celebBase.day === day ? celebBase.done : false) : done;
     celebBase = {day, done};
     if(silent || was || !done || LS.get('mirun_celebrated', null) === day) return;
-    LS.set('mirun_celebrated', day);
+    LS.set('mirun_celebrated', day, 'quiet');
     celebrate();
   }
   let audioCtx = null;
@@ -2950,7 +3087,7 @@
     const seen = LS.get('mirun_achSeen', null);
     const unlocked = ACH.filter(a=>a.v(s) >= a.g).map(a=>a.id);
     const fresh = seen ? unlocked.filter(id=>!seen.includes(id)) : [];
-    if(!seen || fresh.length) LS.set('mirun_achSeen', [...new Set([...(seen || []), ...unlocked])]);
+    if(!seen || fresh.length) LS.set('mirun_achSeen', [...new Set([...(seen || []), ...unlocked])], 'quiet');
     if(silent || !seen || !fresh.length) return;
     achQueue = achQueue.concat(fresh);
     // si se está celebrando la meta del día, el aviso espera a que termine
@@ -3080,10 +3217,70 @@
 
   // ---------- COPIA DE SEGURIDAD DEL HISTORIAL ----------
   const backupMsg = document.getElementById('backupMsg');
+  // "Espacio usado: X %" en Perfil; desde el 80 % en naranja y un aviso al día (mirun_spaceWarned = día del último aviso)
+  function renderSpace(){
+    const u = LS.used(), el = document.getElementById('spaceInfo');
+    el.textContent = 'Espacio usado: ' + Math.min(100, Math.round(u * 100)) + ' %' +
+      (u >= 0.8 ? '. Queda poco: guarda una copia.' : '') + (LS.persisted ? ' · Protegido: el navegador no lo borra solo.' : '');
+    el.style.color = u >= 0.8 ? 'var(--amber)' : '';
+    return u;
+  }
+  function spaceCheck(){
+    const u = renderSpace();
+    if(u < 0.8 || LS.get('mirun_spaceWarned', '') === dayKey(new Date())) return;
+    LS.set('mirun_spaceWarned', dayKey(new Date()), 'quiet');
+    alert('La memoria de MiRun está al ' + Math.round(u * 100) + ' %.\n\nVe a Perfil → "Guardar copia" para tener tus datos a salvo.');
+  }
+  // ---------- LIBERAR ESPACIO ----------
+  // Borra SOLO la ruta del mapa (path = [] y sin route) de actividades que terminaron hace más de X meses y no son
+  // favoritas. Distancia, tiempo, ritmo, splits, calorías y lo demás quedan igual: racha, logros, récords y Evolución
+  // no usan la ruta. Antes dice cuánto libera, cuántas actividades toca y recomienda "Guardar copia"; pide confirmación.
+  function freeCandidates(months){
+    const lim = new Date(); lim.setMonth(lim.getMonth() - months);
+    return history.filter(h=>!h.favorite && actRange(h)[1] < lim.getTime() &&
+      ((Array.isArray(h.route) && h.route.length) || (Array.isArray(h.path) && h.path.length)));
+  }
+  function noRoute(h){ const c = Object.assign({}, h, {path: []}); delete c.route; return c; }
+  document.getElementById('btnFreeSpace').addEventListener('click', ()=>{
+    const months = Number(document.getElementById('freeMonths').value), list = freeCandidates(months);
+    const msg = document.getElementById('freeMsg'); msg.style.color = '';
+    if(!list.length){ msg.textContent = 'No hay mapas de actividades de hace más de ' + months + ' meses (sin contar favoritas).'; return; }
+    const chars = list.reduce((s,h)=>s + JSON.stringify(h).length - JSON.stringify(noRoute(h)).length, 0);
+    const kb = Math.max(1, Math.round(chars / 1024)), pct = Math.round(chars / LS_LIMIT * 100);
+    if(!confirm('Se borrarán los mapas de ' + list.length + (list.length === 1 ? ' actividad' : ' actividades') + ' de hace más de ' + months +
+      ' meses. Se liberan unos ' + kb + ' KB (' + pct + ' % del espacio).\n\nSe conservan distancia, tiempo, ritmo, splits y todo lo demás. ' +
+      'Los mapas de tus favoritas no se tocan. Esto no se puede deshacer.\n\nTe recomendamos tocar "Guardar copia" antes. ¿Liberar espacio ahora?')) return;
+    const prev = list.map(h=>[h, h.path, h.route]);
+    list.forEach(h=>{ h.path = []; delete h.route; });
+    if(!LS.set('mirun_history', history)){ prev.forEach(([h, p, r])=>{ h.path = p; if(r !== undefined) h.route = r; }); return; } // quedó como estaba
+    msg.textContent = 'Listo: se borraron los mapas de ' + list.length + (list.length === 1 ? ' actividad' : ' actividades') + ' y se liberaron unos ' + kb + ' KB.';
+    msg.style.color = 'var(--good)';
+    renderSpace(); renderHistory();
+  });
+
+  // pedir al navegador que no borre los datos solo (si no lo da, no se insiste)
+  try{
+    if(navigator.storage && navigator.storage.persist)
+      navigator.storage.persisted().then(p=>p || navigator.storage.persist()).then(p=>{ LS.persisted = !!p; renderSpace(); }).catch(()=>{});
+  }catch(e){}
+  setTimeout(spaceCheck, 1500);
+  // carreras guardadas aparte (RESCATE): vuelven al Historial; si ya caben en la memoria, se guardan y se borran de allá
+  if(window.indexedDB) rescueAll().then(list=>{
+    list = list.filter(r=>r && typeof r.date === 'string' && isFinite(r.dist) && isFinite(r.seconds));
+    if(!list.length) return;
+    list.forEach(r=>LS.rescue.add(r.date));
+    const add = list.filter(r=>!history.some(h=>h.date === r.date));
+    if(!add.length){ LS.rescue.forEach(d=>{ LS.rescue.delete(d); rescueDelete(d); }); return; }
+    history = history.concat(add).sort((a,b)=>a.date < b.date ? -1 : 1);
+    renderHistory(); if(document.body.dataset.tab === 'home') renderHome();
+    if(!LS.set('mirun_history', history, 'quiet'))
+      alert('Tienes ' + add.length + (add.length === 1 ? ' carrera guardada' : ' carreras guardadas') +
+        ' aparte porque la memoria está llena. Ya aparecen en tu Historial.\n\nVe a Perfil → "Guardar copia" para tenerlas a salvo.');
+  });
   function backupNote(t){ backupMsg.textContent = t; backupMsg.style.color = 'var(--signal)'; backupMsg.dataset.set = '1'; }
 
   document.getElementById('btnExport').addEventListener('click', ()=>{
-    LS.set('mirun_lastBackup', new Date().toISOString());
+    LS.set('mirun_lastBackup', new Date().toISOString(), 'quiet');
     const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
                                  profile, goal, history, body, routines, weekplan: weekPlan()});
     const blob = new Blob([data], {type:'application/json'});
@@ -3106,6 +3303,7 @@
     const r = new FileReader();
     r.onload = ()=>{
       try{
+        const importFails0 = LS.fails; // si algo no se guarda, no se dice "Listo"
         const data = JSON.parse(r.result);
         if(!data || data.app !== 'MiRun' || !Array.isArray(data.history)) throw 0;
         // Solo se aceptan campos esperados y con el tipo correcto (nada de codigo)
@@ -3117,9 +3315,13 @@
             cal: Math.round(Number(h.cal)||0),
             path: Array.isArray(h.path) ? h.path.filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon))
                     .map(p=>({lat:Number(p.lat), lon:Number(p.lon)})) : [],
+            // ruta liviana (formato nuevo): [[lat, lon], ...] con números válidos
+            ...(Array.isArray(h.route) ? {route: h.route.filter(p=>Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1]) &&
+                    Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180).slice(0, 50000).map(p=>[Number(p[0]), Number(p[1])])} : {}),
             splits: Array.isArray(h.splits) ? h.splits.filter(s=>s&&isFinite(s.km)&&isFinite(s.seconds))
                     .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
             manual: !!h.manual,
+            ...(h.favorite === true ? {favorite: true} : {}), // favorita (estrella del Historial)
             // campos de v5 (actividades): solo valores conocidos
             ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
             ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {}),
@@ -3221,6 +3423,7 @@
         }
         fillProfileForm(); loadGoalForm(); loadStreakForm(); refreshGoalLabels(); buildBodyForm();
         renderHistory(); checkAchievements(true);
+        if(LS.fails !== importFails0){ backupNote(NOT_SAVED); backupMsg.style.color = 'var(--amber)'; fileInput.value = ''; return; }
         backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades' + (nuevasRt ? ', ' : ' y ') + nuevasMed + ' mediciones' +
                    (nuevasRt ? ' y ' + nuevasRt + (nuevasRt === 1 ? ' rutina' : ' rutinas') : '') + ' nuevas' +
                    (perfil ? ', además de tu perfil y metas.' : '.'));
@@ -3241,7 +3444,7 @@
     if(LS.get('mirun_welcomed', false)) return;
     const hasData = ['mirun_profile','mirun_goal','mirun_photo','mirun_current','mirun_routines'].some(k=>localStorage.getItem(k) !== null) ||
                     history.length > 0 || body.length > 0;
-    if(hasData){ LS.set('mirun_welcomed', true); return; }
+    if(hasData){ LS.set('mirun_welcomed', true, 'quiet'); return; }
     const wel = document.getElementById('welcome'), wUnits = document.getElementById('welUnits'), wSex = document.getElementById('welSex');
     wUnits.addEventListener('click', ev=>{
       pickOne(wUnits, ev);
@@ -3253,7 +3456,7 @@
       wSex.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
       if(!was) c.classList.add('on');
     });
-    function close(){ LS.set('mirun_welcomed', true); wel.classList.remove('show'); }
+    function close(){ LS.set('mirun_welcomed', true, 'quiet'); wel.classList.remove('show'); }
     document.getElementById('btnWelSkip').addEventListener('click', close); // Saltar: no guarda nada del perfil
     document.getElementById('btnWelGo').addEventListener('click', ()=>{
       const msg = document.getElementById('welMsg'), bad = t=>mascotMsg(msg, 'error', t, 'var(--danger)');

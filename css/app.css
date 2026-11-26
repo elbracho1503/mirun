@@ -711,5 +711,16 @@
   .histBtns .linkBtn{min-height:40px;padding:0 14px;border:1px solid var(--lane-line);border-radius:12px;
     font-size:13.5px;font-weight:600;color:var(--text);background:var(--track2);}
   .histBtns .linkBtn[data-del]{color:#ff8a8a;}
+  /* Liberar espacio (Perfil, Copia de seguridad) */
+  #freeBox{margin:6px 0 14px;padding:12px;border:1px solid var(--lane-line);border-radius:14px;}
+  #freeBox label{margin-top:0;}
+  #freeBox .row2{align-items:center;}
+  #freeBox select, #freeBox .btn{margin:0;}
+  #freeBox .btn{padding:13px 10px;}
+  /* favorita: estrella del Historial (vacía / llena en dorado) */
+  .histBtns .favBtn{padding:0 10px;color:var(--sub);}
+  .histBtns .favBtn .ico{width:20px;height:20px;}
+  .histBtns .favBtn.on{color:var(--gold);border-color:rgba(245,184,46,.5);}
+  .histBtns .favBtn.on .ico{fill:currentColor;}
   .histItem .top{align-items:flex-start;gap:6px;}
   .histItem .top > span:first-child{padding-top:10px;}

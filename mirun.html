@@ -486,6 +486,17 @@
     <!-- copia de seguridad (antes en Historial; ver COPIA DE SEGURIDAD en js/app.js) -->
     <div class="panel" id="backupPanel" style="margin-top:20px;">
       <h3>Copia de seguridad</h3>
+      <div class="hint" id="spaceInfo" style="margin-bottom:6px;"></div>
+      <!-- Liberar espacio: borra SOLO los mapas (rutas) de actividades viejas que no son favoritas (LIBERAR ESPACIO en js/app.js) -->
+      <div id="freeBox">
+        <label for="freeMonths">Liberar espacio: borrar los mapas de actividades de hace más de</label>
+        <div class="row2">
+          <select id="freeMonths"><option value="6">6 meses</option><option value="12" selected>12 meses</option><option value="24">24 meses</option></select>
+          <button class="btn btn-ghost" id="btnFreeSpace">Liberar espacio</button>
+        </div>
+        <div class="hint">Se conservan distancia, tiempo, ritmo, splits y todo lo demás. Nunca se borran los mapas de tus favoritas.</div>
+        <div class="hint" id="freeMsg" style="margin-top:6px;"></div>
+      </div>
       <div class="hint">Guarda tus actividades, medidas, perfil, metas y foto en un archivo. Tus datos viven solo en este teléfono: si se borran los datos de Chrome o cambias de teléfono, los recuperas con ese archivo.</div>
       <div class="btnRow" style="margin-top:12px;">
         <button class="btn btn-ghost" id="btnExport">Guardar copia</button>
@@ -526,7 +537,9 @@
       <div id="sumSplitsList"></div>
     </div>
 
-    <div class="btnRow"><button class="btn btn-start" id="btnCloseSummary">Listo</button></div>
+    <!-- la carrera ya quedó guardada al terminar: "Guardar" solo cierra; "Descartar" la borra (con confirmación) -->
+    <div class="btnRow"><button class="btn btn-start" id="btnCloseSummary">Guardar</button></div>
+    <div class="btnRow" id="sumDiscardRow" style="margin-top:10px;"><button class="btn btn-ghost" id="btnSumDiscard">Descartar</button></div>
   </div>
 </div>
 
