@@ -101,3 +101,9 @@ CSS en los bloques `DISEÑO 3` de `css/app.css`.
   Semana (con barra) y Mejor racha; la mascota con su mensaje y la frase del día; "Esta semana" como tira de Lu a Do
   (cumplido en verde, descanso punteado, incompleto azul suave, hoy con anillo) y "Ver calendario" que abre el
   calendario completo de antes; "Tu actividad de hoy".
+- **Menos cajas y menos brillo** (bloque `DISEÑO 3: MENOS CAJAS`): `.panel` ya no es una caja (sin fondo, borde ni
+  sombra); los grupos se separan con 32 px y un título de 17 px. Solo son tarjetas los elementos de una lista o un aviso
+  (Hoy toca, actividades del Historial, rutinas, globo de la mascota, próximo logro): fondo `--track`, sin borde ni halo.
+  Sin halos de color en ningún lado (botones, "+", medallas, foto, GPS). Fondo de la app plano. El degradado `--grad`
+  queda solo en el botón principal de cada pantalla (lista de ids en el CSS); los demás `.btn-start` son azul sólido.
+  Medallas planas: azul `#173a7a` o dorada `#e0a628`.

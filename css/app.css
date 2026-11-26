@@ -762,3 +762,37 @@
   .histBtns .favBtn.on .ico{fill:currentColor;}
   .histItem .top{align-items:flex-start;gap:6px;}
   .histItem .top > span:first-child{padding-top:10px;}
+
+  /* ==== DISEÑO 3: MENOS CAJAS Y MENOS BRILLO ====
+     Los grupos se separan con espacio y un título, no con bordes (.panel ya no es una caja). Solo son tarjetas los
+     elementos de una lista o un aviso (fondo suave, sin borde ni halo). Sombras normales, sin halos de color.
+     El degradado queda solo en el botón principal de cada pantalla (lista de ids abajo). */
+  body{background:var(--bg);}
+  .panel{background:transparent;border:none;border-radius:0;box-shadow:none;padding:0 2px;margin-top:32px;}
+  .panel h3{font-size:17px;margin:0 0 12px;}
+  #todayPlan, .histItem, .rtCard, .bubble, .nextAch, .lane, .goalStrip, .sheetOpt, .evoCmp div{
+    background:var(--track);border:none;box-shadow:none;}
+  #todayPlan, .nextAch{border-radius:18px;padding:16px;}
+  .nextAch{border:1px solid rgba(245,184,46,.35);}
+  .histItem{margin-top:10px;}
+  .rtCard{border-radius:18px;}
+  .totRow{background:transparent;border:none;}
+  .totRow .t + .t{border-left:1px solid var(--lane-line);}
+  .histItem .mini-route canvas{background:transparent;}
+  #freeBox{border:none;padding:0;}
+  .clock{background:var(--track);box-shadow:none;}
+  #gpsStatus.ok::before{box-shadow:none;}
+  /* botones: sólidos; el degradado solo en el principal de cada pantalla */
+  .btn-start{background:#2563eb;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+  #btnHomeStart, #btnStart, #btnResume, #btnSaveGoal, #btnRtSave, #btnAct, #btnSaveBody, #btnCloseSummary, #btnEdSave,
+  #btnWelGo, #btnSesSave, .rtBigBtn{background:var(--grad);box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  .plusBtn{background:#2563eb;box-shadow:0 4px 10px rgba(0,0,0,.4);}
+  .btn-gold{box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  .pbar div{background:var(--signal);}
+  .avatar.noPhoto, .evoTabs .chip.on{background:#2563eb;}
+  .avatar.big{box-shadow:none;}
+  .charOpt.on{box-shadow:none;}
+  .welImg{box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  /* medallas: planas (sin brillo ni degradado), azul o dorado */
+  .ach.on .medal, .medal.big.blue{background:#173a7a;border-color:#7cc4ff;box-shadow:none;}
+  .ach.leg .medal, .medal.big{background:#e0a628;border-color:#ffe08a;box-shadow:none;}
