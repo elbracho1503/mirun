@@ -107,3 +107,7 @@ CSS en los bloques `DISEÑO 3` de `css/app.css`.
   Sin halos de color en ningún lado (botones, "+", medallas, foto, GPS). Fondo de la app plano. El degradado `--grad`
   queda solo en el botón principal de cada pantalla (lista de ids en el CSS); los demás `.btn-start` son azul sólido.
   Medallas planas: azul `#173a7a` o dorada `#e0a628`.
+- **Legibilidad** (bloque `DISEÑO 3: LEGIBILIDAD`): `--sub2` pasa de `#5d6d8f` (3,3 a 1) a `#8796b6` (5,4 a 1 o más sobre
+  fondo, tarjeta y campo); los ejemplos de los campos en `#7c8bab` (4,7 a 1 o más) y escritos "ej. 170". Sin etiquetas en
+  MAYÚSCULAS ("Meta de distancia", "km en total", "Mejor tiempo"…) y ninguna de menos de 12 px. Al tocar un campo:
+  contorno azul de 2 px; los botones con teclado también lo muestran (`:focus-visible`).

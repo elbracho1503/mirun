@@ -1306,9 +1306,9 @@
         <div class="recCol"><div class="l">Todavía no has corrido esta distancia</div></div></div>`;
       return `<div class="recRow"><div class="recCat">${name}</div>
         <div class="recCol"><div class="v">${fmtTime(r.best.sec)}</div>
-          <div class="l">MEJOR TIEMPO · ${paceTxt(r.best.sec, r.k)} /${dU()}<br>${fmtShortDate(r.best.date)}</div></div>
+          <div class="l">Mejor tiempo · ${paceTxt(r.best.sec, r.k)} /${dU()}<br>${fmtShortDate(r.best.date)}</div></div>
         <div class="recCol"><div class="v">${r.bestPace ? fmtPace(toPace(r.bestPace.p)) : '--'}</div>
-          <div class="l">MEJOR RITMO PROM.<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
+          <div class="l">Mejor ritmo promedio<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
       </div>`;
     }).join('');
   }
@@ -1353,7 +1353,7 @@
     const help = tracked().some(k=>k === 'cintura' || k === 'barriga') ? WAIST_HELP : '';
     document.getElementById('bodyInputs').innerHTML = help + MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
       `<div class="measIn"><label>${m.n} (${mU(m)})</label>
-        <input type="number" id="${m.id}" step="0.1" placeholder="${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
+        <input type="number" id="${m.id}" step="0.1" placeholder="ej. ${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
     document.getElementById('measChips').innerHTML = MEASURES.map(m=>
       `<button class="chip${tracked().includes(m.k) ? ' on' : ''}" data-meas="${m.k}">${m.n}</button>`).join('');
     // el gráfico ofrece lo que se sigue y también lo que tenga datos guardados

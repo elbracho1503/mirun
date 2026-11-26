@@ -140,9 +140,9 @@
     </div>
 
     <div class="goalStrip">
-      <div class="g"><div class="v num" id="goalDistLbl">--</div><div class="l">META DIST.</div></div>
-      <div class="g"><div class="v num" id="goalTimeLbl">--</div><div class="l">META TIEMPO</div></div>
-      <div class="g"><div class="v num" id="goalPaceLbl">--</div><div class="l">RITMO OBJ.</div></div>
+      <div class="g"><div class="v num" id="goalDistLbl">--</div><div class="l">Meta de distancia</div></div>
+      <div class="g"><div class="v num" id="goalTimeLbl">--</div><div class="l">Meta de tiempo</div></div>
+      <div class="g"><div class="v num" id="goalPaceLbl">--</div><div class="l">Ritmo objetivo</div></div>
     </div>
 
     <div class="mapWrap" id="liveMapWrap" style="display:none;">
@@ -179,8 +179,8 @@
       <div class="hint">Un día suma a tu racha si llegas al mínimo de minutos, sumando todas tus actividades
         (si dos se cruzan en el tiempo, no se cuentan dos veces).</div>
       <div class="row2">
-        <div><label>Mínimo diario (min)</label><input type="number" id="goalDailyMin" step="5" min="10" max="60" placeholder="20"></div>
-        <div><label>Meta semanal (min)</label><input type="number" id="goalWeekMin" step="10" placeholder="150"></div>
+        <div><label>Mínimo diario (min)</label><input type="number" id="goalDailyMin" step="5" min="10" max="60" placeholder="ej. 20"></div>
+        <div><label>Meta semanal (min)</label><input type="number" id="goalWeekMin" step="10" placeholder="ej. 150"></div>
       </div>
       <label>Días de descanso cada semana (no rompen la racha, máximo 3)</label>
       <div class="hint" id="restNote" style="margin-bottom:8px;"></div>
@@ -194,18 +194,18 @@
     <div class="panel">
       <h3>Meta de la carrera: distancia</h3>
       <label><span class="uDL">Kilómetros</span> a correr</label>
-      <input type="number" id="goalDist" step="0.1" placeholder="5">
+      <input type="number" id="goalDist" step="0.1" placeholder="ej. 5">
     </div>
     <div class="panel">
       <h3>Meta de tiempo</h3>
       <label>Minutos a correr</label>
-      <input type="number" id="goalTime" step="1" placeholder="30">
+      <input type="number" id="goalTime" step="1" placeholder="ej. 30">
     </div>
     <div class="panel">
       <h3>Ritmo objetivo (<span class="uP">min/km</span>)</h3>
       <div class="row2">
-        <div><label>Minutos</label><input type="number" id="paceMin" step="1" placeholder="6"></div>
-        <div><label>Segundos</label><input type="number" id="paceSec" step="1" placeholder="0"></div>
+        <div><label>Minutos</label><input type="number" id="paceMin" step="1" placeholder="ej. 6"></div>
+        <div><label>Segundos</label><input type="number" id="paceSec" step="1" placeholder="ej. 0"></div>
       </div>
     </div>
     <div class="btnRow"><button class="btn btn-start" id="btnSaveGoal">Guardar metas</button></div>
@@ -232,7 +232,7 @@
       <div class="panel">
         <h3 id="rtEditTitle">Nueva rutina</h3>
         <label>Nombre de la rutina</label>
-        <input type="text" id="rtName" maxlength="40" placeholder="Por ejemplo: Piernas">
+        <input type="text" id="rtName" maxlength="40" placeholder="ej. Piernas">
         <label>Agrega ejercicios</label>
         <div class="chips" id="rtExChips"></div>
         <div class="row2 rtCustomRow"><div><label>Ejercicio propio</label><input type="text" id="rtCustom" maxlength="40" placeholder="Nombre del ejercicio"></div>
@@ -254,9 +254,9 @@
   <!-- HISTORY SCREEN -->
   <div class="screen" id="tab-history">
     <div class="totRow">
-      <div class="t"><div class="v num" id="totRuns">0</div><div class="l">ACTIVIDADES</div></div>
-      <div class="t"><div class="v num" id="totKm">0</div><div class="l"><span class="uDU">KM</span> TOTAL</div></div>
-      <div class="t"><div class="v num" id="totCal">0</div><div class="l">KCAL TOTAL</div></div>
+      <div class="t"><div class="v num" id="totRuns">0</div><div class="l">actividades</div></div>
+      <div class="t"><div class="v num" id="totKm">0</div><div class="l"><span class="uD">km</span> en total</div></div>
+      <div class="t"><div class="v num" id="totCal">0</div><div class="l">kcal en total</div></div>
     </div>
     <div id="histList"></div>
   </div>
@@ -272,7 +272,7 @@
         <div><label>Hora de inicio</label><input type="time" id="actTime"></div>
       </div>
       <label>Duración (minutos)</label>
-      <input type="number" id="actMin" step="1" min="1" placeholder="30">
+      <input type="number" id="actMin" step="1" min="1" placeholder="ej. 30">
       <label>Intensidad</label>
       <div class="chips" id="actInt">
         <button class="chip" data-int="baja">Baja</button>
@@ -288,10 +288,10 @@
       <label>Fecha</label>
       <input type="date" id="manDate">
       <label><span class="uDL">Kilómetros</span></label>
-      <input type="number" id="manKm" step="0.01" placeholder="5">
+      <input type="number" id="manKm" step="0.01" placeholder="ej. 5">
       <div class="row2">
-        <div><label>Minutos</label><input type="number" id="manMin" step="1" placeholder="30"></div>
-        <div><label>Segundos</label><input type="number" id="manSec" step="1" placeholder="0"></div>
+        <div><label>Minutos</label><input type="number" id="manMin" step="1" placeholder="ej. 30"></div>
+        <div><label>Segundos</label><input type="number" id="manSec" step="1" placeholder="ej. 0"></div>
       </div>
       <div class="btnRow" style="margin-top:14px;"><button class="btn btn-ghost" id="btnManual">Agregar carrera</button></div>
       <div class="hint" id="manMsg" style="margin-top:8px;"></div>
@@ -431,11 +431,11 @@
         <option value="imperial">Millas y libras (mi, lb)</option>
       </select>
       <label>Peso (<span class="uW">kg</span>)</label>
-      <input type="number" id="profWeight" step="0.1" placeholder="70">
+      <input type="number" id="profWeight" step="0.1" placeholder="ej. 70">
       <label>Edad</label>
-      <input type="number" id="profAge" step="1" placeholder="30">
+      <input type="number" id="profAge" step="1" placeholder="ej. 30">
       <label>Estatura (cm) — para tu IMC</label>
-      <input type="number" id="profHeight" step="1" placeholder="170">
+      <input type="number" id="profHeight" step="1" placeholder="ej. 170">
       <label>Sexo</label>
       <select id="profSex">
         <option value="m">Masculino</option>
@@ -662,8 +662,8 @@
       <button class="chip" data-sex="x">Prefiero no decir</button>
     </div>
     <div class="row2">
-      <div><label>Estatura (cm)</label><input type="number" id="welHeight" step="1" min="100" max="250" placeholder="170"></div>
-      <div><label>Peso (<span id="welWU">kg</span>)</label><input type="number" id="welWeight" step="0.1" placeholder="70"></div>
+      <div><label>Estatura (cm)</label><input type="number" id="welHeight" step="1" min="100" max="250" placeholder="ej. 170"></div>
+      <div><label>Peso (<span id="welWU">kg</span>)</label><input type="number" id="welWeight" step="0.1" placeholder="ej. 70"></div>
     </div>
     <div class="hint" id="welMsg" style="margin-top:8px;"></div>
     <div class="btnRow"><button class="btn btn-start" id="btnWelGo">Empezar</button></div>
