@@ -92,6 +92,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |
 | Logros (`ACH`), próximo logro (`nextAchievement`), medallas y aviso "¡Nuevo logro!" | `// ---------- LOGROS` (CSS: `LOGROS: medallas`, HTML: `id="achOverlay"`) |
 | Exportar / importar copia (botones en Perfil: `id="backupPanel"`), "Espacio usado" (`renderSpace`, `spaceCheck`), `navigator.storage.persist()` | `// ---------- COPIA DE SEGURIDAD` |
+| Liberar espacio en Perfil: borra solo mapas de actividades viejas no favoritas (`freeCandidates`, `btnFreeSpace`) | `// ---------- LIBERAR ESPACIO` (HTML: `id="freeBox"`) |
 | Carreras que no cupieron en la memoria: guardadas aparte en IndexedDB `mirun_rescue` (`saveRunToHistory`, `rescueSave`, `rescueAll`) | `// ---------- RESCATE` |
 | Bienvenida (solo la primera vez y sin datos; `mirun_welcomed`) | `// ---------- BIENVENIDA` (HTML: `id="welcome"`, CSS: `BIENVENIDA`) |
 

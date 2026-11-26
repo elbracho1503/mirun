@@ -3231,6 +3231,33 @@
     LS.set('mirun_spaceWarned', dayKey(new Date()), 'quiet');
     alert('La memoria de MiRun está al ' + Math.round(u * 100) + ' %.\n\nVe a Perfil → "Guardar copia" para tener tus datos a salvo.');
   }
+  // ---------- LIBERAR ESPACIO ----------
+  // Borra SOLO la ruta del mapa (path = [] y sin route) de actividades que terminaron hace más de X meses y no son
+  // favoritas. Distancia, tiempo, ritmo, splits, calorías y lo demás quedan igual: racha, logros, récords y Evolución
+  // no usan la ruta. Antes dice cuánto libera, cuántas actividades toca y recomienda "Guardar copia"; pide confirmación.
+  function freeCandidates(months){
+    const lim = new Date(); lim.setMonth(lim.getMonth() - months);
+    return history.filter(h=>!h.favorite && actRange(h)[1] < lim.getTime() &&
+      ((Array.isArray(h.route) && h.route.length) || (Array.isArray(h.path) && h.path.length)));
+  }
+  function noRoute(h){ const c = Object.assign({}, h, {path: []}); delete c.route; return c; }
+  document.getElementById('btnFreeSpace').addEventListener('click', ()=>{
+    const months = Number(document.getElementById('freeMonths').value), list = freeCandidates(months);
+    const msg = document.getElementById('freeMsg'); msg.style.color = '';
+    if(!list.length){ msg.textContent = 'No hay mapas de actividades de hace más de ' + months + ' meses (sin contar favoritas).'; return; }
+    const chars = list.reduce((s,h)=>s + JSON.stringify(h).length - JSON.stringify(noRoute(h)).length, 0);
+    const kb = Math.max(1, Math.round(chars / 1024)), pct = Math.round(chars / LS_LIMIT * 100);
+    if(!confirm('Se borrarán los mapas de ' + list.length + (list.length === 1 ? ' actividad' : ' actividades') + ' de hace más de ' + months +
+      ' meses. Se liberan unos ' + kb + ' KB (' + pct + ' % del espacio).\n\nSe conservan distancia, tiempo, ritmo, splits y todo lo demás. ' +
+      'Los mapas de tus favoritas no se tocan. Esto no se puede deshacer.\n\nTe recomendamos tocar "Guardar copia" antes. ¿Liberar espacio ahora?')) return;
+    const prev = list.map(h=>[h, h.path, h.route]);
+    list.forEach(h=>{ h.path = []; delete h.route; });
+    if(!LS.set('mirun_history', history)){ prev.forEach(([h, p, r])=>{ h.path = p; if(r !== undefined) h.route = r; }); return; } // quedó como estaba
+    msg.textContent = 'Listo: se borraron los mapas de ' + list.length + (list.length === 1 ? ' actividad' : ' actividades') + ' y se liberaron unos ' + kb + ' KB.';
+    msg.style.color = 'var(--good)';
+    renderSpace(); renderHistory();
+  });
+
   // pedir al navegador que no borre los datos solo (si no lo da, no se insiste)
   try{
     if(navigator.storage && navigator.storage.persist)

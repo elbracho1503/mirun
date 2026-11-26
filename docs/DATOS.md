@@ -130,3 +130,4 @@ series en rango; lo inválido se descarta). El `routine` de una actividad se lim
   Distancia, ritmo, splits, calorías y récords se calculan durante la carrera con todos los puntos, antes de simplificar.
   La copia exporta los dos formatos y la importación acepta los dos (route: solo pares de números válidos, máx. 50.000).
 - `favorite: true` (opcional, desde 2026-11-25): actividad marcada con la estrella del Historial; sin el campo = no favorita. Va en la copia y la importación solo acepta `true`.
+- **Liberar espacio** (Perfil, desde 2026-11-25): borra SOLO la ruta (`path = []` y sin `route`) de actividades que terminaron hace más de 6, 12 o 24 meses (lo elige la persona) y no son favoritas. Todo lo demás queda igual; antes dice cuánto libera y cuántas actividades toca, recomienda "Guardar copia" y pide confirmación. Es la única acción que borra rutas, y solo la hace la persona.
