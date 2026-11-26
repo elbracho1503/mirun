@@ -2616,13 +2616,19 @@
   function renderWeek(){
     const plan = weekPlan(), box = document.getElementById('rtWeekRows');
     document.getElementById('rtWeek').style.display = routines.length ? '' : 'none';
-    box.innerHTML = [1,2,3,4,5,6,0].map(d=>`<div class="rtWeekRow"><b>${DAY2[d]}</b>
-      <select data-wday="${d}"><option value="">Sin rutina</option>${routines.map(r=>`<option value="${esc(r.id)}"${plan[d] === r.id ? ' selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>`).join('');
+    // tira compacta: cada día muestra su rutina; al tocarlo se abre la lista (el select va encima, invisible)
+    const FULL = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'], today = new Date().getDay();
+    box.innerHTML = [1,2,3,4,5,6,0].map(d=>{ const r = routines.find(x=>x.id === plan[d]);
+      return `<label class="wkDay${r ? ' on' : ''}${d === today ? ' today' : ''}"><b>${DAY2[d]}</b><span>${r ? ico('dumbbell') : '—'}</span>
+      <select data-wday="${d}" aria-label="Rutina del ${FULL[d]}"><option value="">Sin rutina</option>${routines.map(x=>`<option value="${esc(x.id)}"${plan[d] === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>`; }).join('');
+    // debajo, en una línea, qué rutina toca cada día (los nombres no caben enteros en la tira)
+    const sum = [1,2,3,4,5,6,0].map(d=>{ const r = routines.find(x=>x.id === plan[d]); return r ? '<b>' + DAY2[d] + '</b> ' + esc(r.name) : ''; }).filter(Boolean);
+    document.getElementById('rtWeekSum').innerHTML = sum.length ? sum.join(' · ') : 'Todavía no hay rutinas en tu semana.';
   }
   document.getElementById('rtWeekRows').addEventListener('change', ev=>{
     const s = ev.target.closest('[data-wday]'); if(!s) return;
     const plan = weekPlan(); if(s.value) plan[s.dataset.wday] = s.value; else delete plan[s.dataset.wday];
-    LS.set('mirun_weekplan', plan); showSaved();
+    LS.set('mirun_weekplan', plan); showSaved(); renderWeek();
   });
   document.getElementById('todayPlan').addEventListener('click', ev=>{
     const b = ev.target.closest('#btnPlanGo'); if(!b) return;

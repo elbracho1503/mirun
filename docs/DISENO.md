@@ -115,3 +115,5 @@ CSS en los bloques `DISEÑO 3` de `css/app.css`.
   estatura, objetivo, nivel y "Mis metas y días de descanso"), Compañero, Avisos (voz, sonidos y vibración, frases de fe,
   pausa automática: interruptores), Mapa y Mis datos (copia, espacio usado, liberar espacio). Sin botón "Guardar perfil":
   cada ajuste se guarda al cambiar (`saveProfile`), con los mismos campos y reglas de antes.
+- **Mi semana** (Mis rutinas): tira de 7 días (Lu a Do). Un día con rutina se ve en azul con el ícono de pesas; al
+  tocarlo se abre la lista de rutinas (el `select` de siempre, invisible encima). Debajo, una línea con qué toca cada día.

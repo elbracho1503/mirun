@@ -836,3 +836,15 @@
   .switch input:checked + i{background:#2563eb;border-color:#2563eb;}
   .switch input:checked + i::after{transform:translateX(22px);background:#fff;}
   .switch input:focus-visible + i{outline:2px solid var(--signal);outline-offset:2px;}
+
+  /* ==== DISEÑO 3: MI SEMANA (tira de 7 días) ==== */
+  #rtWeekRows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:10px;}
+  .wkDay{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;padding:10px 1px;min-height:68px;
+    border-radius:12px;background:var(--track);border:1px solid transparent;color:var(--text);cursor:pointer;}
+  .wkDay b{font-size:13.5px;}
+  .wkDay span{font-size:12px;color:var(--sub);line-height:1;}
+  .wkDay span .ico{width:18px;height:18px;color:var(--text);}
+  .wkDay.on{background:rgba(37,99,235,.22);border-color:#2563eb;}
+  .wkDay.today b{color:var(--signal);}
+  .wkDay select{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+  .wkDay:focus-within{outline:2px solid var(--signal);outline-offset:1px;}
