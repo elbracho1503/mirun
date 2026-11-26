@@ -2399,10 +2399,34 @@
   function setBar(id, val, goalVal){
     document.getElementById(id+'Min').textContent = val;
     document.getElementById(id+'Goal').textContent = 'de ' + goalVal + ' min';
-    const bar = document.getElementById(id+'Bar');
+    const bar = document.getElementById(id+'Bar'); if(!bar) return; // "hoy" es un anillo (setRing)
     bar.style.width = Math.min(100, val/goalVal*100) + '%';
     bar.classList.toggle('full', val >= goalVal);
   }
+  // anillo de "Tu meta de hoy" (circunferencia 2·π·52) y la frase de abajo
+  function setRing(val, goalVal, stat){
+    const c = 2 * Math.PI * 52, p = Math.min(1, val / goalVal), ring = document.getElementById('todayRing');
+    ring.style.strokeDasharray = c; ring.style.strokeDashoffset = c * (1 - p);
+    ring.classList.toggle('full', val >= goalVal);
+    document.getElementById('todayGoalHint').textContent = stat === 'rest' && val < goalVal ? 'Hoy es tu día de descanso.'
+      : val >= goalVal ? '¡Cumplida! Tu racha sigue.' : 'Te faltan ' + Math.ceil(goalVal - val) + ' min.';
+  }
+  // tira de lunes a domingo de esta semana: cumplido, descanso, incompleto o por venir
+  function renderWeekStrip(mins, monday, today){
+    const tk = dayKey(today);
+    document.getElementById('weekStrip').innerHTML = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map((n, i)=>{
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const s = d > today ? 'future' : dayStatus(mins, d), lbl = {done: 'cumplido', rest: 'descanso', part: 'incompleto', future: ''}[s] || 'sin actividad';
+      return `<div class="wd ${s}${dayKey(d) === tk ? ' today' : ''}" title="${lbl}"><span>${n}</span><i class="num">${d.getDate()}</i></div>`;
+    }).join('');
+  }
+  document.getElementById('btnCalToggle').addEventListener('click', ev=>{
+    const p = document.getElementById('calPanel'), open = p.style.display === 'none';
+    p.style.display = open ? '' : 'none';
+    ev.currentTarget.textContent = open ? 'Ocultar calendario' : 'Ver calendario';
+    ev.currentTarget.setAttribute('aria-expanded', open);
+    if(open) p.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
 
   // Calendario de Inicio (solo lee datos): las últimas 4 semanas, o un mes completo con ‹ y ›.
   // ‹ desde "Últimas 4 semanas" va al mes actual y sigue hacia atrás hasta el mes de la primera actividad;
@@ -2467,10 +2491,9 @@
   function renderHome(){
     const mins = minutesByDay(), st = streakInfo(mins);
     document.getElementById('streakVal').textContent = st.cur;
-    document.getElementById('streakLbl').textContent = st.cur === 1 ? 'día de racha' : 'días de racha';
-    document.getElementById('streakRec').textContent = st.best
-      ? 'Tu récord: ' + st.best + (st.best === 1 ? ' día' : ' días')
-      : 'Haz ' + dailyMin() + ' min de actividad hoy para empezar tu racha';
+    document.getElementById('streakLbl').textContent = st.cur === 1 ? 'día' : 'días';
+    document.getElementById('streakBest').textContent = st.best;
+    document.getElementById('streakBestLbl').textContent = st.best === 1 ? 'día' : 'días';
     const today = new Date(); today.setHours(12,0,0,0);
     const tk = dayKey(today);
     // semana de lunes a domingo
@@ -2479,6 +2502,8 @@
     for(let i=0; i<7; i++){ const d = new Date(monday); d.setDate(monday.getDate()+i); wMin += mins.get(dayKey(d)) || 0; }
     setBar('today', Math.round(mins.get(tk) || 0), dailyMin());
     setBar('week', Math.round(wMin), weekMin());
+    setRing(Math.round(mins.get(tk) || 0), dailyMin(), dayStatus(mins, today));
+    renderWeekStrip(mins, monday, today);
     // mascota: pose y mensaje según cómo va el día
     const tStat = dayStatus(mins, today), left = Math.max(0, Math.ceil(dailyMin() - (mins.get(tk) || 0)));
     const recent = [1,2,3].some(n=>{ const d = new Date(today); d.setDate(d.getDate()-n); return (mins.get(dayKey(d)) || 0) > 0; });

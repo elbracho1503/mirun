@@ -93,3 +93,11 @@ Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al f
   40 px de alto, separados 8 px (Borrar en rojo suave).
 - **Pantalla de inicio (al abrir)**: `background_color` y `theme_color` de `manifest.json` y `<meta name="theme-color">`
   = `#001548`, el azul marino del fondo del logo del rayo (`img/iconos/`). El fondo de la app sigue en `--bg` `#070d1f`.
+
+## Diseño 3 (rama `prueba/diseno3`, 2026-11-25)
+CSS en los bloques `DISEÑO 3` de `css/app.css`.
+- **Inicio**, de arriba abajo: "Tu meta de hoy" con un anillo (minutos de hoy / meta diaria; verde al cumplir) y una
+  frase corta; el botón principal "Empezar actividad"; "Hoy toca" (si hay rutina para hoy); una fila con Racha,
+  Semana (con barra) y Mejor racha; la mascota con su mensaje y la frase del día; "Esta semana" como tira de Lu a Do
+  (cumplido en verde, descanso punteado, incompleto azul suave, hoy con anillo) y "Ver calendario" que abre el
+  calendario completo de antes; "Tu actividad de hoy".

@@ -706,6 +706,44 @@
   .histWeek:first-child, .histStepsHint + .histWeek{margin-top:14px;}
   .histWeek b{font-size:16px;color:var(--text);}
   .histWeek span{font-size:13px;color:var(--sub);}
+  /* ==== DISEÑO 3: INICIO (rama prueba/diseno3) ==== */
+  .homeGoal{display:flex;align-items:center;gap:18px;margin:14px 2px 4px;}
+  .ring{position:relative;width:118px;height:118px;flex-shrink:0;}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .ring circle{fill:none;stroke-width:10;}
+  .ring .rTrack{stroke:var(--lane-line);}
+  .ring .rFill{stroke:var(--signal);stroke-linecap:round;transition:stroke-dashoffset .6s ease-out;}
+  .ring .rFill.full{stroke:var(--good);}
+  .ringTxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ringTxt b{font-size:30px;line-height:1;}
+  .ringTxt span{font-size:12.5px;color:var(--sub);margin-top:4px;}
+  .homeGoalTxt h2{font-size:21px;margin:0 0 6px;}
+  .homeGoalTxt p{margin:0;font-size:15px;color:var(--sub);line-height:1.35;}
+  #tab-home .homeActions{margin-top:14px;}
+  #tab-home #todayPlan{margin-top:14px;}
+  .homeStats{display:grid;grid-template-columns:repeat(3,1fr);margin:22px 0 4px;}
+  .homeStats > div{padding:2px 10px;display:flex;flex-direction:column;gap:2px;}
+  .homeStats > div + div{border-left:1px solid var(--lane-line);}
+  .homeStats .lbl{font-size:13px;color:var(--sub);}
+  .homeStats b{font-size:24px;line-height:1.15;}
+  .homeStats small{font-size:12.5px;color:var(--sub);}
+  .homeStats .pbar{height:4px;margin-top:6px;}
+  #tab-home .mascotCard{margin-top:22px;}
+  .weekStripBox{margin-top:24px;}
+  .wsHead{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px;}
+  .wsHead h3{margin:0;font-size:16px;}
+  .wsHead .linkBtn{font-size:14px;color:var(--signal);padding:8px 0 8px 12px;}
+  .wsDays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .wd{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;color:var(--sub);}
+  .wd i{font-style:normal;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:600;color:var(--text);background:var(--track2);}
+  .wd.done i{background:var(--good);color:#04241a;}
+  .wd.rest i{background:transparent;border:1.5px dashed var(--sub);}
+  .wd.part i{background:rgba(77,155,255,.28);}
+  .wd.future i{background:transparent;color:var(--sub);border:1px solid var(--lane-line);}
+  .wd.today span{color:var(--text);font-weight:700;}
+  .wd.today i{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--signal);}
+  #calPanel{margin-top:16px;}
   /* Historial: Editar y Borrar más grandes y separados (área de toque de 40 px) */
   .histBtns{display:flex;gap:8px;flex-shrink:0;margin-left:10px;}
   .histBtns .linkBtn{min-height:40px;padding:0 14px;border:1px solid var(--lane-line);border-radius:12px;

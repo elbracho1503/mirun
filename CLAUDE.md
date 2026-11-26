@@ -85,7 +85,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Carrera en curso / iniciar / terminar (`body.gpsOn` mientras se registra) | `// ---------- CARRERA EN CURSO` (CSS: `GPS EN CURSO`) |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
-| Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
+| Racha, minutos por día, Inicio (anillo "Tu meta de hoy" `setRing`, fila Racha/Semana/Mejor racha, tira de 7 días `renderWeekStrip` y "Ver calendario" `btnCalToggle`), calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
 | Planeador de la semana: datos (`weekPlan`, `mirun_weekplan`) y tarjeta "Hoy toca" de Inicio (`renderTodayPlan`, `routineAvgMin`) | `// ---------- PLANEADOR DE LA SEMANA` (HTML: `id="todayPlan"`, `id="rtWeek"`; "Mi semana" = `renderWeek` en MIS RUTINAS) |
 | Mis rutinas (menú "+"): lista, editor (`EXERCISES`, `routines`, `mirun_routines`) | `// ---------- MIS RUTINAS` (HTML: `id="tab-rutinas"`, CSS: `MIS RUTINAS`) |
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
