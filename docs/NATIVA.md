@@ -181,6 +181,9 @@ No se planea mientras no haya pedidos reales.
 - **Pantalla de inicio con el logo más pequeño y nítido.** En la web el tamaño del logo en esa pantalla lo decide Android
   (no se puede controlar desde la PWA) y puede verse estirado/pixelado. En la app nativa se usa un logo vectorial o un
   PNG del tamaño exacto, más pequeño y centrado sobre `#001548`. Desde 2026-11-25 la PWA ofrece además `icon-1024.png` ("any").
+- 2026-11-26 (rama `prueba/diseno3`): Leaflet se carga solo al entrar al GPS o al pedir un mapa con calles, y las
+  imágenes de pantallas ocultas llevan `loading="lazy"`. Al abrir: 7 archivos y 436 KB en vez de 13 y 872 KB; primer
+  dibujo 0,68 s en vez de 1,13 s (servidor local, procesador 4 veces más lento, mediana de 7 aperturas).
 - Medición 2026-11-25 (Chrome sin ventana, procesador 4 veces más lento, como un teléfono medio): con caché abre en
   0,3 a 1,4 s hasta el primer dibujo; el código de la app tarda 25 a 90 ms. Lo que más pesa: el Service Worker
   "despertando" (hasta ~1 s la primera vez), Leaflet (144 KB) cargado en el `<head>` antes de dibujar aunque solo lo usan

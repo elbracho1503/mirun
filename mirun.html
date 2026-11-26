@@ -12,8 +12,7 @@
 <!-- OpenStreetMap exige saber desde que pagina se piden las calles (solo se envia el dominio) -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Leaflet (libreria de mapas) guardada junto a la app: no depende de otros servidores -->
-<link rel="stylesheet" href="lib/leaflet.css">
-<script src="lib/leaflet.js"></script>
+<!-- Leaflet (mapa con calles) ya no se carga al abrir: loadLeaflet() en js/app.js lo pide solo cuando hace falta -->
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/iconos/icon-192.png">
 <link rel="apple-touch-icon" href="img/iconos/icon-180.png">
@@ -154,7 +153,7 @@
     </div>
 
     <div id="gpsTypeRow" style="margin-top:16px;">
-      <img class="mascotInline" data-pose="corriendo" alt="">
+      <img class="mascotInline" data-pose="corriendo" alt="" loading="lazy">
       <div class="chips">
       <button class="chip on" data-gtype="correr"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>Correr</button>
       <button class="chip" data-gtype="caminar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>Caminar</button>
@@ -330,7 +329,7 @@
         <button class="chip" data-r="all">Todo</button>
       </div>
       <div class="panel" id="evoEmpty" style="display:none;">
-        <div class="empty"><img data-pose="asomado" alt="">Registra actividad para ver tu evolución.</div>
+        <div class="empty"><img data-pose="asomado" alt="" loading="lazy">Registra actividad para ver tu evolución.</div>
       </div>
       <div id="evoCharts">
         <div class="panel"><h3>Comparado con el período anterior</h3><div id="evoCompare"></div></div>
@@ -539,7 +538,7 @@
 <!-- Menú del botón "+": elegir cómo registrar la actividad -->
 <div id="plusSheet">
   <div class="sheet">
-    <div class="sheetTitle"><img data-pose="pesas" alt="">¿Qué vas a hacer?</div>
+    <div class="sheetTitle"><img data-pose="pesas" alt="" loading="lazy">¿Qué vas a hacer?</div>
     <button class="sheetOpt" data-plus="correr"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg></span>Correr con GPS</button>
     <button class="sheetOpt" data-plus="caminar"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg></span>Caminar con GPS</button>
     <button class="sheetOpt" data-plus="bici"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg></span>Bicicleta con GPS</button>
@@ -616,7 +615,7 @@
 <!-- Bienvenida: solo la primera vez y solo sin datos guardados (BIENVENIDA en js/app.js) -->
 <div id="welcome">
   <div class="welBox">
-    <img class="welImg" src="img/bienvenida.jpg" alt="Brío, la mascota de MiRun">
+    <img class="welImg" src="img/bienvenida.jpg" alt="Brío, la mascota de MiRun" loading="lazy">
     <h2>¡Te damos la bienvenida a MiRun!</h2>
     <div class="welSub">Tu cuerpo, tu mejor versión</div>
     <p class="hint">Registra tus actividades, sigue tu racha y mira cómo mejoras. Todo se guarda solo en tu teléfono.</p>

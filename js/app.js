@@ -406,7 +406,8 @@
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
     if(tab==='profile') renderSpace();
-    if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr'); }
+    if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr');
+      if(profile.mapMode !== 'linea' && navigator.onLine) loadLeaflet(); }
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -790,9 +791,36 @@
   // Si se eligio "calles", hay internet y la libreria cargo: mapa real.
   // Si no: la linea dibujada de siempre (drawRoute), que no necesita internet.
   const streetMaps = {};
-  function streetsAvailable(mode){ // mode: vista pedida ('calles' o 'linea'); sin mode = la del Perfil
-    return (mode || profile.mapMode) !== 'linea' && navigator.onLine && typeof window.L !== 'undefined';
+  // Leaflet (lib/leaflet.js y .css) se carga recién cuando se pide un mapa con calles (o al entrar al GPS), no al
+  // abrir la app. Mientras carga (o sin internet) se ve la línea de siempre; al terminar, 'leafletready' redibuja.
+  let leafletP = null;
+  function loadLeaflet(){
+    if(window.L) return Promise.resolve(true);
+    if(leafletP) return leafletP;
+    leafletP = new Promise(res=>{
+      const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'lib/leaflet.css'; document.head.appendChild(css);
+      const s = document.createElement('script'); s.src = 'lib/leaflet.js';
+      s.onload = ()=>{ res(true); document.dispatchEvent(new Event('leafletready')); };
+      s.onerror = ()=>{ leafletP = null; s.remove(); res(false); }; // se reintenta la próxima vez
+      document.head.appendChild(s);
+    });
+    return leafletP;
   }
+  // texto bajo el mapa cuando se pidió "calles" pero se ve la línea
+  function streetsNote(){ return navigator.onLine && leafletP && !window.L ? 'Cargando el mapa con calles…' : 'Sin internet: mostrando solo la línea'; }
+  function streetsAvailable(mode){ // mode: vista pedida ('calles' o 'linea'); sin mode = la del Perfil
+    const want = (mode || profile.mapMode) !== 'linea' && navigator.onLine;
+    if(want && typeof window.L === 'undefined') loadLeaflet();
+    return want && typeof window.L !== 'undefined';
+  }
+  document.addEventListener('leafletready', ()=>{
+    if(running) refreshLiveMap();
+    if(bigMap.el.classList.contains('show') && bigMap.mode !== 'linea') showBigMap();
+    if(document.getElementById('summaryOverlay').classList.contains('show') && sumPath.length > 1){
+      const c = document.getElementById('sumMap'), dv = document.getElementById('sumStreet');
+      try{ renderRoute('sum', c, dv, sumPath, '#4d9bff', false); }catch(e){}
+    }
+  });
   function renderRoute(key, canvas, div, points, color, follow, mode){
     if(!streetsAvailable(mode)){
       div.style.display = 'none';
@@ -882,7 +910,7 @@
     if(bigMap.shown === 'linea') drawBigLine();
     document.getElementById('bigMapMode').textContent = bigMap.mode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
     document.getElementById('bigMapNote').textContent =
-      bigMap.mode !== 'linea' && bigMap.shown === 'linea' ? 'Sin internet: mostrando solo la línea' : '';
+      bigMap.mode !== 'linea' && bigMap.shown === 'linea' ? streetsNote() : '';
   }
   // posición en pantalla de un punto: ajuste a la pantalla × zoom (s) + desplazamiento (tx, ty)
   function bigLineGeo(){
@@ -1709,7 +1737,7 @@
               drawRoute(liveMapCanvas, path, '#4d9bff'); shown = 'linea'; }
     liveMapMode.textContent = profile.mapMode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
     if(profile.mapMode !== 'linea' && shown === 'linea'){
-      liveMapNote.textContent = 'Sin internet: mostrando solo la línea';
+      liveMapNote.textContent = streetsNote();
     } else if(path.length === 0){
       liveMapNote.textContent = 'Esperando tu primera posición…';
     } else {

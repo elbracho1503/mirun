@@ -70,7 +70,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
 | Ruta liviana para carreras nuevas (`lightRoute`, `routeOf` lee `route` nuevo y `path` viejo) | `// ---------- RUTA LIVIANA` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
-| Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
+| Mapa con calles (Leaflet). Leaflet NO se carga al abrir: `loadLeaflet()` lo pide al entrar al GPS o al pedir un mapa con calles; evento `leafletready` redibuja; sin internet, línea | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
 | Historial: solo la lista, la más nueva arriba, agrupada por semana con su total (`histWeekHead`); por partes: 4 semanas con actividad y "Ver más" (`histWeeks`), mapas pequeños dibujados al verse (`histIO`); incluye "≈ N pasos" y el detalle de rutina `routineDetail` | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
