@@ -66,7 +66,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
-| Perfil en secciones Tú / Compañero / Avisos / Mapa / Mis datos, se guarda al cambiar (`saveProfile`, `PROF_FIELDS`; interruptores `.switch`): saludo, foto (`mirun_photo`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
+| Perfil en secciones Tú / Compañero / Avisos / Mapa / Mis datos, se guarda al cambiar (`saveProfile`, `PROF_FIELDS`; interruptores `.switch`): saludo, foto (`mirun_photo`; "Ajusta tu foto" `openPhotoCrop`, HTML `id="photoCrop"`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
 | Ruta liviana para carreras nuevas (`lightRoute`, `routeOf` lee `route` nuevo y `path` viejo) | `// ---------- RUTA LIVIANA` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |

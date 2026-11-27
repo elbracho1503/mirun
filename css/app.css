@@ -848,3 +848,14 @@
   .wkDay.today b{color:var(--signal);}
   .wkDay select{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
   .wkDay:focus-within{outline:2px solid var(--signal);outline-offset:1px;}
+
+  /* ==== DISEÑO 3: AJUSTAR LA FOTO DE PERFIL (photoCrop) ==== */
+  #photoCrop{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,7,18,.94);}
+  #photoCrop.show{display:flex;}
+  .pcBox{width:100%;max-width:400px;background:var(--track);border-radius:22px;padding:18px;}
+  .pcBox h3{margin:0 0 6px;font-size:18px;}
+  .pcStage{position:relative;width:min(78vw,300px);aspect-ratio:1;margin:14px auto 4px;overflow:hidden;border-radius:16px;background:#000;}
+  .pcStage canvas{display:block;touch-action:none;cursor:grab;}
+  .pcStage canvas:active{cursor:grabbing;}
+  .pcMask{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:0 0 0 400px rgba(3,7,18,.62);outline:2px solid rgba(255,255,255,.85);}
+  #pcZoom{width:100%;accent-color:var(--signal);margin:4px 0 0;}

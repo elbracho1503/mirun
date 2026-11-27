@@ -119,3 +119,6 @@ CSS en los bloques `DISEÑO 3` de `css/app.css`.
   tocarlo se abre la lista de rutinas (el `select` de siempre, invisible encima). Debajo, una línea con qué toca cada día.
 - Perfil: nombre, peso, edad y estatura también se guardan mientras se escribe, 1 s después de la última tecla (sin
   reescribir el campo en uso). Un número a medio escribir ("64." o vacío) no se guarda hasta completarlo o salir del campo.
+- **Ajustar la foto de perfil** (`#photoCrop`, bloque `DISEÑO 3: AJUSTAR LA FOTO`): al elegir una foto se ve dentro de
+  un círculo; se mueve con el dedo y se acerca o aleja con pellizco, el control deslizante o la rueda (1× a 4×; la foto
+  siempre cubre el círculo). "Listo" guarda lo que se ve, a 256 × 256 JPEG 0,82 como antes; "Cancelar" deja la foto anterior.

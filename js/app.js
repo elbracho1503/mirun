@@ -521,7 +521,9 @@
     if(profile.name) h.textContent = 'Hola, ' + profile.name; else h.innerHTML = 'Mi<span>Run</span>';
   }
 
-  // Foto de perfil: se recorta al centro, se reduce a 256 px (JPEG ~30 KB) y se guarda en mirun_photo.
+  // Foto de perfil: al elegirla se abre "Ajusta tu foto" (photoCrop): se mueve con el dedo y se acerca o aleja (pellizco,
+  // control deslizante o rueda). "Listo" guarda lo que se ve en el círculo a 256 px (JPEG ~30 KB) en mirun_photo, igual
+  // que antes; "Cancelar" deja la foto anterior.
   // Sin foto: iniciales del nombre sobre azul, o un ícono si no hay nombre (decisión del usuario 2026-11-08; antes, círculo negro).
   // iniciales del nombre (primera letra de la primera y de la última palabra), para cuando no hay foto
   function initials(name){
@@ -548,15 +550,59 @@
     const f = photoFile.files && photoFile.files[0]; photoFile.value = '';
     if(!f || !/^image\//.test(f.type)) return;
     const url = URL.createObjectURL(f), img = new Image();
-    img.onload = ()=>{
-      const S = 256, s = Math.min(img.width, img.height), c = document.createElement('canvas');
-      c.width = c.height = S;
-      c.getContext('2d').drawImage(img, (img.width - s)/2, (img.height - s)/2, s, s, 0, 0, S, S);
-      URL.revokeObjectURL(url);
-      if(LS.set('mirun_photo', c.toDataURL('image/jpeg', 0.82))){ refreshAvatars(); showSaved(); }
-    };
+    img.onload = ()=>{ URL.revokeObjectURL(url); openPhotoCrop(img); };
     img.onerror = ()=>{ URL.revokeObjectURL(url); alert('No se pudo abrir esa imagen.'); };
     img.src = url;
+  });
+  // "Ajusta tu foto": z = acercamiento (1 = el lado corto llena el círculo), ox/oy = desplazamiento en px de pantalla
+  const pc = {el: document.getElementById('photoCrop'), stage: document.getElementById('pcStage'), cv: document.getElementById('pcCanvas'),
+              zoom: document.getElementById('pcZoom'), img: null, z: 1, ox: 0, oy: 0, ptrs: new Map(), pinch: null};
+  function pcSize(){ return pc.stage.clientWidth; }
+  function pcBase(){ return pcSize() / Math.min(pc.img.width, pc.img.height); } // escala con z = 1
+  function pcClamp(){ // la foto siempre cubre todo el círculo
+    const D = pcSize(), k = pcBase() * pc.z, mx = Math.max(0, (pc.img.width * k - D) / 2), my = Math.max(0, (pc.img.height * k - D) / 2);
+    pc.ox = Math.max(-mx, Math.min(mx, pc.ox)); pc.oy = Math.max(-my, Math.min(my, pc.oy));
+  }
+  function pcDraw(){
+    const D = pcSize(), r = window.devicePixelRatio || 1, k = pcBase() * pc.z, ctx = pc.cv.getContext('2d');
+    pc.cv.width = Math.round(D * r); pc.cv.height = Math.round(D * r); pc.cv.style.width = pc.cv.style.height = D + 'px';
+    ctx.setTransform(r, 0, 0, r, 0, 0); ctx.clearRect(0, 0, D, D);
+    const w = pc.img.width * k, h = pc.img.height * k;
+    ctx.drawImage(pc.img, D / 2 + pc.ox - w / 2, D / 2 + pc.oy - h / 2, w, h);
+  }
+  function pcSetZoom(z){ pc.z = Math.max(1, Math.min(4, z)); pc.zoom.value = pc.z; pcClamp(); pcDraw(); }
+  function openPhotoCrop(img){
+    pc.img = img; pc.z = 1; pc.ox = 0; pc.oy = 0; pc.ptrs.clear(); pc.pinch = null; pc.zoom.value = 1;
+    pc.el.classList.add('show'); document.body.classList.add('noScroll');
+    requestAnimationFrame(pcDraw);
+  }
+  function closePhotoCrop(){ pc.el.classList.remove('show'); document.body.classList.remove('noScroll'); pc.img = null; }
+  pc.zoom.addEventListener('input', ()=>pcSetZoom(Number(pc.zoom.value)));
+  pc.cv.addEventListener('wheel', ev=>{ ev.preventDefault(); pcSetZoom(pc.z * (ev.deltaY < 0 ? 1.08 : 1 / 1.08)); }, {passive: false});
+  pc.cv.addEventListener('pointerdown', ev=>{ try{ pc.cv.setPointerCapture(ev.pointerId); }catch(e){} pc.ptrs.set(ev.pointerId, {x: ev.clientX, y: ev.clientY}); pc.pinch = null; });
+  pc.cv.addEventListener('pointermove', ev=>{
+    const p = pc.ptrs.get(ev.pointerId); if(!p) return;
+    if(pc.ptrs.size === 1){ pc.ox += ev.clientX - p.x; pc.oy += ev.clientY - p.y; } // un dedo: mover
+    p.x = ev.clientX; p.y = ev.clientY;
+    if(pc.ptrs.size === 2){ // dos dedos: pellizco
+      const [a, b] = [...pc.ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if(pc.pinch) pc.z = Math.max(1, Math.min(4, pc.pinch.z * d / pc.pinch.d)); else pc.pinch = {d, z: pc.z};
+      pc.zoom.value = pc.z;
+    }
+    pcClamp(); pcDraw();
+  });
+  const pcUp = ev=>{ pc.ptrs.delete(ev.pointerId); pc.pinch = null; };
+  pc.cv.addEventListener('pointerup', pcUp); pc.cv.addEventListener('pointercancel', pcUp);
+  document.getElementById('btnPcCancel').addEventListener('click', closePhotoCrop); // la foto anterior queda igual
+  document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && pc.el.classList.contains('show')) closePhotoCrop(); });
+  document.getElementById('btnPcOk').addEventListener('click', ()=>{
+    // lo que se ve dentro del cuadro (el círculo) pasa a 256 x 256, igual que antes
+    const D = pcSize(), k = pcBase() * pc.z, S = 256, c = document.createElement('canvas');
+    const sx = (pc.img.width * k / 2 - D / 2 - pc.ox) / k, sy = (pc.img.height * k / 2 - D / 2 - pc.oy) / k, s = D / k;
+    c.width = c.height = S;
+    c.getContext('2d').drawImage(pc.img, sx, sy, s, s, 0, 0, S, S);
+    closePhotoCrop();
+    if(LS.set('mirun_photo', c.toDataURL('image/jpeg', 0.82))){ refreshAvatars(); showSaved(); }
   });
   document.getElementById('btnPhotoDel').addEventListener('click', ()=>{
     if(!confirm('¿Quitar tu foto de perfil?')) return;
