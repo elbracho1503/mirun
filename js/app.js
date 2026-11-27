@@ -3636,7 +3636,7 @@
   document.getElementById('btnExport').addEventListener('click', ()=>{
     LS.set('mirun_lastBackup', new Date().toISOString(), 'quiet');
     const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
-                                 profile, goal, history, body, routines, weekplan: weekPlan()});
+                                 profile, goal, history, body, routines, weekplan: weekPlan(), intervals: ivlPlans});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
     const d = new Date();
@@ -3676,6 +3676,10 @@
                     .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
             manual: !!h.manual,
             ...(h.favorite === true ? {favorite: true} : {}), // favorita (estrella del Historial)
+            // detalle de un entreno por intervalos: solo bloques conocidos con números válidos
+            ...(h.intervals && typeof h.intervals === 'object' && cleanIvlBlocks(h.intervals.blocks).length ? {intervals: {
+              name: String(h.intervals.name || 'Intervalos').slice(0, 40), kind: ['tiempo','distancia','libre'].includes(h.intervals.kind) ? h.intervals.kind : 'libre',
+              blocks: cleanIvlBlocks(h.intervals.blocks)}} : {}),
             // campos de v5 (actividades): solo valores conocidos
             ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
             ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {}),
@@ -3730,6 +3734,12 @@
           });
           if(nuevasRt) saveRoutines();
         }
+        // entrenos por intervalos guardados (copias nuevas): se limpian y se agregan los que no estén (por id)
+        let nuevosIvl = 0;
+        if(Array.isArray(data.intervals)){
+          cleanIvlPlans(data.intervals).forEach(p=>{ if(ivlPlans.length < 30 && !ivlPlans.some(x=>x.id === p.id)){ ivlPlans.push(p); nuevosIvl++; } });
+          if(nuevosIvl) saveIvlPlans();
+        }
         // semana (copias nuevas): solo días 0 a 6 con rutinas que existen; completa días vacíos, no pisa
         if(data.weekplan && typeof data.weekplan === 'object' && !Array.isArray(data.weekplan)){
           const plan = weekPlan(); let ch = false;
@@ -3780,6 +3790,7 @@
         if(LS.fails !== importFails0){ backupNote(NOT_SAVED); backupMsg.style.color = 'var(--amber)'; fileInput.value = ''; return; }
         backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades' + (nuevasRt ? ', ' : ' y ') + nuevasMed + ' mediciones' +
                    (nuevasRt ? ' y ' + nuevasRt + (nuevasRt === 1 ? ' rutina' : ' rutinas') : '') + ' nuevas' +
+                   (nuevosIvl ? ', ' + nuevosIvl + (nuevosIvl === 1 ? ' entreno' : ' entrenos') + ' por intervalos' : '') +
                    (perfil ? ', además de tu perfil y metas.' : '.'));
       }catch(e){
         backupNote('Ese archivo no es una copia de MiRun.');
