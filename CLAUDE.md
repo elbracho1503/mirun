@@ -80,8 +80,9 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Mediciones (`MEASURES`, medidas a seguir, IMC, silueta `BODY_POS`, puntos del cuerpo `BODY_PTS` y líneas `drawBodyLines`) y gráfico compartido `drawChart` | `// ---------- CUERPO` (CSS: `SILUETA DEL CUERPO`) |
 | Evolución: vistas Actividad / Cuerpo, períodos, gráficos y comparación (`renderEvo`) | `// ---------- EVOLUCIÓN` (HTML: `id="evoTabs"`, CSS: `EVOLUCIÓN`) |
 | GPS, tiempo, calorías, splits | `// ---------- RUN LOGIC` |
+| Zona de ritmo (`goal.zone`, `readZone`, `zoneTick`: ritmo de los últimos 30 s o 100 m, aviso por voz si 20 s fuera, máx. 1 por minuto; apagada en intervalos) | `// ---------- ZONA DE RITMO` (HTML: `id="zoneRun"`, `id="zoneInd"`, Metas `zoneGoalA/B`; CSS: `ZONA DE RITMO`) |
 | Pausa automática (quieta 2 min / 25 m, sigue sola a 15 m; `autoPause`, `autoResume`, `autoPausedSeconds`) | `// ---------- PAUSA AUTOMÁTICA` (HTML: `id="autoPauseBox"`, CSS: `PAUSA AUTOMÁTICA`) |
-| Voz | `// ---------- AVISO POR VOZ` |
+| Voz (y "Voz" elegida en Perfil: `profile.voiceName`, `chosenVoice`, `renderVoicePick`) | `// ---------- AVISO POR VOZ`, `// ---------- ELEGIR LA VOZ` |
 | Carrera en curso / iniciar / terminar (`body.gpsOn` mientras se registra) | `// ---------- CARRERA EN CURSO` (CSS: `GPS EN CURSO`) |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |

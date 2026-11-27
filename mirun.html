@@ -131,6 +131,9 @@
 
     <div id="paceAlert"></div>
 
+    <!-- zona de ritmo durante la carrera: dentro / muy rápido / muy lento (zoneTick en js/app.js) -->
+    <div id="zoneInd" style="display:none;"><b id="zoneState"></b><span id="zoneNow"></span></div>
+
     <!-- pausa automática: aviso mientras está quieta (ver PAUSA AUTOMÁTICA en js/app.js) -->
     <div id="autoPauseBox" role="status" style="display:none;">
       <b>Pausa automática</b>
@@ -168,6 +171,13 @@
       <div class="phrase" id="runPhrase"></div>
       <!-- entreno por intervalos elegido para esta salida (renderIvlPre en js/app.js) -->
       <div id="ivlPre" style="display:none;"><span></span><button class="linkBtn" id="btnIvlPreDel">Quitar</button></div>
+      <!-- zona de ritmo (opcional): se guarda en las metas al cambiar (ZONA DE RITMO en js/app.js) -->
+      <div class="zoneRow" id="zoneRun">
+        <label>Zona de ritmo (<span class="uP">min/km</span>, opcional)</label>
+        <div class="zoneIn"><input type="text" inputmode="decimal" id="zoneRunA" maxlength="5" placeholder="ej. 5:30" aria-label="Ritmo más rápido de la zona">
+        <span>a</span><input type="text" inputmode="decimal" id="zoneRunB" maxlength="5" placeholder="ej. 6:15" aria-label="Ritmo más lento de la zona"></div>
+        <div class="hint" id="zoneRunMsg"></div>
+      </div>
     </div>
     <div class="btnRow" id="startRow">
       <button class="btn btn-start" id="btnStart">Empezar</button>
@@ -214,6 +224,13 @@
         <div><label>Minutos</label><input type="number" id="paceMin" step="1" placeholder="ej. 6"></div>
         <div><label>Segundos</label><input type="number" id="paceSec" step="1" placeholder="ej. 0"></div>
       </div>
+    </div>
+    <div class="panel">
+      <h3>Zona de ritmo (<span class="uP">min/km</span>)</h3>
+      <div class="hint">Opcional. Si sales de este rango por 20 segundos o más, la voz te avisa (como mucho una vez por minuto). Vacío = sin avisos.</div>
+      <div class="zoneIn"><input type="text" inputmode="decimal" id="zoneGoalA" maxlength="5" placeholder="ej. 5:30" aria-label="Ritmo más rápido de la zona">
+        <span>a</span><input type="text" inputmode="decimal" id="zoneGoalB" maxlength="5" placeholder="ej. 6:15" aria-label="Ritmo más lento de la zona"></div>
+      <div class="hint" id="zoneGoalMsg"></div>
     </div>
     <div class="btnRow"><button class="btn btn-start" id="btnSaveGoal">Guardar metas</button></div>
   </div>

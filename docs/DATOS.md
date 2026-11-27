@@ -97,6 +97,7 @@ Perfil nuevo (sin `mirun_profile` guardado): `sex: 'x'` por defecto (antes `'m'`
   weekMin: 150,                 // v5: meta semanal en minutos. null = 150
   restPlan: [{from:'2026-11-09', days:[6]}] } // v5: descanso programado (0=domingo … 6=sábado),
                                 // máx. 3; cada cambio rige desde el lunes siguiente (`restDaysOn(d)`)
+  zone: {lo, hi} }             // opcional (desde 2026-11-27): zona de ritmo en segundos por km (lo = el más rápido)
 // restDays: [..] (formato anterior) se lee como plan vigente desde siempre si no hay restPlan
 ```
 Perfil y metas se guardan con `Object.assign` para no perder campos que la pantalla no muestra.
@@ -148,3 +149,7 @@ series en rango; lo inválido se descarta). El `routine` de una actividad se lim
   si la app se cierra, "Seguir corriendo" retoma en el mismo bloque.
 - `profile.voiceName` (desde 2026-11-27): nombre de la voz elegida en Perfil > Avisos > Voz ('' o sin campo = Automática).
   Si esa voz no está en el teléfono, se usa la automática y el nombre se conserva. Va en la copia (texto, máx. 100).
+- **Zona de ritmo** (`goal.zone`, desde 2026-11-27): se escribe en el GPS antes de salir o en Metas, en min/km o min/mi según
+  las unidades, y se guarda en segundos por km. Durante la carrera se compara el ritmo de los últimos 30 s o 100 m; 20 s o
+  más fuera del rango → aviso por voz, como mucho uno por minuto. Apagada en entrenos por intervalos. En la copia; la
+  importación acepta solo 120 a 1200 s/km con 5 s o más de diferencia.
