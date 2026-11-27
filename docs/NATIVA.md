@@ -189,6 +189,12 @@ No se planea mientras no haya pedidos reales.
   "despertando" (hasta ~1 s la primera vez), Leaflet (144 KB) cargado en el `<head>` antes de dibujar aunque solo lo usan
   el GPS y los mapas, y 5 imágenes de pantallas ocultas (bienvenida y 4 poses) que se piden al abrir.
 
+## 5e. Voces
+- Desde 2026-11-27 la PWA deja elegir la voz en Perfil > Avisos > Voz, entre las voces en español que el navegador
+  ofrece (`speechSynthesis.getVoices`). En Chrome de Android suelen ser pocas (a veces solo una o dos).
+- En la app nativa habrá más voces: con un plugin de texto a voz (por ejemplo `@capacitor-community/text-to-speech`) se
+  pueden usar todas las voces instaladas en el teléfono (motor de Google o Samsung, voces descargadas, etc.).
+
 ## 6. Riesgos
 
 | Riesgo | Cómo se evita |

@@ -379,6 +379,7 @@
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
   let ivl = null, ivlNext = null; // entreno por intervalos en curso / elegido para la próxima salida (ver INTERVALOS)
+  let zoneBuf = [], zoneOut = null, zoneOutSince = 0, zoneLastSay = -1e9; // zona de ritmo durante la carrera (ver ZONA DE RITMO)
   // nombres de los bloques de intervalos: arriba porque el Historial se dibuja al abrir y los usa (ver INTERVALOS)
   const IVL_LBL = {calentamiento:'Calentamiento', suave:'Suave', fuerte:'Fuerte', serie:'Serie', descanso:'Descanso', calma:'Vuelta a la calma', extra:'Después del entreno'};
   const IVL_K = Object.keys(IVL_LBL);
@@ -496,6 +497,7 @@
     on('profFaith', profile.faith === true); // frases de fe: sin campo = apagado
     on('profAutoPause', profile.autoPause !== false); // sin campo = encendida
     set('profMap', profile.mapMode);
+    if(typeof renderVoicePick === 'function') renderVoicePick();
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
   function refreshLevelHint(){
@@ -631,7 +633,7 @@
 
   // Perfil: se guarda al cambiar cualquier ajuste (sin botón "Guardar perfil"); mismos campos y reglas que antes
   const PROF_FIELDS = ['profName','profUnits','profWeight','profAge','profHeight','profSex','profGoalType','profLevel',
-                       'profVoice','profSounds','profFaith','profAutoPause','profMap'];
+                       'profVoice','profSounds','profFaith','profAutoPause','profMap','profVoiceName'];
   document.getElementById('tab-profile').addEventListener('change', ev=>{ if(PROF_FIELDS.includes(ev.target.id)){ clearTimeout(profTypeT); saveProfile(); } });
   // los campos de texto también se guardan mientras se escribe: 1 s después de la última tecla (por si se cierra la app
   // sin salir del campo). Así no se reescribe el campo que se está usando (typing = true).
@@ -666,7 +668,8 @@
       sounds: document.getElementById('profSounds').checked,
       faith: document.getElementById('profFaith').checked, // "Frases de fe"
       autoPause: document.getElementById('profAutoPause').checked, // pausa automática en GPS
-      mapMode: document.getElementById('profMap').value
+      mapMode: document.getElementById('profMap').value,
+      voiceName: document.getElementById('profVoiceName').value.slice(0, 100) // '' = Automática
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
     LS.set('mirun_profile', profile);
@@ -691,6 +694,7 @@
     const gp = goalPaceShown();
     document.getElementById('paceMin').value = gp ? gp[0] : '';
     document.getElementById('paceSec').value = gp ? gp[1] : '';
+    renderZoneForms();
   }
   loadGoalForm();
 
@@ -736,6 +740,9 @@
   });
 
   document.getElementById('btnSaveGoal').addEventListener('click', ()=>{
+    const zr = readZone('zoneGoal'); // zona de ritmo: si está mal escrita, no se guarda nada y se avisa
+    if(zr.error){ const m = document.getElementById('zoneGoalMsg'); m.textContent = zr.error; m.style.color = 'var(--amber)'; return; }
+    if(zr.zone) goal.zone = zr.zone; else delete goal.zone;
     const dm = parseInt(document.getElementById('goalDailyMin').value);
     const wm = parseInt(document.getElementById('goalWeekMin').value);
     // ritmo objetivo escrito en min/km o min/mi -> segundos por km
@@ -1898,14 +1905,45 @@
   }
 
   // ---------- AVISO POR VOZ (funciona sin internet) ----------
-  function say(text){
-    if(!profile.voice || !('speechSynthesis' in window)) return;
+  function say(text, force){ // force: "Probar" en Perfil (aunque el aviso por voz esté apagado)
+    if((!profile.voice && !force) || !('speechSynthesis' in window)) return;
     try{
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'es-ES'; u.rate = 1;
+      const v = chosenVoice(); if(v){ u.voice = v; u.lang = v.lang; } // la elegida en Perfil; si ya no está, la automática
       window.speechSynthesis.speak(u);
     }catch(e){}
   }
+  // ---------- ELEGIR LA VOZ ----------
+  // Perfil > Avisos > Voz: las voces en español del teléfono (speechSynthesis.getVoices). profile.voiceName = nombre de la
+  // voz elegida ('' o sin campo = Automática). Si esa voz no está en este teléfono, se usa la automática sin fallar.
+  function esVoices(){
+    try{ return ('speechSynthesis' in window ? window.speechSynthesis.getVoices() : []).filter(v=>/^es([-_]|$)/i.test(v.lang || '')); }catch(e){ return []; }
+  }
+  function chosenVoice(){ return profile.voiceName ? esVoices().find(v=>v.name === profile.voiceName) || null : null; }
+  // mujer u hombre, solo si el nombre lo dice (palabras o nombres propios comunes de las voces); si no, nada
+  function voiceGender(name){ // (las listas van adentro: el Perfil se llena al abrir, antes de esta sección)
+    const VOICE_F = /\b(female|mujer|femenin[ao]|helena|laura|sabina|paulina|m[oó]nica|elvira|dalia|luc[ií]a|conchita|pen[eé]lope|lupe|paloma|elena|marisol|esperanza|francisca|ximena|valentina|camila|elsa|isabela|isabel|carmen|sof[ií]a|catalina|abril|beatriz|renata|salome|salom[eé]|teresa|marta|ana|mar[ií]a|ines|in[eé]s|julia|lola|rosa|paula|andrea|dolores|karla|carla|amelia|yolanda|lorena|triana|irene|vera|alba|estrella|larissa|nora)\b/i;
+    const VOICE_M = /\b(male|hombre|masculin[oa]|pablo|jorge|ra[uú]l|diego|enrique|[aá]lvaro|carlos|juan|andr[eé]s|miguel|sergio|jordi|tom[aá]s|gonzalo|federico|gerardo|alonso|dario|dar[ií]o|lorenzo|mateo|emilio|tadeo|liam|jos[eé]|antonio|manuel|luis|fernando|javier|alejandro|ricardo|eduardo|arnau|alberto|santiago|rodrigo|nicol[aá]s|teo)\b/i;
+    if(/\b(female|mujer)\b/i.test(name) || (VOICE_F.test(name) && !VOICE_M.test(name))) return 'mujer';
+    if(/\b(male|hombre)\b/i.test(name) || VOICE_M.test(name)) return 'hombre'; return ''; }
+  function renderVoicePick(){
+    const sel = document.getElementById('profVoiceName'), saved = profile.voiceName || '', list = esVoices();
+    const opt = (v, t)=>{ const o = document.createElement('option'); o.value = v; o.textContent = t; return o; };
+    sel.textContent = ''; sel.appendChild(opt('', 'Automática'));
+    list.forEach(v=>{ const g = voiceGender(v.name); sel.appendChild(opt(v.name, v.name.replace(/^Microsoft\s+/i, '') + ' · ' + v.lang + (g ? ' · ' + g : ''))); });
+    // la guardada no está en este teléfono: se conserva (por si vuelve) y se avisa que se usa la automática
+    if(saved && !list.some(v=>v.name === saved)) sel.appendChild(opt(saved, saved + ' (no está en este teléfono: se usa la automática)'));
+    sel.value = saved;
+  }
+  renderVoicePick();
+  try{ if('speechSynthesis' in window) window.speechSynthesis.addEventListener('voiceschanged', renderVoicePick); }catch(e){}
+  document.getElementById('btnVoiceTest').addEventListener('click', ()=>{
+    const keep = profile.voiceName; profile.voiceName = document.getElementById('profVoiceName').value; // prueba la que se ve elegida
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    say('Hola, soy tu voz en MiRun. ¡Vamos con todo!', true);
+    profile.voiceName = keep;
+  });
   function spokenTime(sec){
     const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
     return (h ? h + (h===1?' hora ':' horas ') : '') + m + (m===1?' minuto':' minutos');
@@ -1987,9 +2025,10 @@
     document.getElementById('calVal').textContent = calcCalories(totalDist, sec, runType);
     checkSplit(sec);
     ivlTick(sec);
+    zoneTick(sec);
 
-    const alertEl = document.getElementById('paceAlert');
-    if(runType==='correr' && goal.paceMin!=null && paceMinPerKm>0){
+    const alertEl = document.getElementById('paceAlert'); // con zona de ritmo (goal.zone) no se muestra: un solo aviso de ritmo
+    if(runType==='correr' && !goal.zone && goal.paceMin!=null && paceMinPerKm>0){
       const goalPace = goal.paceMin + (goal.paceSec||0)/60;
       const diff = paceMinPerKm - goalPace;
       if(diff > 0.33){
@@ -2218,6 +2257,7 @@
     else { ivl = ivlNext ? ivlStart(ivlNext) : null; ivlNext = null; }
     if(ivl) runType = 'correr';
     renderIvlPre();
+    zoneBuf = []; zoneOut = null; zoneOutSince = 0; zoneLastSay = -1e9; // zona de ritmo: se mide de nuevo
     document.getElementById('gpsTypeRow').style.display = 'none';
     path = state ? (state.path || []) : [];
     splits = state ? (state.splits || []) : [];
@@ -2668,6 +2708,76 @@
     say(ivl.free === 'fuerte' ? '¡Acelera!' : 'Baja el ritmo.'); ivlBuzz();
     saveCurrentRun(true); renderIvlBox(sec);
   });
+
+  // ---------- ZONA DE RITMO ----------
+  // goal.zone = {lo, hi}: ritmo en segundos por km, lo = el más rápido, hi = el más lento (sin campo = sin zona).
+  // Se escribe "entre X y Y" en min/km o min/mi (según las unidades) en el GPS antes de salir o en Metas.
+  // Durante la carrera: ritmo promedio de los últimos 30 s o 100 m (lo que se cumpla primero, mirando hacia atrás);
+  // 20 s o más fuera del rango → aviso por voz, como mucho uno por minuto. En un entreno por intervalos se apaga.
+  function parseMmss(t){
+    const m = String(t || '').trim().match(/^(\d{1,2})(?:[:.,](\d{1,2}))?$/); if(!m) return null;
+    const s = m[2] === undefined ? 0 : Number(m[2].length === 1 ? m[2] + '0' : m[2]);
+    return s < 60 ? Number(m[1]) * 60 + s : null;
+  }
+  function zoneTxt(z){ return z ? [fmtPace(toPace(z.lo)), fmtPace(toPace(z.hi))] : ['', '']; }
+  function renderZoneForms(){
+    const [a, b] = zoneTxt(goal.zone);
+    ['zoneRun', 'zoneGoal'].forEach(p=>{ document.getElementById(p + 'A').value = a; document.getElementById(p + 'B').value = b;
+      document.getElementById(p + 'Msg').textContent = ''; });
+  }
+  // lee los dos campos: {zone} (o zone null = sin zona) o {error}
+  function readZone(pre){
+    const ta = document.getElementById(pre + 'A').value.trim(), tb = document.getElementById(pre + 'B').value.trim();
+    if(!ta && !tb) return {zone: null};
+    const a = parseMmss(ta), b = parseMmss(tb);
+    if(a === null || b === null) return {error: 'Escribe los dos ritmos como minutos:segundos, por ejemplo 5:30 y 6:15.'};
+    const toKm = v=>imp() ? Math.round(v / KM_MI * 10) / 10 : v; // se guarda en segundos por km
+    let lo = toKm(Math.min(a, b)), hi = toKm(Math.max(a, b));
+    const [sa, sb] = zoneTxt(goal.zone); // lo que se ve no cambió: se conserva el valor exacto (evita redondeos)
+    if(goal.zone && fmtPace(Math.min(a, b)) === sa && fmtPace(Math.max(a, b)) === sb){ lo = goal.zone.lo; hi = goal.zone.hi; }
+    if(lo < 120 || hi > 1200) return {error: 'Ese ritmo no parece de una actividad con GPS. Revisa los números.'};
+    if(hi - lo < 5) return {error: 'Deja al menos 5 segundos de diferencia entre los dos ritmos.'};
+    return {zone: {lo, hi}};
+  }
+  // en el GPS antes de salir: se guarda en las metas al cambiar
+  document.getElementById('zoneRun').addEventListener('change', ()=>{
+    const r = readZone('zoneRun'), m = document.getElementById('zoneRunMsg');
+    if(r.error){ m.textContent = r.error; m.style.color = 'var(--amber)'; return; }
+    if(r.zone) goal.zone = r.zone; else delete goal.zone;
+    if(!LS.set('mirun_goal', goal)) return;
+    const [a, b] = zoneTxt(goal.zone);
+    renderZoneForms();
+    m.textContent = goal.zone ? 'Zona guardada: entre ' + a + ' y ' + b + ' ' + paceU() + '.' : 'Sin zona de ritmo: no habrá avisos.';
+    m.style.color = 'var(--good)';
+  });
+  function zonePace(sec){ // ritmo (s por km) de los últimos 30 s o 100 m; null si todavía no hay datos suficientes
+    const n = zoneBuf[zoneBuf.length - 1];
+    for(let j = zoneBuf.length - 2; j >= 0; j--){
+      const s = zoneBuf[j];
+      if(n.t - s.t >= 30 || n.d - s.d >= 0.1) return n.d - s.d > 0.005 ? (n.t - s.t) / (n.d - s.d) : null;
+    }
+    return null;
+  }
+  function zoneTick(sec){
+    const box = document.getElementById('zoneInd'), z = goal.zone;
+    if(!z || !running || ivl){ box.style.display = 'none'; return; } // sin zona, sin carrera o en intervalos: nada
+    box.style.display = '';
+    if(paused){ box.className = 'wait'; document.getElementById('zoneState').textContent = 'En pausa'; return; }
+    const last = zoneBuf[zoneBuf.length - 1];
+    if(!last || sec > last.t) zoneBuf.push({t: sec, d: totalDist});
+    while(zoneBuf.length > 2 && sec - zoneBuf[1].t > 120) zoneBuf.shift(); // no hace falta más de 2 minutos
+    const p = zonePace(sec), st = p === null ? 'wait' : p < z.lo ? 'fast' : p > z.hi ? 'slow' : 'in';
+    const [a, b] = zoneTxt(z);
+    box.className = st;
+    document.getElementById('zoneState').textContent = {wait: 'Midiendo tu ritmo…', in: 'Dentro de la zona', fast: 'Muy rápido', slow: 'Muy lento'}[st];
+    document.getElementById('zoneNow').textContent = (p !== null ? 'Ritmo ' + fmtPace(toPace(p)) + ' · ' : '') + 'zona ' + a + '–' + b + ' ' + paceU();
+    if(st === 'fast' || st === 'slow'){
+      if(zoneOut !== st){ zoneOut = st; zoneOutSince = sec; }
+      if(sec - zoneOutSince >= 20 && sec - zoneLastSay >= 60){
+        say(st === 'fast' ? 'Vas muy rápido, baja un poco.' : 'Vas lento, sube el ritmo.'); zoneLastSay = sec;
+      }
+    } else zoneOut = null;
+  }
 
   // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------
   // fecha local AAAA-MM-DD de un Date
@@ -3764,6 +3874,7 @@
           if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
           if(typeof p.faith === 'boolean') ok.faith = p.faith; // incluir frases de fe
           if(typeof p.autoPause === 'boolean') ok.autoPause = p.autoPause; // pausa automática en GPS
+          if(typeof p.voiceName === 'string') ok.voiceName = p.voiceName.slice(0, 100); // voz elegida ('' = automática)
           if(typeof p.character === 'string' && Object.prototype.hasOwnProperty.call(CHARACTERS, p.character)) ok.character = p.character; // compañero elegido
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
           if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)
@@ -3780,6 +3891,9 @@
           if(Array.isArray(g.restPlan)) ok.restPlan = g.restPlan
             .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(x.from) && Array.isArray(x.days))
             .map(x=>({from: x.from, days: x.days.map(Number).filter(d=>d >= 0 && d <= 6).slice(0, 3)}));
+          // zona de ritmo: segundos por km, el rápido antes que el lento
+          if(g.zone && typeof g.zone === 'object'){ const lo = num(g.zone.lo, 120, 1200), hi = num(g.zone.hi, 120, 1200);
+            if(lo !== undefined && hi !== undefined && hi - lo >= 5) ok.zone = {lo: Math.round(lo * 10) / 10, hi: Math.round(hi * 10) / 10}; }
           take(goal, ok); LS.set('mirun_goal', goal);
         }
         if(typeof data.photo === 'string' && data.photo.length < 400000 &&
