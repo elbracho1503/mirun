@@ -117,3 +117,5 @@ CSS en los bloques `DISEÑO 3` de `css/app.css`.
   cada ajuste se guarda al cambiar (`saveProfile`), con los mismos campos y reglas de antes.
 - **Mi semana** (Mis rutinas): tira de 7 días (Lu a Do). Un día con rutina se ve en azul con el ícono de pesas; al
   tocarlo se abre la lista de rutinas (el `select` de siempre, invisible encima). Debajo, una línea con qué toca cada día.
+- Perfil: nombre, peso, edad y estatura también se guardan mientras se escribe, 1 s después de la última tecla (sin
+  reescribir el campo en uso). Un número a medio escribir ("64." o vacío) no se guarda hasta completarlo o salir del campo.

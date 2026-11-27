@@ -578,8 +578,21 @@
   // Perfil: se guarda al cambiar cualquier ajuste (sin botón "Guardar perfil"); mismos campos y reglas que antes
   const PROF_FIELDS = ['profName','profUnits','profWeight','profAge','profHeight','profSex','profGoalType','profLevel',
                        'profVoice','profSounds','profFaith','profAutoPause','profMap'];
-  document.getElementById('tab-profile').addEventListener('change', ev=>{ if(PROF_FIELDS.includes(ev.target.id)) saveProfile(); });
-  function saveProfile(){
+  document.getElementById('tab-profile').addEventListener('change', ev=>{ if(PROF_FIELDS.includes(ev.target.id)){ clearTimeout(profTypeT); saveProfile(); } });
+  // los campos de texto también se guardan mientras se escribe: 1 s después de la última tecla (por si se cierra la app
+  // sin salir del campo). Así no se reescribe el campo que se está usando (typing = true).
+  const PROF_TYPED = ['profName','profWeight','profAge','profHeight'];
+  let profTypeT = null;
+  document.getElementById('tab-profile').addEventListener('input', ev=>{
+    const t = ev.target; if(!PROF_TYPED.includes(t.id)) return;
+    clearTimeout(profTypeT);
+    profTypeT = setTimeout(()=>{
+      // un número a medio escribir ("64." o vacío) no se guarda: se espera al resto o al salir del campo
+      if(t.type === 'number' && (t.value === '' || (t.validity && t.validity.badInput))) return;
+      saveProfile(true);
+    }, 1000);
+  });
+  function saveProfile(typing){
     const units = profUnits.value, wIn = parseFloat(document.getElementById('profWeight').value);
     const wKg = wIn > 0 ? (units === 'imperial' ? wIn / KG_LB : wIn) : 70; // el peso se guarda en kg
     // si el número que se ve es el mismo que había (solo se cambió la unidad), se conserva el peso exacto
@@ -605,6 +618,7 @@
     LS.set('mirun_profile', profile);
     refreshHello(); refreshAvatars();
     // las unidades cambian lo que se muestra en varias pantallas
+    if(typing){ refreshHello(); refreshAvatars(); showSaved(); return; } // sin tocar lo que se está escribiendo
     fillProfileForm(); profUnits.dataset.prev = profUnits.value;
     loadGoalForm(); refreshGoalLabels(); buildBodyForm();
     showSaved();
