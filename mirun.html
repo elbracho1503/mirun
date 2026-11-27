@@ -96,6 +96,12 @@
 
   <!-- RUN SCREEN -->
   <div class="screen" id="tab-run">
+    <!-- entreno por intervalos en curso: bloque actual, lo que sigue y la serie (renderIvlBox en js/app.js) -->
+    <div id="ivlBox" style="display:none;">
+      <div class="ivlNow"><b id="ivlLbl"></b> · <span class="num" id="ivlLeft"></span></div>
+      <div class="ivlInfo"><span id="ivlRep"></span><span id="ivlNextTxt"></span></div>
+      <button class="btn" id="btnIvlFree" style="display:none;">Acelero</button>
+    </div>
     <div class="clock">
       <div class="val num" id="distVal">0.00</div>
       <div class="lbl"><span class="uDLr">Kilómetros recorridos</span></div>
@@ -295,7 +301,7 @@
         <input type="number" inputmode="numeric" id="ivlReps" min="1" max="50" placeholder="ej. 6">
       </div>
       <div class="hint" id="ivlFLibre" style="display:none;margin-top:10px;">Durante el entreno tocas «Acelero» y «Bajo». La app guarda el tiempo, la distancia y el ritmo de cada tramo.</div>
-      <div class="row2">
+      <div class="row2" id="ivlWarmCool">
         <div><label for="ivlWarm">Calentamiento (min)</label><input type="number" inputmode="numeric" id="ivlWarm" min="0" placeholder="opcional"></div>
         <div><label for="ivlCool">Vuelta a la calma (min)</label><input type="number" inputmode="numeric" id="ivlCool" min="0" placeholder="opcional"></div>
       </div>

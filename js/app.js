@@ -1726,7 +1726,7 @@
   const AUTO_STILL_MS = 120000, AUTO_STILL_M = 25, AUTO_RESUME_M = 15, AUTO_ASK_MS = 600000;
   let autoPaused = false, stillAnchor = null, lastFix = null, pauseAt = null, pauseStartedAt = 0;
   let autoPausedMs = 0, autoPauses = 0, resumeHits = 0, autoAsked = false;
-  function autoPauseOn(){ return profile.autoPause !== false; }
+  function autoPauseOn(){ return profile.autoPause !== false && !ivl; } // en un entreno por intervalos no actúa (plan 22b)
   function resetAutoPause(){ autoPaused = false; stillAnchor = null; lastFix = null; pauseAt = null; pauseStartedAt = 0; autoPausedMs = 0; autoPauses = 0; resumeHits = 0; autoAsked = false; }
   // aviso en pantalla; con ask = true, la pregunta de los 10 minutos con el botón Terminar
   function showAutoPause(on, ask){
@@ -1885,6 +1885,7 @@
     }
   }
   function announceSplit(name, that, n, splitTime, sec){
+    if(ivl) return; // en intervalos la voz y la vibración son solo para los cambios de bloque
     try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
     const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
     say(name + ' ' + n + '. ' + that + ' en ' + pm + ' minutos ' +
@@ -1915,6 +1916,7 @@
       type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
       lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime,
       autoPaused, pauseAt, pauseStartedAt, autoPausedMs, autoPauses, autoAsked, // pausa automática (se agregan)
+      ivl, // entreno por intervalos en curso (o null)
       savedAt: Date.now()
     }, mode || 'once');
   }
@@ -1979,6 +1981,7 @@
     }
     document.getElementById('calVal').textContent = calcCalories(totalDist, sec, runType);
     checkSplit(sec);
+    ivlTick(sec);
 
     const alertEl = document.getElementById('paceAlert');
     if(runType==='correr' && goal.paceMin!=null && paceMinPerKm>0){
@@ -2205,6 +2208,11 @@
     elapsedBeforePause = state ? state.elapsedBeforePause : 0;
     totalDist = state ? state.totalDist : 0;
     runType = (state && state.type) || selectedGpsType();
+    // intervalos: al retomar, el entreno sigue donde iba; al empezar, el elegido en la pantalla Intervalos
+    if(state) ivl = state.ivl ? ivlRestore(state.ivl) : null;
+    else { ivl = ivlNext ? ivlStart(ivlNext) : null; ivlNext = null; }
+    if(ivl) runType = 'correr';
+    renderIvlPre();
     document.getElementById('gpsTypeRow').style.display = 'none';
     path = state ? (state.path || []) : [];
     splits = state ? (state.splits || []) : [];
@@ -2238,6 +2246,7 @@
     keepScreenOn();
     saveCurrentRun(true);
     updateDisplay();
+    if(ivl && !state) ivlCue(); // anuncia el primer bloque
   }
 
   document.getElementById('btnStart').addEventListener('click', ()=>{
@@ -2347,6 +2356,7 @@
       runSaved = saveRunToHistory(history[history.length - 1]);
     } else { sumRunDate = null; clearCurrentRun(); } // tan corta que no se guarda
     document.getElementById('sumDiscardRow').style.display = sumRunDate ? '' : 'none';
+    ivl = null; renderIvlBox(0); // el entreno terminó con la carrera
 
     document.querySelector('#summaryOverlay h2').textContent = runSaved ? '¡Terminaste! ' + typeName(runType) : typeName(runType) + ': NO se pudo guardar (memoria llena)'; // guardada; "Descartar" la quita
     document.getElementById('gpsTypeRow').style.display = 'flex';
@@ -2453,7 +2463,7 @@
     if(!p || typeof p !== 'object' || !['tiempo','distancia','libre'].includes(p.kind)) return null;
     const o = {id: typeof p.id === 'string' && /^[\w-]{1,40}$/.test(p.id) ? p.id : 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
                name: String(p.name || '').trim().slice(0, 40) || 'Intervalos', kind: p.kind,
-               warm: ivlNum(p.warm, 0, 3600) || 0, cool: ivlNum(p.cool, 0, 3600) || 0};
+               warm: p.kind === 'libre' ? 0 : ivlNum(p.warm, 0, 3600) || 0, cool: p.kind === 'libre' ? 0 : ivlNum(p.cool, 0, 3600) || 0};
     if(o.kind === 'tiempo'){ o.easy = ivlNum(p.easy, 5, 3600); o.hard = ivlNum(p.hard, 5, 3600); o.reps = ivlNum(p.reps, 1, 50);
       if(!o.easy || !o.hard || !o.reps) return null; }
     if(o.kind === 'distancia'){ o.dist = ivlNum(p.dist, 20, 10000); o.reps = ivlNum(p.reps, 1, 50);
@@ -2488,6 +2498,7 @@
     document.getElementById('ivlFDist').style.display = k === 'distancia' ? '' : 'none';
     document.getElementById('ivlFReps').style.display = k === 'libre' ? 'none' : '';
     document.getElementById('ivlFLibre').style.display = k === 'libre' ? '' : 'none';
+    document.getElementById('ivlWarmCool').style.display = k === 'libre' ? 'none' : '';
   }
   function ivlRestShow(rk){
     document.querySelectorAll('#ivlRestKind .chip').forEach(c=>c.classList.toggle('on', c.dataset.rk === rk));
@@ -2549,6 +2560,98 @@
     if(ivlNext) b.querySelector('span').innerHTML = '<b>Intervalos: ' + esc(ivlNext.name) + '</b><small>' + esc(ivlSummary(ivlNext)) + '</small>';
   }
   document.getElementById('btnIvlPreDel').addEventListener('click', ()=>{ ivlNext = null; renderIvlPre(); });
+
+  // Durante el entreno. ivl = {plan, blocks: [{k, s (segundos) o m (metros), r (n° de serie)}], i: bloque actual,
+  // t0 / d0: tiempo en movimiento (s) y distancia (km) al empezar el bloque, done: bloques terminados {k, s, d, r},
+  // free: 'fuerte' o 'suave' (libre), ended: ya terminó el plan}. Va dentro de mirun_current: se retoma si se cierra la app.
+  // Avanza con el tiempo EN MOVIMIENTO (la pausa lo detiene) y con la distancia del GPS. La pausa automática no actúa.
+  function ivlBlocks(p){
+    const b = [];
+    if(p.warm) b.push({k: 'calentamiento', s: p.warm});
+    if(p.kind === 'tiempo') for(let r = 1; r <= p.reps; r++){ b.push({k: 'suave', s: p.easy, r}); b.push({k: 'fuerte', s: p.hard, r}); }
+    if(p.kind === 'distancia') for(let r = 1; r <= p.reps; r++){
+      b.push({k: 'serie', m: p.dist, r});
+      if(r < p.reps && p.rest) b.push(p.restKind === 'distancia' ? {k: 'descanso', m: p.rest, r} : {k: 'descanso', s: p.rest, r});
+    }
+    if(p.cool) b.push({k: 'calma', s: p.cool});
+    return b;
+  }
+  function ivlStart(p){ const blocks = ivlBlocks(p);
+    return {plan: p, blocks, i: 0, t0: 0, d0: 0, done: [], free: p.kind === 'libre' ? 'suave' : null, ended: p.kind !== 'libre' && !blocks.length}; }
+  function cleanIvlBlocks(a){
+    return Array.isArray(a) ? a.filter(x=>x && IVL_K.includes(x.k) && isFinite(x.s) && isFinite(x.d)).slice(0, 500).map(x=>Object.assign(
+      {k: x.k, s: Math.max(0, Math.min(86400, Math.round(Number(x.s)))), d: Math.max(0, Math.min(1000, Math.round(Number(x.d) * 1000) / 1000))},
+      Number.isInteger(x.r) && x.r > 0 && x.r <= 50 ? {r: x.r} : {})) : [];
+  }
+  function ivlRestore(st){ // entreno guardado en mirun_current (al retomar)
+    const p = cleanIvlPlan(st && st.plan); if(!p) return null;
+    const s = ivlStart(p);
+    s.i = Math.max(0, Math.min(s.blocks.length, Math.round(Number(st.i)) || 0));
+    s.t0 = Number(st.t0) || 0; s.d0 = Number(st.d0) || 0; s.done = cleanIvlBlocks(st.done);
+    if(p.kind === 'libre') s.free = st.free === 'fuerte' ? 'fuerte' : 'suave';
+    s.ended = p.kind !== 'libre' && (!!st.ended || s.i >= s.blocks.length);
+    return s;
+  }
+  function ivlCur(){
+    if(ivl.plan.kind === 'libre') return {k: ivl.free};
+    return ivl.ended ? {k: 'extra'} : ivl.blocks[ivl.i];
+  }
+  function ivlClose(sec){ // cierra el tramo actual y lo anota en done
+    const b = ivlCur(), s = sec - ivl.t0, d = Math.max(0, totalDist - ivl.d0);
+    if(s >= 1 || d >= 0.001) ivl.done.push(Object.assign({k: b.k, s: Math.round(s), d: Math.round(d * 1000) / 1000}, b.r ? {r: b.r} : {}));
+    ivl.t0 = sec; ivl.d0 = totalDist;
+  }
+  function ivlBuzz(){ if(profile.sounds !== false){ try{ if(navigator.vibrate) navigator.vibrate([250, 100, 250]); }catch(e){} } }
+  function ivlCue(){ // voz y vibración al empezar cada bloque (la voz respeta "Aviso por voz"; la vibración, "Sonidos y vibración")
+    const b = ivlCur(), last = b.r && b.r === ivl.plan.reps;
+    let t;
+    if(ivl.plan.kind === 'libre') t = 'Entreno libre. Toca Acelero cuando quieras.';
+    else if(ivl.ended) t = 'Entreno terminado. Puedes seguir o tocar Terminar.';
+    else if(b.k === 'fuerte') t = (last ? 'Última serie. ' : '') + '¡Ahora fuerte!';
+    else if(b.k === 'serie') t = (last ? 'Última serie. ' : 'Serie ' + b.r + '. ') + '¡Ahora fuerte! ' + b.m + ' metros.';
+    else if(b.k === 'suave') t = ivl.i === 0 || ivl.blocks[ivl.i - 1].k === 'calentamiento' ? 'Empieza suave.' : 'Descansa.';
+    else if(b.k === 'descanso') t = 'Descansa.';
+    else if(b.k === 'calentamiento') t = 'Calentamiento.';
+    else t = 'Vuelta a la calma.';
+    say(t); ivlBuzz();
+  }
+  function ivlTick(sec){ // cada segundo (updateDisplay): pasa de bloque cuando se cumple su tiempo o su distancia
+    if(ivl && running && !paused && ivl.plan.kind !== 'libre'){
+      for(let n = 0; n < 5 && !ivl.ended; n++){
+        const b = ivl.blocks[ivl.i], el = sec - ivl.t0, dm = (totalDist - ivl.d0) * 1000;
+        if(!((b.s && el >= b.s) || (b.m && dm >= b.m))) break;
+        ivlClose(b.s ? ivl.t0 + b.s : sec); // por tiempo: termina justo en su duración (sin acumular atrasos)
+        ivl.i++; if(ivl.i >= ivl.blocks.length) ivl.ended = true;
+        ivlCue(); saveCurrentRun(true);
+      }
+    }
+    renderIvlBox(sec);
+  }
+  function renderIvlBox(sec){
+    const box = document.getElementById('ivlBox');
+    if(!ivl || !running){ box.style.display = 'none'; return; }
+    box.style.display = '';
+    const b = ivlCur(), el = sec - ivl.t0, free = ivl.plan.kind === 'libre';
+    box.className = 'k-' + b.k;
+    document.getElementById('ivlLbl').textContent = (free ? (b.k === 'fuerte' ? 'Fuerte' : 'Suave') : ivl.ended ? 'Entreno completo' : IVL_LBL[b.k]).toUpperCase();
+    document.getElementById('ivlLeft').textContent = free || ivl.ended ? mmss(el) : b.s ? mmss(b.s - el)
+      : Math.max(0, Math.ceil(b.m - (totalDist - ivl.d0) * 1000)) + ' m';
+    document.getElementById('ivlRep').textContent = !b.r ? '' : b.k === 'descanso' ? 'Descanso ' + b.r + ' de ' + (ivl.plan.reps - 1) : 'Serie ' + b.r + ' de ' + ivl.plan.reps;
+    const nx = free || ivl.ended ? null : ivl.blocks[ivl.i + 1];
+    document.getElementById('ivlNextTxt').textContent = free ? '' : ivl.ended ? 'Toca Terminar cuando quieras'
+      : nx ? 'Sigue: ' + IVL_LBL[nx.k].toLowerCase() + ' ' + (nx.s ? mmss(nx.s) : nx.m + ' m') : 'Último bloque';
+    const fb = document.getElementById('btnIvlFree');
+    fb.style.display = free ? '' : 'none';
+    if(free){ fb.textContent = b.k === 'fuerte' ? 'Bajo' : 'Acelero'; fb.disabled = paused; }
+  }
+  // libre (fartlek): cada toque cierra el tramo y cambia entre suave y fuerte
+  document.getElementById('btnIvlFree').addEventListener('click', ()=>{
+    if(!ivl || ivl.plan.kind !== 'libre' || !running || paused) return;
+    const sec = currentElapsedSec(); ivlClose(sec);
+    ivl.free = ivl.free === 'fuerte' ? 'suave' : 'fuerte';
+    say(ivl.free === 'fuerte' ? '¡Acelera!' : 'Baja el ritmo.'); ivlBuzz();
+    saveCurrentRun(true); renderIvlBox(sec);
+  });
 
   // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------
   // fecha local AAAA-MM-DD de un Date
