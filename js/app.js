@@ -378,6 +378,7 @@
   let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'x'});
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
+  let ivl = null, ivlNext = null; // entreno por intervalos en curso / elegido para la próxima salida (ver INTERVALOS)
   let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
 
   // ---------- PASOS ----------
@@ -405,6 +406,7 @@
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
+    if(tab==='ivl') renderIvl();
     if(tab==='profile') renderSpace();
     if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr');
       if(profile.mapMode !== 'linea' && navigator.onLine) loadLeaflet(); }
@@ -434,6 +436,8 @@
       showTab('add'); document.getElementById('actForm').scrollIntoView({block:'start'}); // pantalla Registrar (#tab-add): actividad sin GPS arriba
     } else if(o.dataset.plus === 'carrera'){
       showTab('add'); document.getElementById('manForm').scrollIntoView({block:'start'}); // carrera sin GPS (a mano)
+    } else if(o.dataset.plus === 'intervalos'){
+      showTab('ivl'); // Intervalos con GPS (ver INTERVALOS)
     } else if(o.dataset.plus === 'rutina'){
       showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
@@ -2437,6 +2441,114 @@
     document.getElementById('summaryOverlay').classList.remove('show');
     renderHistory();
   });
+
+  // ---------- INTERVALOS ----------
+  // Entrenos por intervalos con GPS que arma la persona (la app no recomienda cantidades). mirun_intervals = lista de:
+  // {id, name, kind:'tiempo'|'distancia'|'libre', warm, cool (segundos, 0 = sin), easy, hard (s), reps (tiempo y distancia),
+  //  dist (m), restKind:'tiempo'|'distancia', rest (s o m) (distancia)}. Libre (fartlek): botón "Acelero" / "Bajo".
+  const IVL_LBL = {calentamiento:'Calentamiento', suave:'Suave', fuerte:'Fuerte', serie:'Serie', descanso:'Descanso', calma:'Vuelta a la calma', extra:'Después del entreno'};
+  const IVL_K = Object.keys(IVL_LBL);
+  function ivlNum(v, lo, hi){ v = Math.round(Number(v)); return isFinite(v) && v >= lo ? Math.min(hi, v) : null; }
+  function cleanIvlPlan(p){
+    if(!p || typeof p !== 'object' || !['tiempo','distancia','libre'].includes(p.kind)) return null;
+    const o = {id: typeof p.id === 'string' && /^[\w-]{1,40}$/.test(p.id) ? p.id : 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+               name: String(p.name || '').trim().slice(0, 40) || 'Intervalos', kind: p.kind,
+               warm: ivlNum(p.warm, 0, 3600) || 0, cool: ivlNum(p.cool, 0, 3600) || 0};
+    if(o.kind === 'tiempo'){ o.easy = ivlNum(p.easy, 5, 3600); o.hard = ivlNum(p.hard, 5, 3600); o.reps = ivlNum(p.reps, 1, 50);
+      if(!o.easy || !o.hard || !o.reps) return null; }
+    if(o.kind === 'distancia'){ o.dist = ivlNum(p.dist, 20, 10000); o.reps = ivlNum(p.reps, 1, 50);
+      o.restKind = p.restKind === 'distancia' ? 'distancia' : 'tiempo'; o.rest = ivlNum(p.rest, 0, o.restKind === 'tiempo' ? 1800 : 5000) || 0;
+      if(!o.dist || !o.reps) return null; }
+    return o;
+  }
+  function cleanIvlPlans(a){ return Array.isArray(a) ? a.map(cleanIvlPlan).filter(Boolean).slice(0, 30) : []; }
+  let ivlPlans = cleanIvlPlans(LS.get('mirun_intervals', []));
+  function saveIvlPlans(){ return LS.set('mirun_intervals', ivlPlans); }
+  function mmss(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function ivlSummary(p){
+    const wc = (p.warm ? ' · calentamiento ' + mmss(p.warm) : '') + (p.cool ? ' · calma ' + mmss(p.cool) : '');
+    if(p.kind === 'tiempo') return p.reps + ' × (' + mmss(p.easy) + ' suave + ' + mmss(p.hard) + ' fuerte)' + wc;
+    if(p.kind === 'distancia') return p.reps + ' × ' + p.dist + ' m' + (p.rest ? ' · descanso ' + (p.restKind === 'tiempo' ? mmss(p.rest) : p.rest + ' m') : ' · sin descanso') + wc;
+    return 'Libre (Acelero / Bajo)' + wc;
+  }
+  let ivlEditId = null;
+  function ivlView(edit){ document.getElementById('ivlListView').style.display = edit ? 'none' : ''; document.getElementById('ivlEditView').style.display = edit ? '' : 'none'; }
+  function renderIvl(){
+    ivlView(false);
+    document.getElementById('ivlList').innerHTML = ivlPlans.length ? ivlPlans.map(p=>`<div class="rtCard">
+        <div class="rtName">${esc(p.name)}</div><div class="hint">${esc(ivlSummary(p))}</div>
+        <div class="btnRow"><button class="btn btn-start" data-ivl-go="${esc(p.id)}">Empezar</button>
+          <button class="btn btn-ghost" data-ivl-edit="${esc(p.id)}">Editar</button></div>
+        <button class="linkBtn rtDel" data-ivl-del="${esc(p.id)}">Borrar entreno</button></div>`).join('')
+      : '<div class="hint" style="margin-top:12px;">Todavía no tienes entrenos por intervalos. Crea el primero.</div>';
+  }
+  function ivlKindShow(k){
+    document.querySelectorAll('#ivlKind .chip').forEach(c=>c.classList.toggle('on', c.dataset.kind === k));
+    document.getElementById('ivlFTiempo').style.display = k === 'tiempo' ? '' : 'none';
+    document.getElementById('ivlFDist').style.display = k === 'distancia' ? '' : 'none';
+    document.getElementById('ivlFReps').style.display = k === 'libre' ? 'none' : '';
+    document.getElementById('ivlFLibre').style.display = k === 'libre' ? '' : 'none';
+  }
+  function ivlRestShow(rk){
+    document.querySelectorAll('#ivlRestKind .chip').forEach(c=>c.classList.toggle('on', c.dataset.rk === rk));
+    document.getElementById('ivlRestUnit').textContent = rk === 'tiempo' ? 'segundos (0 = sin descanso)' : 'metros (0 = sin descanso)';
+  }
+  function ivlEdit(p){
+    ivlEditId = p ? p.id : null;
+    document.getElementById('ivlEdTitle').textContent = p ? 'Editar entreno' : 'Nuevo entreno';
+    const v = (id, x)=>{ document.getElementById(id).value = x === undefined || x === null || x === '' ? '' : x; };
+    v('ivlName', p ? p.name : ''); v('ivlReps', p && p.reps);
+    v('ivlEasyMin', p && p.easy ? Math.floor(p.easy / 60) : ''); v('ivlEasySec', p && p.easy ? p.easy % 60 : '');
+    v('ivlHardMin', p && p.hard ? Math.floor(p.hard / 60) : ''); v('ivlHardSec', p && p.hard ? p.hard % 60 : '');
+    v('ivlDist', p && p.dist); v('ivlRest', p && p.kind === 'distancia' ? p.rest : '');
+    v('ivlWarm', p && p.warm ? Math.round(p.warm / 60) : ''); v('ivlCool', p && p.cool ? Math.round(p.cool / 60) : '');
+    ivlKindShow(p ? p.kind : 'tiempo'); ivlRestShow(p && p.restKind === 'distancia' ? 'distancia' : 'tiempo');
+    document.getElementById('ivlEdMsg').textContent = '';
+    ivlView(true);
+  }
+  document.getElementById('ivlKind').addEventListener('click', ev=>{ const c = ev.target.closest('[data-kind]'); if(c) ivlKindShow(c.dataset.kind); });
+  document.getElementById('ivlRestKind').addEventListener('click', ev=>{ const c = ev.target.closest('[data-rk]'); if(c) ivlRestShow(c.dataset.rk); });
+  document.getElementById('btnIvlNew').addEventListener('click', ()=>{
+    if(ivlPlans.length >= 30){ alert('Puedes tener hasta 30 entrenos por intervalos.'); return; }
+    ivlEdit(null);
+  });
+  document.getElementById('btnIvlCancel').addEventListener('click', renderIvl);
+  document.getElementById('btnIvlSave').addEventListener('click', ()=>{
+    const g = id=>document.getElementById(id).value, n = id=>Number(g(id)) || 0, msg = document.getElementById('ivlEdMsg');
+    const kind = document.querySelector('#ivlKind .chip.on').dataset.kind, restKind = document.querySelector('#ivlRestKind .chip.on').dataset.rk;
+    const raw = {id: ivlEditId || undefined, name: g('ivlName'), kind, warm: n('ivlWarm') * 60, cool: n('ivlCool') * 60,
+      easy: n('ivlEasyMin') * 60 + n('ivlEasySec'), hard: n('ivlHardMin') * 60 + n('ivlHardSec'), reps: n('ivlReps'),
+      dist: n('ivlDist'), restKind, rest: n('ivlRest')};
+    const p = cleanIvlPlan(raw);
+    if(!p){ msg.style.color = 'var(--amber)';
+      msg.textContent = kind === 'tiempo' ? 'Escribe cuánto dura lo suave y lo fuerte (5 segundos o más) y cuántas repeticiones (1 a 50).'
+        : 'Escribe la distancia de cada serie (20 m o más) y cuántas repeticiones (1 a 50).'; return; }
+    const i = ivlPlans.findIndex(x=>x.id === p.id);
+    if(i >= 0) ivlPlans[i] = p; else ivlPlans.push(p);
+    if(!saveIvlPlans()) return;
+    showSaved(); renderIvl();
+  });
+  document.getElementById('ivlList').addEventListener('click', ev=>{
+    const b = ev.target.closest('[data-ivl-go],[data-ivl-edit],[data-ivl-del]'); if(!b) return;
+    const p = ivlPlans.find(x=>x.id === (b.dataset.ivlGo || b.dataset.ivlEdit || b.dataset.ivlDel)); if(!p) return;
+    if(b.dataset.ivlEdit) ivlEdit(p);
+    else if(b.dataset.ivlDel){ if(!confirm('¿Borrar el entreno "' + p.name + '"? Las actividades que ya guardaste no se borran.')) return;
+      ivlPlans = ivlPlans.filter(x=>x !== p); saveIvlPlans(); renderIvl(); }
+    else ivlChoose(p);
+  });
+  // "Empezar": el entreno queda elegido en la pantalla del GPS (siempre como correr); se arranca con "Empezar" de allá
+  function ivlChoose(p){
+    if(running){ showTab('run'); return; }
+    ivlNext = p;
+    document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === 'correr'));
+    showTab('run'); renderIvlPre();
+  }
+  function renderIvlPre(){
+    const b = document.getElementById('ivlPre'); if(!b) return;
+    b.style.display = ivlNext && !running ? '' : 'none';
+    if(ivlNext) b.querySelector('span').innerHTML = '<b>Intervalos: ' + esc(ivlNext.name) + '</b><small>' + esc(ivlSummary(ivlNext)) + '</small>';
+  }
+  document.getElementById('btnIvlPreDel').addEventListener('click', ()=>{ ivlNext = null; renderIvlPre(); });
 
   // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------
   // fecha local AAAA-MM-DD de un Date
