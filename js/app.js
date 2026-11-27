@@ -445,6 +445,7 @@
       showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
       document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === o.dataset.plus));
+      ivlNext = null; renderIvlPre(); // correr, caminar o bici normal: sin el entreno por intervalos elegido antes
       showTab('run');
     }
   });
