@@ -706,6 +706,44 @@
   .histWeek:first-child, .histStepsHint + .histWeek{margin-top:14px;}
   .histWeek b{font-size:16px;color:var(--text);}
   .histWeek span{font-size:13px;color:var(--sub);}
+  /* ==== DISEÑO 3: INICIO (rama prueba/diseno3) ==== */
+  .homeGoal{display:flex;align-items:center;gap:18px;margin:14px 2px 4px;}
+  .ring{position:relative;width:118px;height:118px;flex-shrink:0;}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .ring circle{fill:none;stroke-width:10;}
+  .ring .rTrack{stroke:var(--lane-line);}
+  .ring .rFill{stroke:var(--signal);stroke-linecap:round;transition:stroke-dashoffset .6s ease-out;}
+  .ring .rFill.full{stroke:var(--good);}
+  .ringTxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ringTxt b{font-size:30px;line-height:1;}
+  .ringTxt span{font-size:12.5px;color:var(--sub);margin-top:4px;}
+  .homeGoalTxt h2{font-size:21px;margin:0 0 6px;}
+  .homeGoalTxt p{margin:0;font-size:15px;color:var(--sub);line-height:1.35;}
+  #tab-home .homeActions{margin-top:14px;}
+  #tab-home #todayPlan{margin-top:14px;}
+  .homeStats{display:grid;grid-template-columns:repeat(3,1fr);margin:22px 0 4px;}
+  .homeStats > div{padding:2px 10px;display:flex;flex-direction:column;gap:2px;}
+  .homeStats > div + div{border-left:1px solid var(--lane-line);}
+  .homeStats .lbl{font-size:13px;color:var(--sub);}
+  .homeStats b{font-size:24px;line-height:1.15;}
+  .homeStats small{font-size:12.5px;color:var(--sub);}
+  .homeStats .pbar{height:4px;margin-top:6px;}
+  #tab-home .mascotCard{margin-top:22px;}
+  .weekStripBox{margin-top:24px;}
+  .wsHead{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px;}
+  .wsHead h3{margin:0;font-size:16px;}
+  .wsHead .linkBtn{font-size:14px;color:var(--signal);padding:8px 0 8px 12px;}
+  .wsDays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .wd{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;color:var(--sub);}
+  .wd i{font-style:normal;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:600;color:var(--text);background:var(--track2);}
+  .wd.done i{background:var(--good);color:#04241a;}
+  .wd.rest i{background:transparent;border:1.5px dashed var(--sub);}
+  .wd.part i{background:rgba(77,155,255,.28);}
+  .wd.future i{background:transparent;color:var(--sub);border:1px solid var(--lane-line);}
+  .wd.today span{color:var(--text);font-weight:700;}
+  .wd.today i{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--signal);}
+  #calPanel{margin-top:16px;}
   /* Historial: Editar y Borrar más grandes y separados (área de toque de 40 px) */
   .histBtns{display:flex;gap:8px;flex-shrink:0;margin-left:10px;}
   .histBtns .linkBtn{min-height:40px;padding:0 14px;border:1px solid var(--lane-line);border-radius:12px;
@@ -724,3 +762,100 @@
   .histBtns .favBtn.on .ico{fill:currentColor;}
   .histItem .top{align-items:flex-start;gap:6px;}
   .histItem .top > span:first-child{padding-top:10px;}
+
+  /* ==== DISEÑO 3: MENOS CAJAS Y MENOS BRILLO ====
+     Los grupos se separan con espacio y un título, no con bordes (.panel ya no es una caja). Solo son tarjetas los
+     elementos de una lista o un aviso (fondo suave, sin borde ni halo). Sombras normales, sin halos de color.
+     El degradado queda solo en el botón principal de cada pantalla (lista de ids abajo). */
+  body{background:var(--bg);}
+  .panel{background:transparent;border:none;border-radius:0;box-shadow:none;padding:0 2px;margin-top:32px;}
+  .panel h3{font-size:17px;margin:0 0 12px;}
+  #todayPlan, .histItem, .rtCard, .bubble, .nextAch, .lane, .goalStrip, .sheetOpt, .evoCmp div{
+    background:var(--track);border:none;box-shadow:none;}
+  #todayPlan, .nextAch{border-radius:18px;padding:16px;}
+  .nextAch{border:1px solid rgba(245,184,46,.35);}
+  .histItem{margin-top:10px;}
+  .rtCard{border-radius:18px;}
+  .totRow{background:transparent;border:none;}
+  .totRow .t + .t{border-left:1px solid var(--lane-line);}
+  .histItem .mini-route canvas{background:transparent;}
+  #freeBox{border:none;padding:0;}
+  .clock{background:var(--track);box-shadow:none;}
+  #gpsStatus.ok::before{box-shadow:none;}
+  /* botones: sólidos; el degradado solo en el principal de cada pantalla */
+  .btn-start{background:#2563eb;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+  #btnHomeStart, #btnStart, #btnResume, #btnSaveGoal, #btnRtSave, #btnAct, #btnSaveBody, #btnCloseSummary, #btnEdSave,
+  #btnWelGo, #btnSesSave, .rtBigBtn{background:var(--grad);box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  .plusBtn{background:#2563eb;box-shadow:0 4px 10px rgba(0,0,0,.4);}
+  .btn-gold{box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  .pbar div{background:var(--signal);}
+  .avatar.noPhoto, .evoTabs .chip.on{background:#2563eb;}
+  .avatar.big{box-shadow:none;}
+  .charOpt.on{box-shadow:none;}
+  .welImg{box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  /* medallas: planas (sin brillo ni degradado), azul o dorado */
+  .ach.on .medal, .medal.big.blue{background:#173a7a;border-color:#7cc4ff;box-shadow:none;}
+  .ach.leg .medal, .medal.big{background:#e0a628;border-color:#ffe08a;box-shadow:none;}
+
+  /* ==== DISEÑO 3: LEGIBILIDAD ====
+     Texto secundario con contraste de 4,5 a 1 o más sobre el fondo y las tarjetas (--sub2 era 3,3 a 1).
+     Etiquetas en minúscula normal y de 12 px o más. Borde visible al tocar un campo. Ejemplos "ej. 170" en gris claro. */
+  :root{--sub2:#8796b6;}
+  .achCat, .nextAch small, .rtGuideLbl{text-transform:none;letter-spacing:0;}
+  .achCat{font-size:13.5px;color:var(--text);}
+  .nextAch small{font-size:13px;}
+  .goalStrip .g .l, .totRow .t .l, .recCol .l, .histItem .stats small, .ach .ad, .mLbl small, .evoCmp small,
+  .progRow .pv small, .bodyItem .vals small, .measIn small, .tag, .mapNote, .mapWrap .mapLbl, #gpsStatus{font-size:12px;letter-spacing:0;}
+  .goalStrip .g .l, .totRow .t .l, .recCol .l, .histItem .stats small{color:var(--sub);}
+  .ach .an2{font-size:12.5px;} .cal .h, .calLegend, .gc .gu{font-size:12.5px;}
+  .actChips .chip, .actRow .an small, .newRec small, .evoCmp i{font-size:12.5px;}
+  .hdrLbl{font-size:11.5px;}
+  .hint{font-size:13.5px;}
+  .linkBtn{color:var(--sub);font-size:13px;}
+  input::placeholder, textarea::placeholder{color:#7c8bab;opacity:1;}
+  input:focus, select:focus, textarea:focus, input[type=number]:focus{border-color:var(--signal);outline:2px solid var(--signal);outline-offset:1px;}
+  button:focus-visible, .chip:focus-visible, a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+
+  /* ==== DISEÑO 3: PERFIL EN SECCIONES ==== */
+  .secTitle{font-size:19px;margin:34px 2px 8px;}
+  #tab-profile > .secTitle:first-child{margin-top:18px;}
+  .profTop{display:flex;align-items:center;gap:16px;text-align:left;}
+  .profTop .avatar.big{width:84px;height:84px;margin:0;flex-shrink:0;}
+  .profTopBtns{display:flex;flex-direction:column;gap:8px;flex:1;}
+  .profTopBtns .btn{padding:11px;}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .row2 label, .row3 label{margin-top:12px;}
+  .setRow{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:14px 2px;
+    border-bottom:1px solid var(--lane-line);cursor:pointer;color:var(--text);}
+  .setRow b{display:block;font-size:15px;font-weight:600;}
+  .setRow small{display:block;font-size:13px;color:var(--sub);margin-top:3px;line-height:1.4;font-weight:400;}
+  .switch{position:relative;flex-shrink:0;width:52px;height:30px;}
+  .switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+  .switch i{position:absolute;inset:0;border-radius:15px;background:var(--track2);border:1px solid var(--lane-line);transition:background .2s;pointer-events:none;}
+  .switch i::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#c9d3e8;transition:transform .2s;}
+  .switch input:checked + i{background:#2563eb;border-color:#2563eb;}
+  .switch input:checked + i::after{transform:translateX(22px);background:#fff;}
+  .switch input:focus-visible + i{outline:2px solid var(--signal);outline-offset:2px;}
+
+  /* ==== DISEÑO 3: MI SEMANA (tira de 7 días) ==== */
+  #rtWeekRows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:10px;}
+  .wkDay{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;padding:10px 1px;min-height:68px;
+    border-radius:12px;background:var(--track);border:1px solid transparent;color:var(--text);cursor:pointer;}
+  .wkDay b{font-size:13.5px;}
+  .wkDay span{font-size:12px;color:var(--sub);line-height:1;}
+  .wkDay span .ico{width:18px;height:18px;color:var(--text);}
+  .wkDay.on{background:rgba(37,99,235,.22);border-color:#2563eb;}
+  .wkDay.today b{color:var(--signal);}
+  .wkDay select{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+  .wkDay:focus-within{outline:2px solid var(--signal);outline-offset:1px;}
+
+  /* ==== DISEÑO 3: AJUSTAR LA FOTO DE PERFIL (photoCrop) ==== */
+  #photoCrop{position:fixed;inset:0;z-index:130;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,7,18,.94);}
+  #photoCrop.show{display:flex;}
+  .pcBox{width:100%;max-width:400px;background:var(--track);border-radius:22px;padding:18px;}
+  .pcBox h3{margin:0 0 6px;font-size:18px;}
+  .pcStage{position:relative;width:min(78vw,300px);aspect-ratio:1;margin:14px auto 4px;overflow:hidden;border-radius:16px;background:#000;}
+  .pcStage canvas{display:block;touch-action:none;cursor:grab;}
+  .pcStage canvas:active{cursor:grabbing;}
+  .pcMask{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:0 0 0 400px rgba(3,7,18,.62);outline:2px solid rgba(255,255,255,.85);}
+  #pcZoom{width:100%;accent-color:var(--signal);margin:4px 0 0;}

@@ -66,11 +66,11 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Mascota: personajes (`CHARACTERS`, `DEFAULT_CHAR`, `poseSrc`), qué pose va en cada momento (`MASCOT`, `mascotMsg`) y reacciones (`mascotReact`, `mascotTap`, gestos espontáneos `mascotGesture`) | `// ---------- MASCOTA` (CSS: `MASCOTA (Brío` y `MASCOTA: movimiento`) |
 | Lista de actividades (`ACTIVITIES`, MET) | `// ---------- TIPOS DE ACTIVIDAD` |
 | Pestañas (`showTab`, `data-goto`) | `// ---------- TABS` |
-| Perfil: saludo, foto (`mirun_photo`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
+| Perfil en secciones Tú / Compañero / Avisos / Mapa / Mis datos, se guarda al cambiar (`saveProfile`, `PROF_FIELDS`; interruptores `.switch`): saludo, foto (`mirun_photo`; "Ajusta tu foto" `openPhotoCrop`, HTML `id="photoCrop"`), "Elige tu compañero" (`renderCharPick`, `setCharacter`, `profile.character`), objetivo y nivel (`GOAL_TYPES`, `LEVEL_WEEK`) | `// ---------- PROFILE` |
 | Metas (carrera, racha, semanal, descanso) | `// ---------- GOAL` |
 | Ruta liviana para carreras nuevas (`lightRoute`, `routeOf` lee `route` nuevo y `path` viejo) | `// ---------- RUTA LIVIANA` |
 | Dibujo de ruta (canvas) | `// ---------- ROUTE DRAWING` |
-| Mapa con calles (Leaflet) | `// ---------- MAPA CON CALLES` |
+| Mapa con calles (Leaflet). Leaflet NO se carga al abrir: `loadLeaflet()` lo pide al entrar al GPS o al pedir un mapa con calles; evento `leafletready` redibuja; sin internet, línea | `// ---------- MAPA CON CALLES` |
 | Mapa grande a pantalla completa ("Ver mapa" en Historial y resumen; zoom y arrastre; línea sin internet) | `// ---------- MAPA GRANDE` (HTML: `id="bigMap"`, CSS: `MAPA GRANDE`) |
 | Historial: solo la lista, la más nueva arriba, agrupada por semana con su total (`histWeekHead`); por partes: 4 semanas con actividad y "Ver más" (`histWeeks`), mapas pequeños dibujados al verse (`histIO`); incluye "≈ N pasos" y el detalle de rutina `routineDetail` | `// ---------- HISTORY` |
 | Pasos estimados (`stepsOf`, `stepsTxt`; no se guardan) | `// ---------- PASOS` |
@@ -85,8 +85,8 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Carrera en curso / iniciar / terminar (`body.gpsOn` mientras se registra) | `// ---------- CARRERA EN CURSO` (CSS: `GPS EN CURSO`) |
 | Modo bolsillo (bloqueo de toques durante el GPS) | `// ---------- MODO BOLSILLO` (HTML: `id="lockOverlay"`) |
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
-| Racha, minutos por día, Inicio, calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
-| Planeador de la semana: datos (`weekPlan`, `mirun_weekplan`) y tarjeta "Hoy toca" de Inicio (`renderTodayPlan`, `routineAvgMin`) | `// ---------- PLANEADOR DE LA SEMANA` (HTML: `id="todayPlan"`, `id="rtWeek"`; "Mi semana" = `renderWeek` en MIS RUTINAS) |
+| Racha, minutos por día, Inicio (anillo "Tu meta de hoy" `setRing`, fila Racha/Semana/Mejor racha, tira de 7 días `renderWeekStrip` y "Ver calendario" `btnCalToggle`), calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
+| Planeador de la semana: datos (`weekPlan`, `mirun_weekplan`) y tarjeta "Hoy toca" de Inicio (`renderTodayPlan`, `routineAvgMin`) | `// ---------- PLANEADOR DE LA SEMANA` (HTML: `id="todayPlan"`, `id="rtWeek"`; "Mi semana" = tira de 7 días `renderWeek` en MIS RUTINAS, resumen `id="rtWeekSum"`) |
 | Mis rutinas (menú "+"): lista, editor (`EXERCISES`, `routines`, `mirun_routines`) | `// ---------- MIS RUTINAS` (HTML: `id="tab-rutinas"`, CSS: `MIS RUTINAS`) |
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |

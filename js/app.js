@@ -406,7 +406,8 @@
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
     if(tab==='profile') renderSpace();
-    if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr'); }
+    if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr');
+      if(profile.mapMode !== 'linea' && navigator.onLine) loadLeaflet(); }
   }
   document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -459,7 +460,7 @@
     if(LS.failNow) return; // algo no se pudo guardar: ya avisó storageFullAlert
     const bar = document.getElementById('savedBar');
     bar.classList.add('show');
-    setTimeout(()=>bar.classList.remove('show'), 1500);
+    clearTimeout(showSaved.t); showSaved.t = setTimeout(()=>bar.classList.remove('show'), 1500); // varios cambios seguidos: se ve hasta el último
   }
 
   // ---------- PROFILE ----------
@@ -481,10 +482,11 @@
     set('profSex', profile.sex);
     set('profGoalType', profile.goalType || 'salud');
     set('profLevel', profile.level || 'ligero');
-    set('profVoice', profile.voice ? '1' : '0');
-    set('profSounds', profile.sounds === false ? '0' : '1');
-    set('profFaith', profile.faith === true ? '1' : '0'); // frases de fe: sin campo = apagado
-    set('profAutoPause', profile.autoPause === false ? '0' : '1'); // sin campo = encendida
+    const on = (id, v)=>{ document.getElementById(id).checked = v; }; // interruptores
+    on('profVoice', !!profile.voice);
+    on('profSounds', profile.sounds !== false);
+    on('profFaith', profile.faith === true); // frases de fe: sin campo = apagado
+    on('profAutoPause', profile.autoPause !== false); // sin campo = encendida
     set('profMap', profile.mapMode);
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
@@ -519,7 +521,9 @@
     if(profile.name) h.textContent = 'Hola, ' + profile.name; else h.innerHTML = 'Mi<span>Run</span>';
   }
 
-  // Foto de perfil: se recorta al centro, se reduce a 256 px (JPEG ~30 KB) y se guarda en mirun_photo.
+  // Foto de perfil: al elegirla se abre "Ajusta tu foto" (photoCrop): se mueve con el dedo y se acerca o aleja (pellizco,
+  // control deslizante o rueda). "Listo" guarda lo que se ve en el círculo a 256 px (JPEG ~30 KB) en mirun_photo, igual
+  // que antes; "Cancelar" deja la foto anterior.
   // Sin foto: iniciales del nombre sobre azul, o un ícono si no hay nombre (decisión del usuario 2026-11-08; antes, círculo negro).
   // iniciales del nombre (primera letra de la primera y de la última palabra), para cuando no hay foto
   function initials(name){
@@ -546,15 +550,59 @@
     const f = photoFile.files && photoFile.files[0]; photoFile.value = '';
     if(!f || !/^image\//.test(f.type)) return;
     const url = URL.createObjectURL(f), img = new Image();
-    img.onload = ()=>{
-      const S = 256, s = Math.min(img.width, img.height), c = document.createElement('canvas');
-      c.width = c.height = S;
-      c.getContext('2d').drawImage(img, (img.width - s)/2, (img.height - s)/2, s, s, 0, 0, S, S);
-      URL.revokeObjectURL(url);
-      if(LS.set('mirun_photo', c.toDataURL('image/jpeg', 0.82))){ refreshAvatars(); showSaved(); }
-    };
+    img.onload = ()=>{ URL.revokeObjectURL(url); openPhotoCrop(img); };
     img.onerror = ()=>{ URL.revokeObjectURL(url); alert('No se pudo abrir esa imagen.'); };
     img.src = url;
+  });
+  // "Ajusta tu foto": z = acercamiento (1 = el lado corto llena el círculo), ox/oy = desplazamiento en px de pantalla
+  const pc = {el: document.getElementById('photoCrop'), stage: document.getElementById('pcStage'), cv: document.getElementById('pcCanvas'),
+              zoom: document.getElementById('pcZoom'), img: null, z: 1, ox: 0, oy: 0, ptrs: new Map(), pinch: null};
+  function pcSize(){ return pc.stage.clientWidth; }
+  function pcBase(){ return pcSize() / Math.min(pc.img.width, pc.img.height); } // escala con z = 1
+  function pcClamp(){ // la foto siempre cubre todo el círculo
+    const D = pcSize(), k = pcBase() * pc.z, mx = Math.max(0, (pc.img.width * k - D) / 2), my = Math.max(0, (pc.img.height * k - D) / 2);
+    pc.ox = Math.max(-mx, Math.min(mx, pc.ox)); pc.oy = Math.max(-my, Math.min(my, pc.oy));
+  }
+  function pcDraw(){
+    const D = pcSize(), r = window.devicePixelRatio || 1, k = pcBase() * pc.z, ctx = pc.cv.getContext('2d');
+    pc.cv.width = Math.round(D * r); pc.cv.height = Math.round(D * r); pc.cv.style.width = pc.cv.style.height = D + 'px';
+    ctx.setTransform(r, 0, 0, r, 0, 0); ctx.clearRect(0, 0, D, D);
+    const w = pc.img.width * k, h = pc.img.height * k;
+    ctx.drawImage(pc.img, D / 2 + pc.ox - w / 2, D / 2 + pc.oy - h / 2, w, h);
+  }
+  function pcSetZoom(z){ pc.z = Math.max(1, Math.min(4, z)); pc.zoom.value = pc.z; pcClamp(); pcDraw(); }
+  function openPhotoCrop(img){
+    pc.img = img; pc.z = 1; pc.ox = 0; pc.oy = 0; pc.ptrs.clear(); pc.pinch = null; pc.zoom.value = 1;
+    pc.el.classList.add('show'); document.body.classList.add('noScroll');
+    requestAnimationFrame(pcDraw);
+  }
+  function closePhotoCrop(){ pc.el.classList.remove('show'); document.body.classList.remove('noScroll'); pc.img = null; }
+  pc.zoom.addEventListener('input', ()=>pcSetZoom(Number(pc.zoom.value)));
+  pc.cv.addEventListener('wheel', ev=>{ ev.preventDefault(); pcSetZoom(pc.z * (ev.deltaY < 0 ? 1.08 : 1 / 1.08)); }, {passive: false});
+  pc.cv.addEventListener('pointerdown', ev=>{ try{ pc.cv.setPointerCapture(ev.pointerId); }catch(e){} pc.ptrs.set(ev.pointerId, {x: ev.clientX, y: ev.clientY}); pc.pinch = null; });
+  pc.cv.addEventListener('pointermove', ev=>{
+    const p = pc.ptrs.get(ev.pointerId); if(!p) return;
+    if(pc.ptrs.size === 1){ pc.ox += ev.clientX - p.x; pc.oy += ev.clientY - p.y; } // un dedo: mover
+    p.x = ev.clientX; p.y = ev.clientY;
+    if(pc.ptrs.size === 2){ // dos dedos: pellizco
+      const [a, b] = [...pc.ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if(pc.pinch) pc.z = Math.max(1, Math.min(4, pc.pinch.z * d / pc.pinch.d)); else pc.pinch = {d, z: pc.z};
+      pc.zoom.value = pc.z;
+    }
+    pcClamp(); pcDraw();
+  });
+  const pcUp = ev=>{ pc.ptrs.delete(ev.pointerId); pc.pinch = null; };
+  pc.cv.addEventListener('pointerup', pcUp); pc.cv.addEventListener('pointercancel', pcUp);
+  document.getElementById('btnPcCancel').addEventListener('click', closePhotoCrop); // la foto anterior queda igual
+  document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && pc.el.classList.contains('show')) closePhotoCrop(); });
+  document.getElementById('btnPcOk').addEventListener('click', ()=>{
+    // lo que se ve dentro del cuadro (el círculo) pasa a 256 x 256, igual que antes
+    const D = pcSize(), k = pcBase() * pc.z, S = 256, c = document.createElement('canvas');
+    const sx = (pc.img.width * k / 2 - D / 2 - pc.ox) / k, sy = (pc.img.height * k / 2 - D / 2 - pc.oy) / k, s = D / k;
+    c.width = c.height = S;
+    c.getContext('2d').drawImage(pc.img, sx, sy, s, s, 0, 0, S, S);
+    closePhotoCrop();
+    if(LS.set('mirun_photo', c.toDataURL('image/jpeg', 0.82))){ refreshAvatars(); showSaved(); }
   });
   document.getElementById('btnPhotoDel').addEventListener('click', ()=>{
     if(!confirm('¿Quitar tu foto de perfil?')) return;
@@ -573,7 +621,24 @@
     document.querySelectorAll('#tab-profile .uW').forEach(e=>{ e.textContent = to === 'imperial' ? 'lb' : 'kg'; });
   });
 
-  document.getElementById('btnSaveProfile').addEventListener('click', ()=>{
+  // Perfil: se guarda al cambiar cualquier ajuste (sin botón "Guardar perfil"); mismos campos y reglas que antes
+  const PROF_FIELDS = ['profName','profUnits','profWeight','profAge','profHeight','profSex','profGoalType','profLevel',
+                       'profVoice','profSounds','profFaith','profAutoPause','profMap'];
+  document.getElementById('tab-profile').addEventListener('change', ev=>{ if(PROF_FIELDS.includes(ev.target.id)){ clearTimeout(profTypeT); saveProfile(); } });
+  // los campos de texto también se guardan mientras se escribe: 1 s después de la última tecla (por si se cierra la app
+  // sin salir del campo). Así no se reescribe el campo que se está usando (typing = true).
+  const PROF_TYPED = ['profName','profWeight','profAge','profHeight'];
+  let profTypeT = null;
+  document.getElementById('tab-profile').addEventListener('input', ev=>{
+    const t = ev.target; if(!PROF_TYPED.includes(t.id)) return;
+    clearTimeout(profTypeT);
+    profTypeT = setTimeout(()=>{
+      // un número a medio escribir ("64." o vacío) no se guarda: se espera al resto o al salir del campo
+      if(t.type === 'number' && (t.value === '' || (t.validity && t.validity.badInput))) return;
+      saveProfile(true);
+    }, 1000);
+  });
+  function saveProfile(typing){
     const units = profUnits.value, wIn = parseFloat(document.getElementById('profWeight').value);
     const wKg = wIn > 0 ? (units === 'imperial' ? wIn / KG_LB : wIn) : 70; // el peso se guarda en kg
     // si el número que se ve es el mismo que había (solo se cambió la unidad), se conserva el peso exacto
@@ -589,20 +654,21 @@
       sex: document.getElementById('profSex').value,
       goalType: document.getElementById('profGoalType').value,
       level: document.getElementById('profLevel').value,
-      voice: document.getElementById('profVoice').value === '1',
-      sounds: document.getElementById('profSounds').value === '1',
-      faith: document.getElementById('profFaith').value === '1', // "Incluir frases de fe"
-      autoPause: document.getElementById('profAutoPause').value === '1', // pausa automática en GPS
+      voice: document.getElementById('profVoice').checked,
+      sounds: document.getElementById('profSounds').checked,
+      faith: document.getElementById('profFaith').checked, // "Frases de fe"
+      autoPause: document.getElementById('profAutoPause').checked, // pausa automática en GPS
       mapMode: document.getElementById('profMap').value
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
     LS.set('mirun_profile', profile);
     refreshHello(); refreshAvatars();
     // las unidades cambian lo que se muestra en varias pantallas
+    if(typing){ refreshHello(); refreshAvatars(); showSaved(); return; } // sin tocar lo que se está escribiendo
     fillProfileForm(); profUnits.dataset.prev = profUnits.value;
     loadGoalForm(); refreshGoalLabels(); buildBodyForm();
     showSaved();
-  });
+  }
 
   // ---------- GOAL ----------
   // la meta se guarda en km y min/km; aquí se muestra en la unidad elegida (ver UNIDADES)
@@ -785,9 +851,36 @@
   // Si se eligio "calles", hay internet y la libreria cargo: mapa real.
   // Si no: la linea dibujada de siempre (drawRoute), que no necesita internet.
   const streetMaps = {};
-  function streetsAvailable(mode){ // mode: vista pedida ('calles' o 'linea'); sin mode = la del Perfil
-    return (mode || profile.mapMode) !== 'linea' && navigator.onLine && typeof window.L !== 'undefined';
+  // Leaflet (lib/leaflet.js y .css) se carga recién cuando se pide un mapa con calles (o al entrar al GPS), no al
+  // abrir la app. Mientras carga (o sin internet) se ve la línea de siempre; al terminar, 'leafletready' redibuja.
+  let leafletP = null;
+  function loadLeaflet(){
+    if(window.L) return Promise.resolve(true);
+    if(leafletP) return leafletP;
+    leafletP = new Promise(res=>{
+      const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'lib/leaflet.css'; document.head.appendChild(css);
+      const s = document.createElement('script'); s.src = 'lib/leaflet.js';
+      s.onload = ()=>{ res(true); document.dispatchEvent(new Event('leafletready')); };
+      s.onerror = ()=>{ leafletP = null; s.remove(); res(false); }; // se reintenta la próxima vez
+      document.head.appendChild(s);
+    });
+    return leafletP;
   }
+  // texto bajo el mapa cuando se pidió "calles" pero se ve la línea
+  function streetsNote(){ return navigator.onLine && leafletP && !window.L ? 'Cargando el mapa con calles…' : 'Sin internet: mostrando solo la línea'; }
+  function streetsAvailable(mode){ // mode: vista pedida ('calles' o 'linea'); sin mode = la del Perfil
+    const want = (mode || profile.mapMode) !== 'linea' && navigator.onLine;
+    if(want && typeof window.L === 'undefined') loadLeaflet();
+    return want && typeof window.L !== 'undefined';
+  }
+  document.addEventListener('leafletready', ()=>{
+    if(running) refreshLiveMap();
+    if(bigMap.el.classList.contains('show') && bigMap.mode !== 'linea') showBigMap();
+    if(document.getElementById('summaryOverlay').classList.contains('show') && sumPath.length > 1){
+      const c = document.getElementById('sumMap'), dv = document.getElementById('sumStreet');
+      try{ renderRoute('sum', c, dv, sumPath, '#4d9bff', false); }catch(e){}
+    }
+  });
   function renderRoute(key, canvas, div, points, color, follow, mode){
     if(!streetsAvailable(mode)){
       div.style.display = 'none';
@@ -877,7 +970,7 @@
     if(bigMap.shown === 'linea') drawBigLine();
     document.getElementById('bigMapMode').textContent = bigMap.mode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
     document.getElementById('bigMapNote').textContent =
-      bigMap.mode !== 'linea' && bigMap.shown === 'linea' ? 'Sin internet: mostrando solo la línea' : '';
+      bigMap.mode !== 'linea' && bigMap.shown === 'linea' ? streetsNote() : '';
   }
   // posición en pantalla de un punto: ajuste a la pantalla × zoom (s) + desplazamiento (tx, ty)
   function bigLineGeo(){
@@ -1306,9 +1399,9 @@
         <div class="recCol"><div class="l">Todavía no has corrido esta distancia</div></div></div>`;
       return `<div class="recRow"><div class="recCat">${name}</div>
         <div class="recCol"><div class="v">${fmtTime(r.best.sec)}</div>
-          <div class="l">MEJOR TIEMPO · ${paceTxt(r.best.sec, r.k)} /${dU()}<br>${fmtShortDate(r.best.date)}</div></div>
+          <div class="l">Mejor tiempo · ${paceTxt(r.best.sec, r.k)} /${dU()}<br>${fmtShortDate(r.best.date)}</div></div>
         <div class="recCol"><div class="v">${r.bestPace ? fmtPace(toPace(r.bestPace.p)) : '--'}</div>
-          <div class="l">MEJOR RITMO PROM.<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
+          <div class="l">Mejor ritmo promedio<br>${r.count} ${r.count===1?'carrera':'carreras'}</div></div>
       </div>`;
     }).join('');
   }
@@ -1353,7 +1446,7 @@
     const help = tracked().some(k=>k === 'cintura' || k === 'barriga') ? WAIST_HELP : '';
     document.getElementById('bodyInputs').innerHTML = help + MEASURES.filter(m=>tracked().includes(m.k)).map(m=>
       `<div class="measIn"><label>${m.n} (${mU(m)})</label>
-        <input type="number" id="${m.id}" step="0.1" placeholder="${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
+        <input type="number" id="${m.id}" step="0.1" placeholder="ej. ${m.k === 'peso' && imp() ? 154 : m.ph}"><small>${m.h}</small></div>`).join('');
     document.getElementById('measChips').innerHTML = MEASURES.map(m=>
       `<button class="chip${tracked().includes(m.k) ? ' on' : ''}" data-meas="${m.k}">${m.n}</button>`).join('');
     // el gráfico ofrece lo que se sigue y también lo que tenga datos guardados
@@ -1704,7 +1797,7 @@
               drawRoute(liveMapCanvas, path, '#4d9bff'); shown = 'linea'; }
     liveMapMode.textContent = profile.mapMode === 'linea' ? 'Ver: calles' : 'Ver: solo línea';
     if(profile.mapMode !== 'linea' && shown === 'linea'){
-      liveMapNote.textContent = 'Sin internet: mostrando solo la línea';
+      liveMapNote.textContent = streetsNote();
     } else if(path.length === 0){
       liveMapNote.textContent = 'Esperando tu primera posición…';
     } else {
@@ -2399,10 +2492,34 @@
   function setBar(id, val, goalVal){
     document.getElementById(id+'Min').textContent = val;
     document.getElementById(id+'Goal').textContent = 'de ' + goalVal + ' min';
-    const bar = document.getElementById(id+'Bar');
+    const bar = document.getElementById(id+'Bar'); if(!bar) return; // "hoy" es un anillo (setRing)
     bar.style.width = Math.min(100, val/goalVal*100) + '%';
     bar.classList.toggle('full', val >= goalVal);
   }
+  // anillo de "Tu meta de hoy" (circunferencia 2·π·52) y la frase de abajo
+  function setRing(val, goalVal, stat){
+    const c = 2 * Math.PI * 52, p = Math.min(1, val / goalVal), ring = document.getElementById('todayRing');
+    ring.style.strokeDasharray = c; ring.style.strokeDashoffset = c * (1 - p);
+    ring.classList.toggle('full', val >= goalVal);
+    document.getElementById('todayGoalHint').textContent = stat === 'rest' && val < goalVal ? 'Hoy es tu día de descanso.'
+      : val >= goalVal ? '¡Cumplida! Tu racha sigue.' : 'Te faltan ' + Math.ceil(goalVal - val) + ' min.';
+  }
+  // tira de lunes a domingo de esta semana: cumplido, descanso, incompleto o por venir
+  function renderWeekStrip(mins, monday, today){
+    const tk = dayKey(today);
+    document.getElementById('weekStrip').innerHTML = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map((n, i)=>{
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const s = d > today ? 'future' : dayStatus(mins, d), lbl = {done: 'cumplido', rest: 'descanso', part: 'incompleto', future: ''}[s] || 'sin actividad';
+      return `<div class="wd ${s}${dayKey(d) === tk ? ' today' : ''}" title="${lbl}"><span>${n}</span><i class="num">${d.getDate()}</i></div>`;
+    }).join('');
+  }
+  document.getElementById('btnCalToggle').addEventListener('click', ev=>{
+    const p = document.getElementById('calPanel'), open = p.style.display === 'none';
+    p.style.display = open ? '' : 'none';
+    ev.currentTarget.textContent = open ? 'Ocultar calendario' : 'Ver calendario';
+    ev.currentTarget.setAttribute('aria-expanded', open);
+    if(open) p.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
 
   // Calendario de Inicio (solo lee datos): las últimas 4 semanas, o un mes completo con ‹ y ›.
   // ‹ desde "Últimas 4 semanas" va al mes actual y sigue hacia atrás hasta el mes de la primera actividad;
@@ -2467,10 +2584,9 @@
   function renderHome(){
     const mins = minutesByDay(), st = streakInfo(mins);
     document.getElementById('streakVal').textContent = st.cur;
-    document.getElementById('streakLbl').textContent = st.cur === 1 ? 'día de racha' : 'días de racha';
-    document.getElementById('streakRec').textContent = st.best
-      ? 'Tu récord: ' + st.best + (st.best === 1 ? ' día' : ' días')
-      : 'Haz ' + dailyMin() + ' min de actividad hoy para empezar tu racha';
+    document.getElementById('streakLbl').textContent = st.cur === 1 ? 'día' : 'días';
+    document.getElementById('streakBest').textContent = st.best;
+    document.getElementById('streakBestLbl').textContent = st.best === 1 ? 'día' : 'días';
     const today = new Date(); today.setHours(12,0,0,0);
     const tk = dayKey(today);
     // semana de lunes a domingo
@@ -2479,6 +2595,8 @@
     for(let i=0; i<7; i++){ const d = new Date(monday); d.setDate(monday.getDate()+i); wMin += mins.get(dayKey(d)) || 0; }
     setBar('today', Math.round(mins.get(tk) || 0), dailyMin());
     setBar('week', Math.round(wMin), weekMin());
+    setRing(Math.round(mins.get(tk) || 0), dailyMin(), dayStatus(mins, today));
+    renderWeekStrip(mins, monday, today);
     // mascota: pose y mensaje según cómo va el día
     const tStat = dayStatus(mins, today), left = Math.max(0, Math.ceil(dailyMin() - (mins.get(tk) || 0)));
     const recent = [1,2,3].some(n=>{ const d = new Date(today); d.setDate(d.getDate()-n); return (mins.get(dayKey(d)) || 0) > 0; });
@@ -2586,13 +2704,19 @@
   function renderWeek(){
     const plan = weekPlan(), box = document.getElementById('rtWeekRows');
     document.getElementById('rtWeek').style.display = routines.length ? '' : 'none';
-    box.innerHTML = [1,2,3,4,5,6,0].map(d=>`<div class="rtWeekRow"><b>${DAY2[d]}</b>
-      <select data-wday="${d}"><option value="">Sin rutina</option>${routines.map(r=>`<option value="${esc(r.id)}"${plan[d] === r.id ? ' selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>`).join('');
+    // tira compacta: cada día muestra su rutina; al tocarlo se abre la lista (el select va encima, invisible)
+    const FULL = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'], today = new Date().getDay();
+    box.innerHTML = [1,2,3,4,5,6,0].map(d=>{ const r = routines.find(x=>x.id === plan[d]);
+      return `<label class="wkDay${r ? ' on' : ''}${d === today ? ' today' : ''}"><b>${DAY2[d]}</b><span>${r ? ico('dumbbell') : '—'}</span>
+      <select data-wday="${d}" aria-label="Rutina del ${FULL[d]}"><option value="">Sin rutina</option>${routines.map(x=>`<option value="${esc(x.id)}"${plan[d] === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>`; }).join('');
+    // debajo, en una línea, qué rutina toca cada día (los nombres no caben enteros en la tira)
+    const sum = [1,2,3,4,5,6,0].map(d=>{ const r = routines.find(x=>x.id === plan[d]); return r ? '<b>' + DAY2[d] + '</b> ' + esc(r.name) : ''; }).filter(Boolean);
+    document.getElementById('rtWeekSum').innerHTML = sum.length ? sum.join(' · ') : 'Todavía no hay rutinas en tu semana.';
   }
   document.getElementById('rtWeekRows').addEventListener('change', ev=>{
     const s = ev.target.closest('[data-wday]'); if(!s) return;
     const plan = weekPlan(); if(s.value) plan[s.dataset.wday] = s.value; else delete plan[s.dataset.wday];
-    LS.set('mirun_weekplan', plan); showSaved();
+    LS.set('mirun_weekplan', plan); showSaved(); renderWeek();
   });
   document.getElementById('todayPlan').addEventListener('click', ev=>{
     const b = ev.target.closest('#btnPlanGo'); if(!b) return;

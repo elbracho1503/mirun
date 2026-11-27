@@ -93,3 +93,32 @@ Ajustes del diagnóstico hecho con Impeccable. CSS en el bloque `DISEÑO 2` al f
   40 px de alto, separados 8 px (Borrar en rojo suave).
 - **Pantalla de inicio (al abrir)**: `background_color` y `theme_color` de `manifest.json` y `<meta name="theme-color">`
   = `#001548`, el azul marino del fondo del logo del rayo (`img/iconos/`). El fondo de la app sigue en `--bg` `#070d1f`.
+
+## Diseño 3 (rama `prueba/diseno3`, 2026-11-25)
+CSS en los bloques `DISEÑO 3` de `css/app.css`.
+- **Inicio**, de arriba abajo: "Tu meta de hoy" con un anillo (minutos de hoy / meta diaria; verde al cumplir) y una
+  frase corta; el botón principal "Empezar actividad"; "Hoy toca" (si hay rutina para hoy); una fila con Racha,
+  Semana (con barra) y Mejor racha; la mascota con su mensaje y la frase del día; "Esta semana" como tira de Lu a Do
+  (cumplido en verde, descanso punteado, incompleto azul suave, hoy con anillo) y "Ver calendario" que abre el
+  calendario completo de antes; "Tu actividad de hoy".
+- **Menos cajas y menos brillo** (bloque `DISEÑO 3: MENOS CAJAS`): `.panel` ya no es una caja (sin fondo, borde ni
+  sombra); los grupos se separan con 32 px y un título de 17 px. Solo son tarjetas los elementos de una lista o un aviso
+  (Hoy toca, actividades del Historial, rutinas, globo de la mascota, próximo logro): fondo `--track`, sin borde ni halo.
+  Sin halos de color en ningún lado (botones, "+", medallas, foto, GPS). Fondo de la app plano. El degradado `--grad`
+  queda solo en el botón principal de cada pantalla (lista de ids en el CSS); los demás `.btn-start` son azul sólido.
+  Medallas planas: azul `#173a7a` o dorada `#e0a628`.
+- **Legibilidad** (bloque `DISEÑO 3: LEGIBILIDAD`): `--sub2` pasa de `#5d6d8f` (3,3 a 1) a `#8796b6` (5,4 a 1 o más sobre
+  fondo, tarjeta y campo); los ejemplos de los campos en `#7c8bab` (4,7 a 1 o más) y escritos "ej. 170". Sin etiquetas en
+  MAYÚSCULAS ("Meta de distancia", "km en total", "Mejor tiempo"…) y ninguna de menos de 12 px. Al tocar un campo:
+  contorno azul de 2 px; los botones con teclado también lo muestran (`:focus-visible`).
+- **Perfil en secciones** (bloque `DISEÑO 3: PERFIL EN SECCIONES`): Tú (foto, nombre, unidades, sexo, peso, edad,
+  estatura, objetivo, nivel y "Mis metas y días de descanso"), Compañero, Avisos (voz, sonidos y vibración, frases de fe,
+  pausa automática: interruptores), Mapa y Mis datos (copia, espacio usado, liberar espacio). Sin botón "Guardar perfil":
+  cada ajuste se guarda al cambiar (`saveProfile`), con los mismos campos y reglas de antes.
+- **Mi semana** (Mis rutinas): tira de 7 días (Lu a Do). Un día con rutina se ve en azul con el ícono de pesas; al
+  tocarlo se abre la lista de rutinas (el `select` de siempre, invisible encima). Debajo, una línea con qué toca cada día.
+- Perfil: nombre, peso, edad y estatura también se guardan mientras se escribe, 1 s después de la última tecla (sin
+  reescribir el campo en uso). Un número a medio escribir ("64." o vacío) no se guarda hasta completarlo o salir del campo.
+- **Ajustar la foto de perfil** (`#photoCrop`, bloque `DISEÑO 3: AJUSTAR LA FOTO`): al elegir una foto se ve dentro de
+  un círculo; se mueve con el dedo y se acerca o aleja con pellizco, el control deslizante o la rueda (1× a 4×; la foto
+  siempre cubre el círculo). "Listo" guarda lo que se ve, a 256 × 256 JPEG 0,82 como antes; "Cancelar" deja la foto anterior.
