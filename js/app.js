@@ -2027,8 +2027,8 @@
     ivlTick(sec);
     zoneTick(sec);
 
-    const alertEl = document.getElementById('paceAlert');
-    if(runType==='correr' && goal.paceMin!=null && paceMinPerKm>0){
+    const alertEl = document.getElementById('paceAlert'); // con zona de ritmo (goal.zone) no se muestra: un solo aviso de ritmo
+    if(runType==='correr' && !goal.zone && goal.paceMin!=null && paceMinPerKm>0){
       const goalPace = goal.paceMin + (goal.paceSec||0)/60;
       const diff = paceMinPerKm - goalPace;
       if(diff > 0.33){
