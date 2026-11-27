@@ -44,7 +44,7 @@ Estado: ⬜ pendiente · 🟨 en curso · ✅ hecho.
 | 20 | Mascota más viva: flota más, gestos espontáneos cada 8–10 s en Inicio (saltito, inclinación, pose), salto marcado al tocarla; pausa con app oculta y nada con reducir movimiento | ✅ 2026-11-06 (rama `prueba/celebracion`) |
 | 21 | Pasada de alineación: centrar títulos, números grandes, tarjetas cortas y pantallas vacías; listas y formularios siguen a la izquierda | ⬜ |
 | 22 | Pausa automática y tiempo en movimiento en actividades con GPS (2 min / 25 m; sigue sola a 15 m; pregunta a los 10 min; interruptor en Perfil) | ✅ 2026-11-18 (rama `prueba/autopausa`) |
-| 22b | Los entrenos por intervalos (futuro) deben desactivar la pausa automática | ⬜ |
+| 22b | Los entrenos por intervalos desactivan la pausa automática (`autoPauseOn`, 2026-11-27) | ✅ |
 | 23 | Mis rutinas: crear/editar/borrar rutinas de fuerza (menú "+"), sesión con series, cuenta regresiva y pausa (retoma si se cierra la app), guardar como actividad "Flexiones, abdominales, burpees" con el detalle (visible en Historial, no editable) y rutinas en la copia | ✅ 2026-11-18 (rama `prueba/rutinas`, merge a main) |
 | 23b | Pendiente pequeño: si queda una rutina sin terminar y se cierra la caja del GPS, mostrar un aviso de la rutina en Inicio | ⬜ |
 | 24 | (mediano) Corredor fantasma: correr contra una carrera propia anterior; punto fantasma en el mapa y aviso por voz de la diferencia (ej. "vas 20 m adelante"). Solo usa datos del propio teléfono | ⬜ |

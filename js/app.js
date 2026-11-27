@@ -378,6 +378,10 @@
   let profile = LS.get('mirun_profile', {weight:70, age:30, sex:'x'});
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
+  let ivl = null, ivlNext = null; // entreno por intervalos en curso / elegido para la próxima salida (ver INTERVALOS)
+  // nombres de los bloques de intervalos: arriba porque el Historial se dibuja al abrir y los usa (ver INTERVALOS)
+  const IVL_LBL = {calentamiento:'Calentamiento', suave:'Suave', fuerte:'Fuerte', serie:'Serie', descanso:'Descanso', calma:'Vuelta a la calma', extra:'Después del entreno'};
+  const IVL_K = Object.keys(IVL_LBL);
   let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
 
   // ---------- PASOS ----------
@@ -405,6 +409,7 @@
     if(tab==='records'){ renderRecords(); renderAchievements(); }
     if(tab==='body') renderEvo();
     if(tab==='rutinas') renderRoutines();
+    if(tab==='ivl') renderIvl();
     if(tab==='profile') renderSpace();
     if(tab==='run'){ const rp = document.getElementById('runPhrase'); if(rp) rp.textContent = dailyPhrase('correr');
       if(profile.mapMode !== 'linea' && navigator.onLine) loadLeaflet(); }
@@ -434,10 +439,13 @@
       showTab('add'); document.getElementById('actForm').scrollIntoView({block:'start'}); // pantalla Registrar (#tab-add): actividad sin GPS arriba
     } else if(o.dataset.plus === 'carrera'){
       showTab('add'); document.getElementById('manForm').scrollIntoView({block:'start'}); // carrera sin GPS (a mano)
+    } else if(o.dataset.plus === 'intervalos'){
+      showTab('ivl'); // Intervalos con GPS (ver INTERVALOS)
     } else if(o.dataset.plus === 'rutina'){
       showTab('rutinas'); // Mis rutinas (ver MIS RUTINAS)
     } else {
       document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === o.dataset.plus));
+      ivlNext = null; renderIvlPre(); // correr, caminar o bici normal: sin el entreno por intervalos elegido antes
       showTab('run');
     }
   });
@@ -1126,6 +1134,7 @@
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
           ${stepsOf(h) ? `<div class="histSteps">${stepsTxt(h)}</div>` : ''}
+          ${ivlDetail(h.intervals)}
           ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}" data-ri="${ri}"></canvas>
             <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
@@ -1722,7 +1731,7 @@
   const AUTO_STILL_MS = 120000, AUTO_STILL_M = 25, AUTO_RESUME_M = 15, AUTO_ASK_MS = 600000;
   let autoPaused = false, stillAnchor = null, lastFix = null, pauseAt = null, pauseStartedAt = 0;
   let autoPausedMs = 0, autoPauses = 0, resumeHits = 0, autoAsked = false;
-  function autoPauseOn(){ return profile.autoPause !== false; }
+  function autoPauseOn(){ return profile.autoPause !== false && !ivl; } // en un entreno por intervalos no actúa (plan 22b)
   function resetAutoPause(){ autoPaused = false; stillAnchor = null; lastFix = null; pauseAt = null; pauseStartedAt = 0; autoPausedMs = 0; autoPauses = 0; resumeHits = 0; autoAsked = false; }
   // aviso en pantalla; con ask = true, la pregunta de los 10 minutos con el botón Terminar
   function showAutoPause(on, ask){
@@ -1881,6 +1890,7 @@
     }
   }
   function announceSplit(name, that, n, splitTime, sec){
+    if(ivl) return; // en intervalos la voz y la vibración son solo para los cambios de bloque
     try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
     const pm = Math.floor(splitTime/60), ps = Math.round(splitTime%60);
     say(name + ' ' + n + '. ' + that + ' en ' + pm + ' minutos ' +
@@ -1911,6 +1921,7 @@
       type: runType, startTime, elapsedBeforePause, paused, totalDist, path, splits,
       lastSplitDist, lastSplitTime, lastVoiceMi, lastVoiceTime,
       autoPaused, pauseAt, pauseStartedAt, autoPausedMs, autoPauses, autoAsked, // pausa automática (se agregan)
+      ivl, // entreno por intervalos en curso (o null)
       savedAt: Date.now()
     }, mode || 'once');
   }
@@ -1975,6 +1986,7 @@
     }
     document.getElementById('calVal').textContent = calcCalories(totalDist, sec, runType);
     checkSplit(sec);
+    ivlTick(sec);
 
     const alertEl = document.getElementById('paceAlert');
     if(runType==='correr' && goal.paceMin!=null && paceMinPerKm>0){
@@ -2201,6 +2213,11 @@
     elapsedBeforePause = state ? state.elapsedBeforePause : 0;
     totalDist = state ? state.totalDist : 0;
     runType = (state && state.type) || selectedGpsType();
+    // intervalos: al retomar, el entreno sigue donde iba; al empezar, el elegido en la pantalla Intervalos
+    if(state) ivl = state.ivl ? ivlRestore(state.ivl) : null;
+    else { ivl = ivlNext ? ivlStart(ivlNext) : null; ivlNext = null; }
+    if(ivl) runType = 'correr';
+    renderIvlPre();
     document.getElementById('gpsTypeRow').style.display = 'none';
     path = state ? (state.path || []) : [];
     splits = state ? (state.splits || []) : [];
@@ -2234,6 +2251,7 @@
     keepScreenOn();
     saveCurrentRun(true);
     updateDisplay();
+    if(ivl && !state) ivlCue(); // anuncia el primer bloque
   }
 
   document.getElementById('btnStart').addEventListener('click', ()=>{
@@ -2327,6 +2345,7 @@
 
     const recBefore = computeRecords(history);
     let runSaved = true;
+    const ivlInfo = ivl ? ivlFinish(sec) : null; // detalle de cada bloque del entreno por intervalos
     if(totalDist > 0.01){
       history.push({
         date: new Date().toISOString(),
@@ -2337,12 +2356,14 @@
         path: [], route: lightRoute(path), // ruta liviana (ver RUTA LIVIANA); los números ya se calcularon con todos los puntos
         splits: splits,
         type: runType,
-        ...autoInfo // pausa automática (solo si hubo)
+        ...autoInfo, // pausa automática (solo si hubo)
+        ...(ivlInfo && ivlInfo.blocks.length ? {intervals: ivlInfo} : {}) // intervalos: {name, kind, blocks:[{k, s, d, r}]}
       });
       sumRunDate = history[history.length - 1].date;
       runSaved = saveRunToHistory(history[history.length - 1]);
     } else { sumRunDate = null; clearCurrentRun(); } // tan corta que no se guarda
     document.getElementById('sumDiscardRow').style.display = sumRunDate ? '' : 'none';
+    ivl = null; renderIvlBox(0); // el entreno terminó con la carrera
 
     document.querySelector('#summaryOverlay h2').textContent = runSaved ? '¡Terminaste! ' + typeName(runType) : typeName(runType) + ': NO se pudo guardar (memoria llena)'; // guardada; "Descartar" la quita
     document.getElementById('gpsTypeRow').style.display = 'flex';
@@ -2436,6 +2457,216 @@
     if(LS.rescue.has(d)){ LS.rescue.delete(d); rescueDelete(d); }
     document.getElementById('summaryOverlay').classList.remove('show');
     renderHistory();
+  });
+
+  // ---------- INTERVALOS ----------
+  // Entrenos por intervalos con GPS que arma la persona (la app no recomienda cantidades). mirun_intervals = lista de:
+  // {id, name, kind:'tiempo'|'distancia'|'libre', warm, cool (segundos, 0 = sin), easy, hard (s), reps (tiempo y distancia),
+  //  dist (m), restKind:'tiempo'|'distancia', rest (s o m) (distancia)}. Libre (fartlek): botón "Acelero" / "Bajo".
+  function ivlNum(v, lo, hi){ v = Math.round(Number(v)); return isFinite(v) && v >= lo ? Math.min(hi, v) : null; }
+  function cleanIvlPlan(p){
+    if(!p || typeof p !== 'object' || !['tiempo','distancia','libre'].includes(p.kind)) return null;
+    const o = {id: typeof p.id === 'string' && /^[\w-]{1,40}$/.test(p.id) ? p.id : 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+               name: String(p.name || '').trim().slice(0, 40) || 'Intervalos', kind: p.kind,
+               warm: p.kind === 'libre' ? 0 : ivlNum(p.warm, 0, 3600) || 0, cool: p.kind === 'libre' ? 0 : ivlNum(p.cool, 0, 3600) || 0};
+    if(o.kind === 'tiempo'){ o.easy = ivlNum(p.easy, 5, 3600); o.hard = ivlNum(p.hard, 5, 3600); o.reps = ivlNum(p.reps, 1, 50);
+      if(!o.easy || !o.hard || !o.reps) return null; }
+    if(o.kind === 'distancia'){ o.dist = ivlNum(p.dist, 20, 10000); o.reps = ivlNum(p.reps, 1, 50);
+      o.restKind = p.restKind === 'distancia' ? 'distancia' : 'tiempo'; o.rest = ivlNum(p.rest, 0, o.restKind === 'tiempo' ? 1800 : 5000) || 0;
+      if(!o.dist || !o.reps) return null; }
+    return o;
+  }
+  function cleanIvlPlans(a){ return Array.isArray(a) ? a.map(cleanIvlPlan).filter(Boolean).slice(0, 30) : []; }
+  let ivlPlans = cleanIvlPlans(LS.get('mirun_intervals', []));
+  function saveIvlPlans(){ return LS.set('mirun_intervals', ivlPlans); }
+  function mmss(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function ivlSummary(p){
+    const wc = (p.warm ? ' · calentamiento ' + mmss(p.warm) : '') + (p.cool ? ' · calma ' + mmss(p.cool) : '');
+    if(p.kind === 'tiempo') return p.reps + ' × (' + mmss(p.easy) + ' suave + ' + mmss(p.hard) + ' fuerte)' + wc;
+    if(p.kind === 'distancia') return p.reps + ' × ' + p.dist + ' m' + (p.rest ? ' · descanso ' + (p.restKind === 'tiempo' ? mmss(p.rest) : p.rest + ' m') : ' · sin descanso') + wc;
+    return 'Libre (Acelero / Bajo)' + wc;
+  }
+  let ivlEditId = null;
+  function ivlView(edit){ document.getElementById('ivlListView').style.display = edit ? 'none' : ''; document.getElementById('ivlEditView').style.display = edit ? '' : 'none'; }
+  function renderIvl(){
+    ivlView(false);
+    document.getElementById('ivlList').innerHTML = ivlPlans.length ? ivlPlans.map(p=>`<div class="rtCard">
+        <div class="rtName">${esc(p.name)}</div><div class="hint">${esc(ivlSummary(p))}</div>
+        <div class="btnRow"><button class="btn btn-start" data-ivl-go="${esc(p.id)}">Empezar</button>
+          <button class="btn btn-ghost" data-ivl-edit="${esc(p.id)}">Editar</button></div>
+        <button class="linkBtn rtDel" data-ivl-del="${esc(p.id)}">Borrar entreno</button></div>`).join('')
+      : '<div class="hint" style="margin-top:12px;">Todavía no tienes entrenos por intervalos. Crea el primero.</div>';
+  }
+  function ivlKindShow(k){
+    document.querySelectorAll('#ivlKind .chip').forEach(c=>c.classList.toggle('on', c.dataset.kind === k));
+    document.getElementById('ivlFTiempo').style.display = k === 'tiempo' ? '' : 'none';
+    document.getElementById('ivlFDist').style.display = k === 'distancia' ? '' : 'none';
+    document.getElementById('ivlFReps').style.display = k === 'libre' ? 'none' : '';
+    document.getElementById('ivlFLibre').style.display = k === 'libre' ? '' : 'none';
+    document.getElementById('ivlWarmCool').style.display = k === 'libre' ? 'none' : '';
+  }
+  function ivlRestShow(rk){
+    document.querySelectorAll('#ivlRestKind .chip').forEach(c=>c.classList.toggle('on', c.dataset.rk === rk));
+    document.getElementById('ivlRestUnit').textContent = rk === 'tiempo' ? 'segundos (0 = sin descanso)' : 'metros (0 = sin descanso)';
+  }
+  function ivlEdit(p){
+    ivlEditId = p ? p.id : null;
+    document.getElementById('ivlEdTitle').textContent = p ? 'Editar entreno' : 'Nuevo entreno';
+    const v = (id, x)=>{ document.getElementById(id).value = x === undefined || x === null || x === '' ? '' : x; };
+    v('ivlName', p ? p.name : ''); v('ivlReps', p && p.reps);
+    v('ivlEasyMin', p && p.easy ? Math.floor(p.easy / 60) : ''); v('ivlEasySec', p && p.easy ? p.easy % 60 : '');
+    v('ivlHardMin', p && p.hard ? Math.floor(p.hard / 60) : ''); v('ivlHardSec', p && p.hard ? p.hard % 60 : '');
+    v('ivlDist', p && p.dist); v('ivlRest', p && p.kind === 'distancia' ? p.rest : '');
+    v('ivlWarm', p && p.warm ? Math.round(p.warm / 60) : ''); v('ivlCool', p && p.cool ? Math.round(p.cool / 60) : '');
+    ivlKindShow(p ? p.kind : 'tiempo'); ivlRestShow(p && p.restKind === 'distancia' ? 'distancia' : 'tiempo');
+    document.getElementById('ivlEdMsg').textContent = '';
+    ivlView(true);
+  }
+  document.getElementById('ivlKind').addEventListener('click', ev=>{ const c = ev.target.closest('[data-kind]'); if(c) ivlKindShow(c.dataset.kind); });
+  document.getElementById('ivlRestKind').addEventListener('click', ev=>{ const c = ev.target.closest('[data-rk]'); if(c) ivlRestShow(c.dataset.rk); });
+  document.getElementById('btnIvlNew').addEventListener('click', ()=>{
+    if(ivlPlans.length >= 30){ alert('Puedes tener hasta 30 entrenos por intervalos.'); return; }
+    ivlEdit(null);
+  });
+  document.getElementById('btnIvlCancel').addEventListener('click', renderIvl);
+  document.getElementById('btnIvlSave').addEventListener('click', ()=>{
+    const g = id=>document.getElementById(id).value, n = id=>Number(g(id)) || 0, msg = document.getElementById('ivlEdMsg');
+    const kind = document.querySelector('#ivlKind .chip.on').dataset.kind, restKind = document.querySelector('#ivlRestKind .chip.on').dataset.rk;
+    const raw = {id: ivlEditId || undefined, name: g('ivlName'), kind, warm: n('ivlWarm') * 60, cool: n('ivlCool') * 60,
+      easy: n('ivlEasyMin') * 60 + n('ivlEasySec'), hard: n('ivlHardMin') * 60 + n('ivlHardSec'), reps: n('ivlReps'),
+      dist: n('ivlDist'), restKind, rest: n('ivlRest')};
+    const p = cleanIvlPlan(raw);
+    if(!p){ msg.style.color = 'var(--amber)';
+      msg.textContent = kind === 'tiempo' ? 'Escribe cuánto dura lo suave y lo fuerte (5 segundos o más) y cuántas repeticiones (1 a 50).'
+        : 'Escribe la distancia de cada serie (20 m o más) y cuántas repeticiones (1 a 50).'; return; }
+    const i = ivlPlans.findIndex(x=>x.id === p.id);
+    if(i >= 0) ivlPlans[i] = p; else ivlPlans.push(p);
+    if(!saveIvlPlans()) return;
+    showSaved(); renderIvl();
+  });
+  document.getElementById('ivlList').addEventListener('click', ev=>{
+    const b = ev.target.closest('[data-ivl-go],[data-ivl-edit],[data-ivl-del]'); if(!b) return;
+    const p = ivlPlans.find(x=>x.id === (b.dataset.ivlGo || b.dataset.ivlEdit || b.dataset.ivlDel)); if(!p) return;
+    if(b.dataset.ivlEdit) ivlEdit(p);
+    else if(b.dataset.ivlDel){ if(!confirm('¿Borrar el entreno "' + p.name + '"? Las actividades que ya guardaste no se borran.')) return;
+      ivlPlans = ivlPlans.filter(x=>x !== p); saveIvlPlans(); renderIvl(); }
+    else ivlChoose(p);
+  });
+  // "Empezar": el entreno queda elegido en la pantalla del GPS (siempre como correr); se arranca con "Empezar" de allá
+  function ivlChoose(p){
+    if(running){ showTab('run'); return; }
+    ivlNext = p;
+    document.querySelectorAll('#gpsTypeRow .chip').forEach(c=>c.classList.toggle('on', c.dataset.gtype === 'correr'));
+    showTab('run'); renderIvlPre();
+  }
+  function renderIvlPre(){
+    const b = document.getElementById('ivlPre'); if(!b) return;
+    b.style.display = ivlNext && !running ? '' : 'none';
+    if(ivlNext) b.querySelector('span').innerHTML = '<b>Intervalos: ' + esc(ivlNext.name) + '</b><small>' + esc(ivlSummary(ivlNext)) + '</small>';
+  }
+  document.getElementById('btnIvlPreDel').addEventListener('click', ()=>{ ivlNext = null; renderIvlPre(); });
+
+  // Durante el entreno. ivl = {plan, blocks: [{k, s (segundos) o m (metros), r (n° de serie)}], i: bloque actual,
+  // t0 / d0: tiempo en movimiento (s) y distancia (km) al empezar el bloque, done: bloques terminados {k, s, d, r},
+  // free: 'fuerte' o 'suave' (libre), ended: ya terminó el plan}. Va dentro de mirun_current: se retoma si se cierra la app.
+  // Avanza con el tiempo EN MOVIMIENTO (la pausa lo detiene) y con la distancia del GPS. La pausa automática no actúa.
+  function ivlBlocks(p){
+    const b = [];
+    if(p.warm) b.push({k: 'calentamiento', s: p.warm});
+    if(p.kind === 'tiempo') for(let r = 1; r <= p.reps; r++){ b.push({k: 'suave', s: p.easy, r}); b.push({k: 'fuerte', s: p.hard, r}); }
+    if(p.kind === 'distancia') for(let r = 1; r <= p.reps; r++){
+      b.push({k: 'serie', m: p.dist, r});
+      if(r < p.reps && p.rest) b.push(p.restKind === 'distancia' ? {k: 'descanso', m: p.rest, r} : {k: 'descanso', s: p.rest, r});
+    }
+    if(p.cool) b.push({k: 'calma', s: p.cool});
+    return b;
+  }
+  function ivlStart(p){ const blocks = ivlBlocks(p);
+    return {plan: p, blocks, i: 0, t0: 0, d0: 0, done: [], free: p.kind === 'libre' ? 'suave' : null, ended: p.kind !== 'libre' && !blocks.length}; }
+  function cleanIvlBlocks(a){
+    return Array.isArray(a) ? a.filter(x=>x && IVL_K.includes(x.k) && isFinite(x.s) && isFinite(x.d)).slice(0, 500).map(x=>Object.assign(
+      {k: x.k, s: Math.max(0, Math.min(86400, Math.round(Number(x.s)))), d: Math.max(0, Math.min(1000, Math.round(Number(x.d) * 1000) / 1000))},
+      Number.isInteger(x.r) && x.r > 0 && x.r <= 50 ? {r: x.r} : {})) : [];
+  }
+  function ivlRestore(st){ // entreno guardado en mirun_current (al retomar)
+    const p = cleanIvlPlan(st && st.plan); if(!p) return null;
+    const s = ivlStart(p);
+    s.i = Math.max(0, Math.min(s.blocks.length, Math.round(Number(st.i)) || 0));
+    s.t0 = Number(st.t0) || 0; s.d0 = Number(st.d0) || 0; s.done = cleanIvlBlocks(st.done);
+    if(p.kind === 'libre') s.free = st.free === 'fuerte' ? 'fuerte' : 'suave';
+    s.ended = p.kind !== 'libre' && (!!st.ended || s.i >= s.blocks.length);
+    return s;
+  }
+  function ivlCur(){
+    if(ivl.plan.kind === 'libre') return {k: ivl.free};
+    return ivl.ended ? {k: 'extra'} : ivl.blocks[ivl.i];
+  }
+  function ivlClose(sec){ // cierra el tramo actual y lo anota en done
+    const b = ivlCur(), s = sec - ivl.t0, d = Math.max(0, totalDist - ivl.d0);
+    if(s >= 1 || d >= 0.001) ivl.done.push(Object.assign({k: b.k, s: Math.round(s), d: Math.round(d * 1000) / 1000}, b.r ? {r: b.r} : {}));
+    ivl.t0 = sec; ivl.d0 = totalDist;
+  }
+  function ivlBuzz(){ if(profile.sounds !== false){ try{ if(navigator.vibrate) navigator.vibrate([250, 100, 250]); }catch(e){} } }
+  function ivlCue(){ // voz y vibración al empezar cada bloque (la voz respeta "Aviso por voz"; la vibración, "Sonidos y vibración")
+    const b = ivlCur(), last = b.r && b.r === ivl.plan.reps;
+    let t;
+    if(ivl.plan.kind === 'libre') t = 'Entreno libre. Toca Acelero cuando quieras.';
+    else if(ivl.ended) t = 'Entreno terminado. Puedes seguir o tocar Terminar.';
+    else if(b.k === 'fuerte') t = (last ? 'Última serie. ' : '') + '¡Ahora fuerte!';
+    else if(b.k === 'serie') t = (last ? 'Última serie. ' : 'Serie ' + b.r + '. ') + '¡Ahora fuerte! ' + b.m + ' metros.';
+    else if(b.k === 'suave') t = ivl.i === 0 || ivl.blocks[ivl.i - 1].k === 'calentamiento' ? 'Empieza suave.' : 'Descansa.';
+    else if(b.k === 'descanso') t = 'Descansa.';
+    else if(b.k === 'calentamiento') t = 'Calentamiento.';
+    else t = 'Vuelta a la calma.';
+    say(t); ivlBuzz();
+  }
+  function ivlTick(sec){ // cada segundo (updateDisplay): pasa de bloque cuando se cumple su tiempo o su distancia
+    if(ivl && running && !paused && ivl.plan.kind !== 'libre'){
+      for(let n = 0; n < 5 && !ivl.ended; n++){
+        const b = ivl.blocks[ivl.i], el = sec - ivl.t0, dm = (totalDist - ivl.d0) * 1000;
+        if(!((b.s && el >= b.s) || (b.m && dm >= b.m))) break;
+        ivlClose(b.s ? ivl.t0 + b.s : sec); // por tiempo: termina justo en su duración (sin acumular atrasos)
+        ivl.i++; if(ivl.i >= ivl.blocks.length) ivl.ended = true;
+        ivlCue(); saveCurrentRun(true);
+      }
+    }
+    renderIvlBox(sec);
+  }
+  function renderIvlBox(sec){
+    const box = document.getElementById('ivlBox');
+    if(!ivl || !running){ box.style.display = 'none'; return; }
+    box.style.display = '';
+    const b = ivlCur(), el = sec - ivl.t0, free = ivl.plan.kind === 'libre';
+    box.className = 'k-' + b.k;
+    document.getElementById('ivlLbl').textContent = (free ? (b.k === 'fuerte' ? 'Fuerte' : 'Suave') : ivl.ended ? 'Entreno completo' : IVL_LBL[b.k]).toUpperCase();
+    document.getElementById('ivlLeft').textContent = free || ivl.ended ? mmss(el) : b.s ? mmss(b.s - el)
+      : Math.max(0, Math.ceil(b.m - (totalDist - ivl.d0) * 1000)) + ' m';
+    document.getElementById('ivlRep').textContent = !b.r ? '' : b.k === 'descanso' ? 'Descanso ' + b.r + ' de ' + (ivl.plan.reps - 1) : 'Serie ' + b.r + ' de ' + ivl.plan.reps;
+    const nx = free || ivl.ended ? null : ivl.blocks[ivl.i + 1];
+    document.getElementById('ivlNextTxt').textContent = free ? '' : ivl.ended ? 'Toca Terminar cuando quieras'
+      : nx ? 'Sigue: ' + IVL_LBL[nx.k].toLowerCase() + ' ' + (nx.s ? mmss(nx.s) : nx.m + ' m') : 'Último bloque';
+    const fb = document.getElementById('btnIvlFree');
+    fb.style.display = free ? '' : 'none';
+    if(free){ fb.textContent = b.k === 'fuerte' ? 'Bajo' : 'Acelero'; fb.disabled = paused; }
+  }
+  // al terminar la carrera: se cierra el tramo en curso y queda el detalle que se guarda en la actividad
+  function ivlFinish(sec){
+    ivlClose(sec);
+    return {name: ivl.plan.name, kind: ivl.plan.kind, blocks: ivl.done.slice(0, 500)};
+  }
+  // detalle en el Historial: cada bloque con su tiempo, distancia y ritmo
+  function ivlDetail(iv){
+    if(!iv || !Array.isArray(iv.blocks) || !iv.blocks.length) return '';
+    const rows = iv.blocks.map(b=>`<li><b>${IVL_LBL[b.k] || 'Tramo'}${b.r ? ' ' + b.r : ''}</b> · ${mmss(b.s)}${b.d > 0.005 ? ' · ' + fmtD(b.d) + ' · ' + paceTxt(b.s, b.d) + ' ' + paceU() : ''}</li>`).join('');
+    return `<details class="rtHist"><summary>Intervalos «${esc(iv.name || 'Intervalos')}» · ${iv.blocks.length} ${iv.blocks.length === 1 ? 'tramo' : 'tramos'}</summary><ul>${rows}</ul></details>`;
+  }
+  // libre (fartlek): cada toque cierra el tramo y cambia entre suave y fuerte
+  document.getElementById('btnIvlFree').addEventListener('click', ()=>{
+    if(!ivl || ivl.plan.kind !== 'libre' || !running || paused) return;
+    const sec = currentElapsedSec(); ivlClose(sec);
+    ivl.free = ivl.free === 'fuerte' ? 'suave' : 'fuerte';
+    say(ivl.free === 'fuerte' ? '¡Acelera!' : 'Baja el ritmo.'); ivlBuzz();
+    saveCurrentRun(true); renderIvlBox(sec);
   });
 
   // ---------- RACHA Y REGISTRO DE ACTIVIDADES ----------
@@ -3406,7 +3637,7 @@
   document.getElementById('btnExport').addEventListener('click', ()=>{
     LS.set('mirun_lastBackup', new Date().toISOString(), 'quiet');
     const data = JSON.stringify({app:'MiRun', version:4, exported:new Date().toISOString(), photo: LS.get('mirun_photo', null),
-                                 profile, goal, history, body, routines, weekplan: weekPlan()});
+                                 profile, goal, history, body, routines, weekplan: weekPlan(), intervals: ivlPlans});
     const blob = new Blob([data], {type:'application/json'});
     const a = document.createElement('a');
     const d = new Date();
@@ -3446,6 +3677,10 @@
                     .map(s=>({km:Number(s.km), seconds:Number(s.seconds), partial:!!s.partial})) : [],
             manual: !!h.manual,
             ...(h.favorite === true ? {favorite: true} : {}), // favorita (estrella del Historial)
+            // detalle de un entreno por intervalos: solo bloques conocidos con números válidos
+            ...(h.intervals && typeof h.intervals === 'object' && cleanIvlBlocks(h.intervals.blocks).length ? {intervals: {
+              name: String(h.intervals.name || 'Intervalos').slice(0, 40), kind: ['tiempo','distancia','libre'].includes(h.intervals.kind) ? h.intervals.kind : 'libre',
+              blocks: cleanIvlBlocks(h.intervals.blocks)}} : {}),
             // campos de v5 (actividades): solo valores conocidos
             ...(ACTIVITIES.some(a=>a.k === h.type) ? {type: h.type} : {}),
             ...(INTENSITY.includes(h.intensity) ? {intensity: h.intensity} : {}),
@@ -3500,6 +3735,12 @@
           });
           if(nuevasRt) saveRoutines();
         }
+        // entrenos por intervalos guardados (copias nuevas): se limpian y se agregan los que no estén (por id)
+        let nuevosIvl = 0;
+        if(Array.isArray(data.intervals)){
+          cleanIvlPlans(data.intervals).forEach(p=>{ if(ivlPlans.length < 30 && !ivlPlans.some(x=>x.id === p.id)){ ivlPlans.push(p); nuevosIvl++; } });
+          if(nuevosIvl) saveIvlPlans();
+        }
         // semana (copias nuevas): solo días 0 a 6 con rutinas que existen; completa días vacíos, no pisa
         if(data.weekplan && typeof data.weekplan === 'object' && !Array.isArray(data.weekplan)){
           const plan = weekPlan(); let ch = false;
@@ -3550,6 +3791,7 @@
         if(LS.fails !== importFails0){ backupNote(NOT_SAVED); backupMsg.style.color = 'var(--amber)'; fileInput.value = ''; return; }
         backupNote('Listo: se recuperaron ' + nuevas.length + ' actividades' + (nuevasRt ? ', ' : ' y ') + nuevasMed + ' mediciones' +
                    (nuevasRt ? ' y ' + nuevasRt + (nuevasRt === 1 ? ' rutina' : ' rutinas') : '') + ' nuevas' +
+                   (nuevosIvl ? ', ' + nuevosIvl + (nuevosIvl === 1 ? ' entreno' : ' entrenos') + ' por intervalos' : '') +
                    (perfil ? ', además de tu perfil y metas.' : '.'));
       }catch(e){
         backupNote('Ese archivo no es una copia de MiRun.');

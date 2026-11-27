@@ -66,3 +66,12 @@ Ver docs/privado/NEGOCIO.md (local)
   teléfono costaría ~970 KB sin uso.
 - Maskable 1024: `img/icono-original.png` reducido a 820 px (80 %), centrado desde 102 px, relleno #011649 (el fondo del
   original) con borde difuminado de 24 px. El logo queda dentro del círculo de la pantalla de inicio de Android 12+ (radio 1/3).
+
+## Entrenos por intervalos — 2026-11-27 (decisiones tomadas por la opción más simple; pendientes de confirmar)
+- Al terminar el plan la carrera NO se detiene sola: avisa "Entreno terminado" y sigue registrando (tramo "después del
+  entreno") hasta que la persona toque Terminar.
+- Libre (fartlek) sin calentamiento ni vuelta a la calma (el botón Acelero/Bajo ya permite tramos suaves).
+- Durante un entreno, los avisos de cada kilómetro (voz y vibración) se callan para no tapar los cambios de bloque.
+- La voz de los cambios respeta "Aviso por voz" del Perfil; la vibración, "Sonidos y vibración".
+- Por tiempo, cada repetición es suave y luego fuerte (como el ejemplo "2 min suave + 2 min fuerte").
+- Las distancias del entreno van en metros aunque la app esté en millas.

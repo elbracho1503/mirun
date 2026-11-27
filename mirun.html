@@ -96,6 +96,12 @@
 
   <!-- RUN SCREEN -->
   <div class="screen" id="tab-run">
+    <!-- entreno por intervalos en curso: bloque actual, lo que sigue y la serie (renderIvlBox en js/app.js) -->
+    <div id="ivlBox" style="display:none;">
+      <div class="ivlNow"><b id="ivlLbl"></b> · <span class="num" id="ivlLeft"></span></div>
+      <div class="ivlInfo"><span id="ivlRep"></span><span id="ivlNextTxt"></span></div>
+      <button class="btn" id="btnIvlFree" style="display:none;">Acelero</button>
+    </div>
     <div class="clock">
       <div class="val num" id="distVal">0.00</div>
       <div class="lbl"><span class="uDLr">Kilómetros recorridos</span></div>
@@ -160,6 +166,8 @@
       <button class="chip" data-gtype="bici"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>Bicicleta</button>
       </div>
       <div class="phrase" id="runPhrase"></div>
+      <!-- entreno por intervalos elegido para esta salida (renderIvlPre en js/app.js) -->
+      <div id="ivlPre" style="display:none;"><span></span><button class="linkBtn" id="btnIvlPreDel">Quitar</button></div>
     </div>
     <div class="btnRow" id="startRow">
       <button class="btn btn-start" id="btnStart">Empezar</button>
@@ -249,6 +257,60 @@
       </div>
     </div>
     <div id="rtSesView" style="display:none;"></div>
+  </div>
+
+  <!-- INTERVALOS: entrenos por intervalos con GPS que arma la persona (sección INTERVALOS en js/app.js) -->
+  <div class="screen" id="tab-ivl">
+    <div class="panel" id="ivlListView">
+      <h3>Intervalos con GPS</h3>
+      <div class="hint">Arma tus entrenos: por tiempo, por distancia o libres. Tú eliges las cantidades. Al empezar, la app te avisa cada cambio.</div>
+      <div id="ivlList"></div>
+      <div class="btnRow"><button class="btn btn-ghost" id="btnIvlNew">+ Crear entreno</button></div>
+    </div>
+    <div class="panel" id="ivlEditView" style="display:none;">
+      <h3 id="ivlEdTitle">Nuevo entreno</h3>
+      <label for="ivlName">Nombre</label>
+      <input type="text" id="ivlName" maxlength="40" placeholder="ej. Series de 400">
+      <label>Tipo</label>
+      <div class="chips" id="ivlKind">
+        <button class="chip on" data-kind="tiempo">Por tiempo</button>
+        <button class="chip" data-kind="distancia">Por distancia</button>
+        <button class="chip" data-kind="libre">Libre</button>
+      </div>
+      <div id="ivlFTiempo">
+        <label>Suave</label>
+        <div class="row2"><div><input type="number" inputmode="numeric" id="ivlEasyMin" min="0" placeholder="ej. 2" aria-label="Suave, minutos"><small class="unitLbl">min</small></div>
+          <div><input type="number" inputmode="numeric" id="ivlEasySec" min="0" max="59" placeholder="ej. 0" aria-label="Suave, segundos"><small class="unitLbl">s</small></div></div>
+        <label>Fuerte</label>
+        <div class="row2"><div><input type="number" inputmode="numeric" id="ivlHardMin" min="0" placeholder="ej. 2" aria-label="Fuerte, minutos"><small class="unitLbl">min</small></div>
+          <div><input type="number" inputmode="numeric" id="ivlHardSec" min="0" max="59" placeholder="ej. 0" aria-label="Fuerte, segundos"><small class="unitLbl">s</small></div></div>
+      </div>
+      <div id="ivlFDist" style="display:none;">
+        <label for="ivlDist">Distancia de cada serie (metros)</label>
+        <input type="number" inputmode="numeric" id="ivlDist" min="20" placeholder="ej. 100">
+        <label>Descanso entre series</label>
+        <div class="chips" id="ivlRestKind">
+          <button class="chip on" data-rk="tiempo">Por tiempo</button>
+          <button class="chip" data-rk="distancia">Por distancia</button>
+        </div>
+        <input type="number" inputmode="numeric" id="ivlRest" min="0" placeholder="ej. 60" style="margin-top:8px;" aria-label="Descanso">
+        <small class="unitLbl" id="ivlRestUnit">segundos (0 = sin descanso)</small>
+      </div>
+      <div id="ivlFReps">
+        <label for="ivlReps">Repeticiones</label>
+        <input type="number" inputmode="numeric" id="ivlReps" min="1" max="50" placeholder="ej. 6">
+      </div>
+      <div class="hint" id="ivlFLibre" style="display:none;margin-top:10px;">Durante el entreno tocas «Acelero» y «Bajo». La app guarda el tiempo, la distancia y el ritmo de cada tramo.</div>
+      <div class="row2" id="ivlWarmCool">
+        <div><label for="ivlWarm">Calentamiento (min)</label><input type="number" inputmode="numeric" id="ivlWarm" min="0" placeholder="opcional"></div>
+        <div><label for="ivlCool">Vuelta a la calma (min)</label><input type="number" inputmode="numeric" id="ivlCool" min="0" placeholder="opcional"></div>
+      </div>
+      <div class="hint" id="ivlEdMsg" style="margin-top:10px;"></div>
+      <div class="btnRow">
+        <button class="btn btn-ghost" id="btnIvlCancel">Cancelar</button>
+        <button class="btn btn-start" id="btnIvlSave">Guardar entreno</button>
+      </div>
+    </div>
   </div>
 
   <!-- HISTORY SCREEN -->
@@ -557,6 +619,7 @@
     <button class="sheetOpt" data-plus="correr"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg></span>Correr con GPS</button>
     <button class="sheetOpt" data-plus="caminar"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg></span>Caminar con GPS</button>
     <button class="sheetOpt" data-plus="bici"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg></span>Bicicleta con GPS</button>
+    <button class="sheetOpt" data-plus="intervalos"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></svg></span>Intervalos con GPS<small>Por tiempo, por distancia o libres (fartlek)</small></button>
     <button class="sheetOpt" data-plus="rutina"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg></span>Mi rutina de fuerza<small>Tus ejercicios, con series y repeticiones o segundos</small></button>
     <button class="sheetOpt" data-plus="manual"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg></span>Registrar otra actividad<small>Gimnasio, natación, baile, yoga…</small></button>
     <button class="sheetOpt" data-plus="carrera"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg></span>Carrera sin GPS<small>Caminadora o una carrera que no registraste. Cuenta para tus récords</small></button>

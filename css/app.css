@@ -859,3 +859,19 @@
   .pcStage canvas:active{cursor:grabbing;}
   .pcMask{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:0 0 0 400px rgba(3,7,18,.62);outline:2px solid rgba(255,255,255,.85);}
   #pcZoom{width:100%;accent-color:var(--signal);margin:4px 0 0;}
+
+  /* ==== INTERVALOS ==== */
+  .unitLbl{display:block;font-size:12px;color:var(--sub);margin-top:4px;}
+  #ivlPre{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border-radius:14px;
+    background:rgba(37,99,235,.18);border:1px solid #2563eb;}
+  #ivlPre b{display:block;font-size:15px;} #ivlPre small{display:block;font-size:13px;color:var(--sub);margin-top:2px;}
+  #ivlPre .linkBtn{color:var(--text);padding:8px;}
+  #btnIvlSave{background:var(--grad);box-shadow:0 4px 12px rgba(0,0,0,.35);}
+  #ivlBox{margin-top:12px;padding:16px;border-radius:20px;background:var(--track);text-align:center;border:2px solid var(--lane-line);}
+  #ivlBox .ivlNow{font-size:30px;font-weight:800;letter-spacing:.5px;line-height:1.15;}
+  #ivlBox .ivlInfo{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:15px;color:var(--sub);}
+  #ivlBox.k-fuerte, #ivlBox.k-serie{border-color:#ff8a3d;} #ivlBox.k-fuerte .ivlNow, #ivlBox.k-serie .ivlNow{color:#ffb27a;}
+  #ivlBox.k-suave, #ivlBox.k-descanso{border-color:var(--good);} #ivlBox.k-suave .ivlNow, #ivlBox.k-descanso .ivlNow{color:#7be3b8;}
+  #ivlBox.k-calentamiento, #ivlBox.k-calma, #ivlBox.k-extra{border-color:var(--signal);}
+  #btnIvlFree{width:100%;margin-top:12px;padding:16px;font-size:18px;font-weight:700;background:#2563eb;color:#fff;border:none;}
+  #ivlBox.k-fuerte #btnIvlFree{background:#c2410c;}
