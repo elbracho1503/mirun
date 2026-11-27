@@ -379,6 +379,9 @@
   let goal = LS.get('mirun_goal', {dist:null, time:null, paceMin:null, paceSec:null});
   let history = LS.get('mirun_history', []);
   let ivl = null, ivlNext = null; // entreno por intervalos en curso / elegido para la próxima salida (ver INTERVALOS)
+  // nombres de los bloques de intervalos: arriba porque el Historial se dibuja al abrir y los usa (ver INTERVALOS)
+  const IVL_LBL = {calentamiento:'Calentamiento', suave:'Suave', fuerte:'Fuerte', serie:'Serie', descanso:'Descanso', calma:'Vuelta a la calma', extra:'Después del entreno'};
+  const IVL_K = Object.keys(IVL_LBL);
   let body = LS.get('mirun_body', []); // [{date:'AAAA-MM-DD', peso, barriga, biceps, muslo, pantorrilla}]
 
   // ---------- PASOS ----------
@@ -1130,6 +1133,7 @@
             <div><div class="num">${h.cal}</div><small>kcal</small></div>
           </div>
           ${stepsOf(h) ? `<div class="histSteps">${stepsTxt(h)}</div>` : ''}
+          ${ivlDetail(h.intervals)}
           ${hasRoute ? `<div class="mini-route" data-map="${encodeURIComponent(h.date)}"><canvas id="hist-route-${ri}" data-ri="${ri}"></canvas>
             <button class="mapBigBtn" aria-label="Ver mapa a pantalla completa">Ver mapa</button></div>` : ''}
         </div>`;
@@ -2340,6 +2344,7 @@
 
     const recBefore = computeRecords(history);
     let runSaved = true;
+    const ivlInfo = ivl ? ivlFinish(sec) : null; // detalle de cada bloque del entreno por intervalos
     if(totalDist > 0.01){
       history.push({
         date: new Date().toISOString(),
@@ -2350,7 +2355,8 @@
         path: [], route: lightRoute(path), // ruta liviana (ver RUTA LIVIANA); los números ya se calcularon con todos los puntos
         splits: splits,
         type: runType,
-        ...autoInfo // pausa automática (solo si hubo)
+        ...autoInfo, // pausa automática (solo si hubo)
+        ...(ivlInfo && ivlInfo.blocks.length ? {intervals: ivlInfo} : {}) // intervalos: {name, kind, blocks:[{k, s, d, r}]}
       });
       sumRunDate = history[history.length - 1].date;
       runSaved = saveRunToHistory(history[history.length - 1]);
@@ -2456,8 +2462,6 @@
   // Entrenos por intervalos con GPS que arma la persona (la app no recomienda cantidades). mirun_intervals = lista de:
   // {id, name, kind:'tiempo'|'distancia'|'libre', warm, cool (segundos, 0 = sin), easy, hard (s), reps (tiempo y distancia),
   //  dist (m), restKind:'tiempo'|'distancia', rest (s o m) (distancia)}. Libre (fartlek): botón "Acelero" / "Bajo".
-  const IVL_LBL = {calentamiento:'Calentamiento', suave:'Suave', fuerte:'Fuerte', serie:'Serie', descanso:'Descanso', calma:'Vuelta a la calma', extra:'Después del entreno'};
-  const IVL_K = Object.keys(IVL_LBL);
   function ivlNum(v, lo, hi){ v = Math.round(Number(v)); return isFinite(v) && v >= lo ? Math.min(hi, v) : null; }
   function cleanIvlPlan(p){
     if(!p || typeof p !== 'object' || !['tiempo','distancia','libre'].includes(p.kind)) return null;
@@ -2643,6 +2647,17 @@
     const fb = document.getElementById('btnIvlFree');
     fb.style.display = free ? '' : 'none';
     if(free){ fb.textContent = b.k === 'fuerte' ? 'Bajo' : 'Acelero'; fb.disabled = paused; }
+  }
+  // al terminar la carrera: se cierra el tramo en curso y queda el detalle que se guarda en la actividad
+  function ivlFinish(sec){
+    ivlClose(sec);
+    return {name: ivl.plan.name, kind: ivl.plan.kind, blocks: ivl.done.slice(0, 500)};
+  }
+  // detalle en el Historial: cada bloque con su tiempo, distancia y ritmo
+  function ivlDetail(iv){
+    if(!iv || !Array.isArray(iv.blocks) || !iv.blocks.length) return '';
+    const rows = iv.blocks.map(b=>`<li><b>${IVL_LBL[b.k] || 'Tramo'}${b.r ? ' ' + b.r : ''}</b> · ${mmss(b.s)}${b.d > 0.005 ? ' · ' + fmtD(b.d) + ' · ' + paceTxt(b.s, b.d) + ' ' + paceU() : ''}</li>`).join('');
+    return `<details class="rtHist"><summary>Intervalos «${esc(iv.name || 'Intervalos')}» · ${iv.blocks.length} ${iv.blocks.length === 1 ? 'tramo' : 'tramos'}</summary><ul>${rows}</ul></details>`;
   }
   // libre (fartlek): cada toque cierra el tramo y cambia entre suave y fuerte
   document.getElementById('btnIvlFree').addEventListener('click', ()=>{
