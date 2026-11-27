@@ -57,7 +57,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | CSS del diseño azul (encima del base) | `DISEÑO v5` |
 | Cabecera (botón Perfil con engranaje y "Perfil") y menú inferior con "+" | `<header>`, `Menú inferior`, `id="plusSheet"` (CSS: `MENÚ CON "+"`, `BOTÓN PERFIL DE LA CABECERA`) |
 | CSS de Inicio, calendario, chips | `INICIO: racha` |
-| Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `REGISTRAR` (`id="tab-add"`), `RECORDS`, `BODY`, `PROFILE` |
+| Pantallas HTML | `<!-- HOME SCREEN`, `RUN SCREEN`, `GOAL`, `HISTORY`, `INTERVALOS` (`id="tab-ivl"`), `REGISTRAR` (`id="tab-add"`), `RECORDS`, `BODY`, `PROFILE` |
 | Formulario de actividad y carrera a mano (HTML): pantalla Registrar, se abre desde el "+" (`data-plus="manual"` / `"carrera"`) | `id="actForm"`, `id="manForm"` |
 | Resumen al terminar: la carrera ya quedó guardada; "Guardar" cierra y "Descartar" la quita con confirmación (`btnSumDiscard`, `sumRunDate`) | `id="summaryOverlay"` |
 | Íconos SVG de Lucide (`ICONS`, `ico('nombre')`; licencia en `docs/LICENCIAS.md`). Nunca emojis como íconos | `// ---------- ÍCONOS` (CSS: `.ico` en `DISEÑO 2`) |
@@ -87,6 +87,7 @@ Los números de línea cambian; busca por marcador. CSS → `css/app.css`, HTML 
 | Pantalla encendida | `// ---------- PANTALLA ENCENDIDA` |
 | Racha, minutos por día, Inicio (anillo "Tu meta de hoy" `setRing`, fila Racha/Semana/Mejor racha, tira de 7 días `renderWeekStrip` y "Ver calendario" `btnCalToggle`), calendario (`renderCal`, `calMonth`), saludo de regreso (`welcomeBack`), registrar actividad | `// ---------- RACHA Y REGISTRO` (HTML: `id="calGrid"`, CSS: `INICIO: racha`) |
 | Planeador de la semana: datos (`weekPlan`, `mirun_weekplan`) y tarjeta "Hoy toca" de Inicio (`renderTodayPlan`, `routineAvgMin`) | `// ---------- PLANEADOR DE LA SEMANA` (HTML: `id="todayPlan"`, `id="rtWeek"`; "Mi semana" = tira de 7 días `renderWeek` en MIS RUTINAS, resumen `id="rtWeekSum"`) |
+| Intervalos con GPS (menú "+"): entrenos guardados (`ivlPlans`, `mirun_intervals`), editor, elegir (`ivlNext`), motor durante la carrera (`ivl`, `ivlTick`, `ivlCue`, `renderIvlBox`; sin pausa automática) y detalle en el Historial (`ivlDetail`) | `// ---------- INTERVALOS` (HTML: `id="tab-ivl"`, `id="ivlBox"`, `id="ivlPre"`; CSS: `INTERVALOS`) |
 | Mis rutinas (menú "+"): lista, editor (`EXERCISES`, `routines`, `mirun_routines`) | `// ---------- MIS RUTINAS` (HTML: `id="tab-rutinas"`, CSS: `MIS RUTINAS`) |
 | Sesión de rutina: modo guiado (`buildOrder`, `guidedDone`, `renderGuided`: un ejercicio a la vez, descanso, por ejercicio/circuito) y vista de lista para sesiones viejas; cuenta regresiva, pausa, retomar (`mirun_session`) y guardar como actividad con `routine` | `// ---------- SESIÓN DE RUTINA` (HTML: `id="rtSesView"`) |
 | Celebración de la meta del día (`maybeCelebrate`, `playCheer`, `celebrate`; `mirun_celebrated`, `profile.sounds`) | `// ---------- CELEBRACIÓN` (CSS: `CELEBRACIÓN`, HTML Perfil "Sonidos y vibración": `id="profSounds"`) |

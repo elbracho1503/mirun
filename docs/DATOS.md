@@ -131,3 +131,18 @@ series en rango; lo inválido se descarta). El `routine` de una actividad se lim
   La copia exporta los dos formatos y la importación acepta los dos (route: solo pares de números válidos, máx. 50.000).
 - `favorite: true` (opcional, desde 2026-11-25): actividad marcada con la estrella del Historial; sin el campo = no favorita. Va en la copia y la importación solo acepta `true`.
 - **Liberar espacio** (Perfil, desde 2026-11-25): borra SOLO la ruta (`path = []` y sin `route`) de actividades que terminaron hace más de 6, 12 o 24 meses (lo elige la persona) y no son favoritas. Todo lo demás queda igual; antes dice cuánto libera y cuántas actividades toca, recomienda "Guardar copia" y pide confirmación. Es la única acción que borra rutas, y solo la hace la persona.
+
+## mirun_intervals — entrenos por intervalos guardados (desde 2026-11-27)
+```js
+[{ id, name,                       // nombre hasta 40 caracteres
+   kind: 'tiempo' | 'distancia' | 'libre',
+   warm, cool,                     // calentamiento y vuelta a la calma en segundos (0 = sin; en libre siempre 0)
+   easy, hard, reps,               // tiempo: suave y fuerte en segundos (5 a 3600), repeticiones 1 a 50
+   dist, reps, restKind, rest }]   // distancia: serie en metros (20 a 10000), descanso por 'tiempo' (s) o 'distancia' (m)
+```
+- Máximo 30. En la copia: `intervals` (lista); la importación los limpia (`cleanIvlPlans`) y agrega solo ids nuevos.
+- Una carrera hecha con un entreno se guarda como `type:'correr'` normal más `intervals: {name, kind, blocks:[{k, s, d, r}]}`:
+  `k` = calentamiento | suave | fuerte | serie | descanso | calma | extra (después de terminar el plan), `s` segundos,
+  `d` km, `r` número de serie. La importación acepta solo esos valores (`cleanIvlBlocks`, máx. 500 bloques).
+- Durante el entreno, `mirun_current.ivl` guarda el avance (bloque actual, tiempo y distancia al empezarlo, bloques hechos):
+  si la app se cierra, "Seguir corriendo" retoma en el mismo bloque.
