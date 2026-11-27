@@ -875,3 +875,7 @@
   #ivlBox.k-calentamiento, #ivlBox.k-calma, #ivlBox.k-extra{border-color:var(--signal);}
   #btnIvlFree{width:100%;margin-top:12px;padding:16px;font-size:18px;font-weight:700;background:#2563eb;color:#fff;border:none;}
   #ivlBox.k-fuerte #btnIvlFree{background:#c2410c;}
+
+  /* ==== ELEGIR LA VOZ (Perfil > Avisos) ==== */
+  .voiceRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;padding:6px 2px 14px;border-bottom:1px solid var(--lane-line);}
+  .voiceRow label{margin-top:4px;} .voiceRow select{margin:0;} .voiceRow .btn{padding:13px 16px;}

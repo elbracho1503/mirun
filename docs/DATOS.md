@@ -146,3 +146,5 @@ series en rango; lo inválido se descarta). El `routine` de una actividad se lim
   `d` km, `r` número de serie. La importación acepta solo esos valores (`cleanIvlBlocks`, máx. 500 bloques).
 - Durante el entreno, `mirun_current.ivl` guarda el avance (bloque actual, tiempo y distancia al empezarlo, bloques hechos):
   si la app se cierra, "Seguir corriendo" retoma en el mismo bloque.
+- `profile.voiceName` (desde 2026-11-27): nombre de la voz elegida en Perfil > Avisos > Voz ('' o sin campo = Automática).
+  Si esa voz no está en el teléfono, se usa la automática y el nombre se conserva. Va en la copia (texto, máx. 100).

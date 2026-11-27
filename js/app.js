@@ -496,6 +496,7 @@
     on('profFaith', profile.faith === true); // frases de fe: sin campo = apagado
     on('profAutoPause', profile.autoPause !== false); // sin campo = encendida
     set('profMap', profile.mapMode);
+    if(typeof renderVoicePick === 'function') renderVoicePick();
     refreshLevelHint(); refreshHello(); refreshAvatars(); refreshUnitLabels();
   }
   function refreshLevelHint(){
@@ -631,7 +632,7 @@
 
   // Perfil: se guarda al cambiar cualquier ajuste (sin botón "Guardar perfil"); mismos campos y reglas que antes
   const PROF_FIELDS = ['profName','profUnits','profWeight','profAge','profHeight','profSex','profGoalType','profLevel',
-                       'profVoice','profSounds','profFaith','profAutoPause','profMap'];
+                       'profVoice','profSounds','profFaith','profAutoPause','profMap','profVoiceName'];
   document.getElementById('tab-profile').addEventListener('change', ev=>{ if(PROF_FIELDS.includes(ev.target.id)){ clearTimeout(profTypeT); saveProfile(); } });
   // los campos de texto también se guardan mientras se escribe: 1 s después de la última tecla (por si se cierra la app
   // sin salir del campo). Así no se reescribe el campo que se está usando (typing = true).
@@ -666,7 +667,8 @@
       sounds: document.getElementById('profSounds').checked,
       faith: document.getElementById('profFaith').checked, // "Frases de fe"
       autoPause: document.getElementById('profAutoPause').checked, // pausa automática en GPS
-      mapMode: document.getElementById('profMap').value
+      mapMode: document.getElementById('profMap').value,
+      voiceName: document.getElementById('profVoiceName').value.slice(0, 100) // '' = Automática
     });
     if(typeof refreshLiveMap === 'function') refreshLiveMap();
     LS.set('mirun_profile', profile);
@@ -1898,14 +1900,45 @@
   }
 
   // ---------- AVISO POR VOZ (funciona sin internet) ----------
-  function say(text){
-    if(!profile.voice || !('speechSynthesis' in window)) return;
+  function say(text, force){ // force: "Probar" en Perfil (aunque el aviso por voz esté apagado)
+    if((!profile.voice && !force) || !('speechSynthesis' in window)) return;
     try{
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'es-ES'; u.rate = 1;
+      const v = chosenVoice(); if(v){ u.voice = v; u.lang = v.lang; } // la elegida en Perfil; si ya no está, la automática
       window.speechSynthesis.speak(u);
     }catch(e){}
   }
+  // ---------- ELEGIR LA VOZ ----------
+  // Perfil > Avisos > Voz: las voces en español del teléfono (speechSynthesis.getVoices). profile.voiceName = nombre de la
+  // voz elegida ('' o sin campo = Automática). Si esa voz no está en este teléfono, se usa la automática sin fallar.
+  function esVoices(){
+    try{ return ('speechSynthesis' in window ? window.speechSynthesis.getVoices() : []).filter(v=>/^es([-_]|$)/i.test(v.lang || '')); }catch(e){ return []; }
+  }
+  function chosenVoice(){ return profile.voiceName ? esVoices().find(v=>v.name === profile.voiceName) || null : null; }
+  // mujer u hombre, solo si el nombre lo dice (palabras o nombres propios comunes de las voces); si no, nada
+  function voiceGender(name){ // (las listas van adentro: el Perfil se llena al abrir, antes de esta sección)
+    const VOICE_F = /\b(female|mujer|femenin[ao]|helena|laura|sabina|paulina|m[oó]nica|elvira|dalia|luc[ií]a|conchita|pen[eé]lope|lupe|paloma|elena|marisol|esperanza|francisca|ximena|valentina|camila|elsa|isabela|isabel|carmen|sof[ií]a|catalina|abril|beatriz|renata|salome|salom[eé]|teresa|marta|ana|mar[ií]a|ines|in[eé]s|julia|lola|rosa|paula|andrea|dolores|karla|carla|amelia|yolanda|lorena|triana|irene|vera|alba|estrella|larissa|nora)\b/i;
+    const VOICE_M = /\b(male|hombre|masculin[oa]|pablo|jorge|ra[uú]l|diego|enrique|[aá]lvaro|carlos|juan|andr[eé]s|miguel|sergio|jordi|tom[aá]s|gonzalo|federico|gerardo|alonso|dario|dar[ií]o|lorenzo|mateo|emilio|tadeo|liam|jos[eé]|antonio|manuel|luis|fernando|javier|alejandro|ricardo|eduardo|arnau|alberto|santiago|rodrigo|nicol[aá]s|teo)\b/i;
+    if(/\b(female|mujer)\b/i.test(name) || (VOICE_F.test(name) && !VOICE_M.test(name))) return 'mujer';
+    if(/\b(male|hombre)\b/i.test(name) || VOICE_M.test(name)) return 'hombre'; return ''; }
+  function renderVoicePick(){
+    const sel = document.getElementById('profVoiceName'), saved = profile.voiceName || '', list = esVoices();
+    const opt = (v, t)=>{ const o = document.createElement('option'); o.value = v; o.textContent = t; return o; };
+    sel.textContent = ''; sel.appendChild(opt('', 'Automática'));
+    list.forEach(v=>{ const g = voiceGender(v.name); sel.appendChild(opt(v.name, v.name.replace(/^Microsoft\s+/i, '') + ' · ' + v.lang + (g ? ' · ' + g : ''))); });
+    // la guardada no está en este teléfono: se conserva (por si vuelve) y se avisa que se usa la automática
+    if(saved && !list.some(v=>v.name === saved)) sel.appendChild(opt(saved, saved + ' (no está en este teléfono: se usa la automática)'));
+    sel.value = saved;
+  }
+  renderVoicePick();
+  try{ if('speechSynthesis' in window) window.speechSynthesis.addEventListener('voiceschanged', renderVoicePick); }catch(e){}
+  document.getElementById('btnVoiceTest').addEventListener('click', ()=>{
+    const keep = profile.voiceName; profile.voiceName = document.getElementById('profVoiceName').value; // prueba la que se ve elegida
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    say('Hola, soy tu voz en MiRun. ¡Vamos con todo!', true);
+    profile.voiceName = keep;
+  });
   function spokenTime(sec){
     const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
     return (h ? h + (h===1?' hora ':' horas ') : '') + m + (m===1?' minuto':' minutos');
@@ -3764,6 +3797,7 @@
           if(typeof p.sounds === 'boolean') ok.sounds = p.sounds; // v5: sonidos de celebración
           if(typeof p.faith === 'boolean') ok.faith = p.faith; // incluir frases de fe
           if(typeof p.autoPause === 'boolean') ok.autoPause = p.autoPause; // pausa automática en GPS
+          if(typeof p.voiceName === 'string') ok.voiceName = p.voiceName.slice(0, 100); // voz elegida ('' = automática)
           if(typeof p.character === 'string' && Object.prototype.hasOwnProperty.call(CHARACTERS, p.character)) ok.character = p.character; // compañero elegido
           if(p.mapMode === 'linea' || p.mapMode === 'calles') ok.mapMode = p.mapMode;
           if(p.units === 'metric' || p.units === 'imperial') ok.units = p.units; // v5: unidades (sin campo = métrico)

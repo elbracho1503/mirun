@@ -508,6 +508,12 @@
     <h2 class="secTitle">Avisos</h2>
     <label class="setRow" for="profVoice"><span><b>Aviso por voz</b><small>En cada kilómetro te dice el tiempo de ese kilómetro y el total. Funciona sin internet.</small></span>
       <span class="switch"><input type="checkbox" id="profVoice" role="switch"><i aria-hidden="true"></i></span></label>
+    <!-- voz en español del teléfono (renderVoicePick en js/app.js); "Automática" = la que elija el teléfono -->
+    <div class="voiceRow">
+      <div><label for="profVoiceName">Voz</label>
+        <select id="profVoiceName"><option value="">Automática</option></select></div>
+      <button class="btn btn-ghost" id="btnVoiceTest">Probar</button>
+    </div>
     <label class="setRow" for="profSounds"><span><b>Sonidos y vibración</b><small>Un sonido corto y una vibración suave cuando cumples tu meta del día.</small></span>
       <span class="switch"><input type="checkbox" id="profSounds" role="switch"><i aria-hidden="true"></i></span></label>
     <label class="setRow" for="profFaith"><span><b>Frases de fe</b><small>Incluir frases de fe entre las frases del día (Inicio, GPS y meta cumplida).</small></span>
